@@ -196,10 +196,30 @@ optional targetAppId?: string;
 
 #### Properties
 
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+###### Inherited from
+
+[`MessengerSocialClientOptions`](#messengersocialclientoptions).[`accessToken`](#accesstoken-1)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`MessengerSocialClientOptions`](#messengersocialclientoptions).[`baseUrl`](#baseurl-1)
+
 ##### client?
 
 ```ts
-optional client?: Pick<MessengerSocialClient, "getPage" | "listConversations">;
+optional client?: Pick<MessengerSocialClient, "listConversations" | "getPage">;
 ```
 
 ##### fetch?
@@ -273,25 +293,238 @@ optional graphApiVersion?: string;
 
 [`MessengerSocialClientOptions`](#messengersocialclientoptions).[`graphApiVersion`](#graphapiversion-1)
 
-##### pageAccessToken
+##### pageAccessToken?
 
 ```ts
-pageAccessToken: string;
+optional pageAccessToken?: string;
 ```
 
 ###### Inherited from
 
 [`MessengerSocialClientOptions`](#messengersocialclientoptions).[`pageAccessToken`](#pageaccesstoken-2)
 
-##### pageId
+##### pageId?
 
 ```ts
-pageId: string;
+optional pageId?: string;
 ```
 
 ###### Inherited from
 
 [`MessengerSocialClientOptions`](#messengersocialclientoptions).[`pageId`](#pageid-2)
+
+##### providerClient?
+
+```ts
+optional providerClient?: MessengerSocialProviderClient;
+```
+
+###### Inherited from
+
+[`MessengerSocialClientOptions`](#messengersocialclientoptions).[`providerClient`](#providerclient-2)
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`MessengerSocialClientOptions`](#messengersocialclientoptions).[`retry`](#retry-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`MessengerSocialClientOptions`](#messengersocialclientoptions).[`signal`](#signal-1)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`MessengerSocialClientOptions`](#messengersocialclientoptions).[`timeoutMs`](#timeoutms-1)
+
+***
+
+### MessengerProviderHandoverInput
+
+#### Extends
+
+- [`MessengerSocialJsonObject`](#messengersocialjsonobject)
+
+#### Indexable
+
+```ts
+[key: string]: MessengerSocialProviderExtensionValue
+```
+
+#### Properties
+
+##### metadata?
+
+```ts
+optional metadata?: string;
+```
+
+##### recipient
+
+```ts
+recipient: {
+  id: string;
+};
+```
+
+###### id
+
+```ts
+id: string;
+```
+
+##### target\_app\_id?
+
+```ts
+optional target_app_id?: string;
+```
+
+***
+
+### MessengerProviderSendMessageInput
+
+#### Extends
+
+- [`MessengerSocialJsonObject`](#messengersocialjsonobject)
+
+#### Indexable
+
+```ts
+[key: string]: MessengerSocialProviderExtensionValue
+```
+
+#### Properties
+
+##### message?
+
+```ts
+optional message?: MessengerSocialJsonObject;
+```
+
+##### messaging\_type
+
+```ts
+messaging_type: NonNullable<"RESPONSE" | "UPDATE" | "MESSAGE_TAG">;
+```
+
+##### notification\_type?
+
+```ts
+optional notification_type?: NonNullable<"REGULAR" | "SILENT_PUSH" | "NO_PUSH">;
+```
+
+##### recipient
+
+```ts
+recipient: {
+  id: string;
+};
+```
+
+###### id
+
+```ts
+id: string;
+```
+
+##### sender\_action?
+
+```ts
+optional sender_action?: NonNullable<"typing_on" | "typing_off" | "mark_seen">;
+```
+
+##### tag?
+
+```ts
+optional tag?: string;
+```
+
+***
+
+### MessengerProviderUploadAttachmentInput
+
+#### Extends
+
+- [`MessengerSocialJsonObject`](#messengersocialjsonobject)
+
+#### Indexable
+
+```ts
+[key: string]: MessengerSocialProviderExtensionValue
+```
+
+#### Properties
+
+##### message
+
+```ts
+message: {
+  attachment: {
+     payload: {
+        is_reusable: boolean;
+        url: string;
+     };
+     type: MessengerAttachmentType;
+  };
+};
+```
+
+###### attachment
+
+```ts
+attachment: {
+  payload: {
+     is_reusable: boolean;
+     url: string;
+  };
+  type: MessengerAttachmentType;
+};
+```
+
+###### attachment.payload
+
+```ts
+payload: {
+  is_reusable: boolean;
+  url: string;
+};
+```
+
+###### attachment.payload.is\_reusable
+
+```ts
+is_reusable: boolean;
+```
+
+###### attachment.payload.url
+
+```ts
+url: string;
+```
+
+###### attachment.type
+
+```ts
+type: MessengerAttachmentType;
+```
 
 ***
 
@@ -352,6 +585,14 @@ optional tag?: string;
 ***
 
 ### MessengerSocialClient
+
+#### Properties
+
+##### providerClient
+
+```ts
+providerClient: MessengerSocialProviderClient;
+```
 
 #### Methods
 
@@ -526,6 +767,18 @@ uploadAttachment(input): Promise<MessengerApiResponse>;
 
 #### Properties
 
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
 ##### fetch?
 
 ```ts
@@ -585,16 +838,42 @@ optional graphApiBaseUrl?: string;
 optional graphApiVersion?: string;
 ```
 
-##### pageAccessToken
+##### pageAccessToken?
 
 ```ts
-pageAccessToken: string;
+optional pageAccessToken?: string;
 ```
 
-##### pageId
+##### pageId?
 
 ```ts
-pageId: string;
+optional pageId?: string;
+```
+
+##### providerClient?
+
+```ts
+optional providerClient?: MessengerSocialProviderClient;
+```
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
 ```
 
 ***
@@ -603,6 +882,9 @@ pageId: string;
 
 #### Extended by
 
+- [`MessengerProviderHandoverInput`](#messengerproviderhandoverinput)
+- [`MessengerProviderSendMessageInput`](#messengerprovidersendmessageinput)
+- [`MessengerProviderUploadAttachmentInput`](#messengerprovideruploadattachmentinput)
 - [`MessengerSocialProviderExtensionFields`](#messengersocialproviderextensionfields)
 - [`MessengerSocialProviderResponse`](#messengersocialproviderresponse)
 
@@ -611,6 +893,135 @@ pageId: string;
 ```ts
 [key: string]: MessengerSocialProviderExtensionValue
 ```
+
+***
+
+### MessengerSocialProviderClient
+
+#### Methods
+
+##### getConversationMessages()
+
+```ts
+getConversationMessages(conversationId, input?): Promise<MessengerConversationResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `conversationId` | `string` |
+| `input?` | `Omit`\<[`MessengerConversationSearchInput`](#messengerconversationsearchinput), `"userId"`\> |
+
+###### Returns
+
+`Promise`\<[`MessengerConversationResponse`](#messengerconversationresponse)\>
+
+##### getPage()
+
+```ts
+getPage(): Promise<MessengerSocialProviderResponse>;
+```
+
+###### Returns
+
+`Promise`\<[`MessengerSocialProviderResponse`](#messengersocialproviderresponse)\>
+
+##### listConversations()
+
+```ts
+listConversations(input?): Promise<MessengerConversationResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`MessengerConversationSearchInput`](#messengerconversationsearchinput) |
+
+###### Returns
+
+`Promise`\<[`MessengerConversationResponse`](#messengerconversationresponse)\>
+
+##### passThreadControl()
+
+```ts
+passThreadControl(input): Promise<MessengerApiResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`MessengerProviderHandoverInput`](#messengerproviderhandoverinput) |
+
+###### Returns
+
+`Promise`\<[`MessengerApiResponse`](#messengerapiresponse)\>
+
+##### requestThreadControl()
+
+```ts
+requestThreadControl(input): Promise<MessengerApiResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`MessengerProviderHandoverInput`](#messengerproviderhandoverinput) |
+
+###### Returns
+
+`Promise`\<[`MessengerApiResponse`](#messengerapiresponse)\>
+
+##### sendMessage()
+
+```ts
+sendMessage(input): Promise<MessengerApiResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`MessengerProviderSendMessageInput`](#messengerprovidersendmessageinput) |
+
+###### Returns
+
+`Promise`\<[`MessengerApiResponse`](#messengerapiresponse)\>
+
+##### takeThreadControl()
+
+```ts
+takeThreadControl(input): Promise<MessengerApiResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`MessengerProviderHandoverInput`](#messengerproviderhandoverinput) |
+
+###### Returns
+
+`Promise`\<[`MessengerApiResponse`](#messengerapiresponse)\>
+
+##### uploadAttachment()
+
+```ts
+uploadAttachment(input): Promise<MessengerApiResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`MessengerProviderUploadAttachmentInput`](#messengerprovideruploadattachmentinput) |
+
+###### Returns
+
+`Promise`\<[`MessengerApiResponse`](#messengerapiresponse)\>
 
 ***
 
@@ -866,10 +1277,10 @@ function createMessengerAttachmentMessage(input): MessengerSendMessageInput;
 
 ***
 
-### createMessengerSocialClient()
+### createMessengerGraphProviderClient()
 
 ```ts
-function createMessengerSocialClient(options): MessengerSocialClient;
+function createMessengerGraphProviderClient(options): MessengerSocialProviderClient;
 ```
 
 #### Parameters
@@ -877,6 +1288,24 @@ function createMessengerSocialClient(options): MessengerSocialClient;
 | Parameter | Type |
 | ------ | ------ |
 | `options` | [`MessengerSocialClientOptions`](#messengersocialclientoptions) |
+
+#### Returns
+
+[`MessengerSocialProviderClient`](#messengersocialproviderclient)
+
+***
+
+### createMessengerSocialClient()
+
+```ts
+function createMessengerSocialClient(options?): MessengerSocialClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`MessengerSocialClientOptions`](#messengersocialclientoptions) |
 
 #### Returns
 
@@ -1082,7 +1511,7 @@ function defineMessengerSocialIntegration(options): DefinedIntegration<{
    }, {
      audiences: readonly ["customer-facing", "mixed"];
      capability: "thread";
-     description: "Reads Messenger conversation and message metadata with SDK-user-governed access and retention.";
+     description: "Reads Messenger conversation and message metadata through the configured Meta SDK-backed Graph adapter or provider client with SDK-user-governed access and retention.";
      exposesSensitiveData: true;
      label: "Use Messenger conversations";
      providerObjects: readonly [{
@@ -1099,7 +1528,7 @@ function defineMessengerSocialIntegration(options): DefinedIntegration<{
    }, {
      audiences: readonly ["customer-facing", "mixed"];
      capability: "read-provider-object";
-     description: "Reads Messenger conversation messages and metadata through the Page Conversations graph selected by SDK configuration.";
+     description: "Reads Messenger conversation messages and metadata through the configured Meta SDK-backed Graph adapter or provider client.";
      exposesSensitiveData: true;
      label: "Read Messenger conversations";
      providerObjects: readonly [{
@@ -1113,7 +1542,7 @@ function defineMessengerSocialIntegration(options): DefinedIntegration<{
    }, {
      audiences: readonly ["customer-facing", "mixed"];
      capability: "search-provider-object";
-     description: "Lists Messenger Page conversations with SDK-user-supplied filters such as user ID, fields, limits, and cursors.";
+     description: "Lists Messenger Page conversations through the configured Meta SDK-backed Graph adapter or provider client with SDK-user-supplied filters such as user ID, fields, limits, and cursors.";
      exposesSensitiveData: true;
      label: "List Messenger conversations";
      providerObjects: readonly [{
@@ -1167,12 +1596,25 @@ function defineMessengerSocialIntegration(options): DefinedIntegration<{
       }, {
         label: "Messenger conversation routing";
         url: "https://developers.facebook.com/documentation/business-messaging/messenger-platform/conversation-routing";
+      }, {
+        label: "Meta Business SDK for NodeJS";
+        url: "https://github.com/facebook/facebook-nodejs-business-sdk";
      }];
-     notes: readonly ["Coverage is typed for selected Messenger Platform support workflows: Page messages send, text payloads, sender actions, attachment payload/upload helpers, conversation/message reads, Page readiness, webhook challenge handling, and X-Hub-Signature-256 validation.", "Meta's current Messenger routing surface is Conversation Routing; deprecated Handover Protocol thread-control helpers are not advertised as a current handoff capability by this package.", "This is not full Messenger Platform coverage; Messenger profile, persistent menu, personas, discovery and engagement tools, account linking, NLP, analytics, marketing messages, conversation routing configuration, and broader Page/Graph administration remain outside this adapter."];
+     notes: readonly ["Coverage is typed for selected Messenger Platform support workflows: Page messages send, text payloads, sender actions, attachment payload/upload helpers, conversation/message reads, Page readiness, webhook challenge handling, and X-Hub-Signature-256 validation.", "Runtime provider operations use Meta's facebook-nodejs-business-sdk when credentials are configured; hosts may inject a Messenger/Meta provider client override.", "Meta's current Messenger routing surface is Conversation Routing; deprecated Handover Protocol thread-control helpers are not advertised as a current handoff capability by this package.", "This is not full Messenger Platform coverage; Messenger profile, persistent menu, personas, discovery and engagement tools, account linking, NLP, analytics, marketing messages, conversation routing configuration, and broader Page/Graph administration remain outside this adapter."];
      scope: "support-workflow-subset";
   };
   credentialRequirements: readonly [{
-     description: "Server-side Meta Page access token used for Messenger Platform Send and Conversations APIs.";
+     description: "Optional SDK-user-owned provider client implementing MessengerSocialProviderClient for Messenger Platform and selected Meta Graph operations.";
+     id: "messenger-provider-client";
+     label: "Messenger/Meta provider client override";
+     metadata: {
+        defaultClientPolicy: "facebook-nodejs-business-sdk-when-configured";
+        importPolicy: "provider-client-override-supported";
+        interface: "MessengerSocialProviderClient";
+     };
+     required: false;
+   }, {
+     description: "Server-side Meta Page access token used by the Meta SDK-backed Graph adapter or an injected Messenger/Meta provider client.";
      id: "messenger-page-access-token";
      label: "Messenger Page access token";
      metadata: {
@@ -1203,14 +1645,14 @@ function defineMessengerSocialIntegration(options): DefinedIntegration<{
   }];
   directions: readonly ["receive-only", "send-only", "bidirectional"];
   id: "social.messenger";
-  limitations: readonly ["Available operations depend on the SDK user's Meta app mode, Page connection, permissions, Page access token, webhook subscriptions, and messaging window rules.", "Meta no longer supports Handover Protocol as the normal Messenger routing model; SDK users should configure Conversation Routing outside this adapter, and the thread-control client methods are deprecated provider escape hatches only.", "Consent, outbound-contact policy, human escalation, attachment retention, redaction, and deletion behavior remain SDK-user configuration.", "This package provides Messenger transport helpers and does not choose default automation, promotional messaging, retry, or rate-limit policy."];
+  limitations: readonly ["Available operations depend on the SDK user's Meta app mode, Page connection, permissions, Page access token, webhook subscriptions, and messaging window rules.", "Meta no longer supports Handover Protocol as the normal Messenger routing model; SDK users should configure Conversation Routing outside this adapter, and the thread-control client methods are deprecated provider escape hatches only.", "Consent, outbound-contact policy, human escalation, attachment retention, redaction, and deletion behavior remain SDK-user configuration.", "This package provides Messenger payload/webhook helpers and does not choose default automation, promotional messaging, retry, HTTP transport, or rate-limit policy."];
   maintainers: readonly [{
      name: "Cognidesk";
      type: "official";
   }];
   metadata: {
      apiCoverage: {
-        checkedAt: "2026-06-18";
+        checkedAt: "2026-06-25";
         fullMetaGraphCoverage: false;
         fullProviderApi: false;
         generatedFromOfficialSpec: false;
@@ -1220,16 +1662,86 @@ function defineMessengerSocialIntegration(options): DefinedIntegration<{
         selectedOperationCount: 8;
      };
      channelCoverage: {
-        attachments: "typed-upload-send";
+        attachments: "facebook-nodejs-business-sdk-call";
         conversationRouting: "provider-supported-not-typed";
-        conversations: "typed-list-read";
+        conversations: "facebook-nodejs-business-sdk-call";
+        customTransportFallback: "package-owned-rest-adapter";
         handoverProtocolThreadControl: "provider-supported-deprecated-typed-thread-control";
-        messages: "typed-send";
-        pageReadiness: "typed-read";
-        senderActions: "typed-send";
+        messages: "facebook-nodejs-business-sdk-call";
+        pageReadiness: "facebook-nodejs-business-sdk-call";
+        senderActions: "facebook-nodejs-business-sdk-call";
         webhooks: "typed-challenge-verify-parse";
      };
      docs: "https://developers.facebook.com/docs/messenger-platform";
+     implementation: {
+        allowedOperations: readonly [{
+           alias: "messenger.webhook.parse";
+           checksum: "not-applicable-local-helper";
+           id: "parseMessengerWebhook";
+           source: "local-webhook-parser";
+           target: "package.webhooks.parseMessengerWebhook";
+         }, {
+           alias: "messenger.message.send";
+           checksum: "not-applicable-rest-adapter";
+           id: "sendMessage";
+           source: "provider-sdk";
+           target: "facebookBusinessSdk.FacebookAdsApi.call";
+         }, {
+           alias: "messenger.senderAction.send";
+           checksum: "not-applicable-rest-adapter";
+           id: "sendSenderAction";
+           source: "provider-sdk";
+           target: "facebookBusinessSdk.FacebookAdsApi.call";
+         }, {
+           alias: "messenger.attachment.upload";
+           checksum: "not-applicable-rest-adapter";
+           id: "uploadAttachment";
+           source: "provider-sdk";
+           target: "facebookBusinessSdk.FacebookAdsApi.call";
+         }, {
+           alias: "messenger.conversations.list";
+           checksum: "not-applicable-rest-adapter";
+           id: "listConversations";
+           source: "provider-sdk";
+           target: "facebookBusinessSdk.FacebookAdsApi.call";
+         }, {
+           alias: "messenger.conversationMessages.list";
+           checksum: "not-applicable-rest-adapter";
+           id: "getConversationMessages";
+           source: "provider-sdk";
+           target: "facebookBusinessSdk.FacebookAdsApi.call";
+         }, {
+           alias: "messenger.page.read";
+           checksum: "not-applicable-rest-adapter";
+           id: "getPage";
+           source: "provider-sdk";
+           target: "facebookBusinessSdk.FacebookAdsApi.call";
+         }, {
+           alias: "messenger.webhook-signature";
+           checksum: "not-applicable-local-helper";
+           id: "validateMessengerWebhookSignature";
+           source: "local-signature-helper";
+           target: "package.webhooks.validateMessengerWebhookSignature";
+        }];
+        implementationStrategy: "provider-sdk-default-with-typed-domain-adapter";
+        providerSdk: {
+           license: "Platform License";
+           package: "facebook-nodejs-business-sdk";
+           runtimeCall: "FacebookAdsApi.call";
+           runtimeEntry: "FacebookAdsApi";
+           version: "24.0.1";
+        };
+        sdkDecision: "Meta's maintained facebook-nodejs-business-sdk@24.0.1 is provider-owned and exposes FacebookAdsApi.call(method, path, params). This package maps its strict Messenger support slice onto that SDK call surface by default; the package-owned REST adapter is retained only for explicit custom transport options such as fetch, graphApiBaseUrl, graphApiVersion, signal, timeoutMs, or retry.";
+        verifiedAt: "2026-06-25";
+     };
+     manifestOnlySafe: true;
+     providerClient: {
+        customTransportFallbackPolicy: "package-owned-rest-adapter-for-fetch-base-version-signal-timeout-retry";
+        defaultClientPolicy: "facebook-nodejs-business-sdk-when-configured";
+        importPolicy: "provider-client-override-supported";
+        interface: "MessengerSocialProviderClient";
+        package: "facebook-nodejs-business-sdk-or-host-provided";
+     };
   };
   name: "Facebook Messenger";
   operations: readonly [{
@@ -1484,7 +1996,7 @@ function defineMessengerSocialIntegration(options): DefinedIntegration<{
    \}, \{
      `audiences`: readonly \[`"customer-facing"`, `"mixed"`\];
      `capability`: `"thread"`;
-     `description`: `"Reads Messenger conversation and message metadata with SDK-user-governed access and retention."`;
+     `description`: `"Reads Messenger conversation and message metadata through the configured Meta SDK-backed Graph adapter or provider client with SDK-user-governed access and retention."`;
      `exposesSensitiveData`: `true`;
      `label`: `"Use Messenger conversations"`;
      `providerObjects`: readonly \[\{
@@ -1501,7 +2013,7 @@ function defineMessengerSocialIntegration(options): DefinedIntegration<{
    \}, \{
      `audiences`: readonly \[`"customer-facing"`, `"mixed"`\];
      `capability`: `"read-provider-object"`;
-     `description`: `"Reads Messenger conversation messages and metadata through the Page Conversations graph selected by SDK configuration."`;
+     `description`: `"Reads Messenger conversation messages and metadata through the configured Meta SDK-backed Graph adapter or provider client."`;
      `exposesSensitiveData`: `true`;
      `label`: `"Read Messenger conversations"`;
      `providerObjects`: readonly \[\{
@@ -1515,7 +2027,7 @@ function defineMessengerSocialIntegration(options): DefinedIntegration<{
    \}, \{
      `audiences`: readonly \[`"customer-facing"`, `"mixed"`\];
      `capability`: `"search-provider-object"`;
-     `description`: `"Lists Messenger Page conversations with SDK-user-supplied filters such as user ID, fields, limits, and cursors."`;
+     `description`: `"Lists Messenger Page conversations through the configured Meta SDK-backed Graph adapter or provider client with SDK-user-supplied filters such as user ID, fields, limits, and cursors."`;
      `exposesSensitiveData`: `true`;
      `label`: `"List Messenger conversations"`;
      `providerObjects`: readonly \[\{
@@ -1569,12 +2081,25 @@ function defineMessengerSocialIntegration(options): DefinedIntegration<{
       \}, \{
         `label`: `"Messenger conversation routing"`;
         `url`: `"https://developers.facebook.com/documentation/business-messaging/messenger-platform/conversation-routing"`;
+      \}, \{
+        `label`: `"Meta Business SDK for NodeJS"`;
+        `url`: `"https://github.com/facebook/facebook-nodejs-business-sdk"`;
      \}\];
-     `notes`: readonly \[`"Coverage is typed for selected Messenger Platform support workflows: Page messages send, text payloads, sender actions, attachment payload/upload helpers, conversation/message reads, Page readiness, webhook challenge handling, and X-Hub-Signature-256 validation."`, `"Meta's current Messenger routing surface is Conversation Routing; deprecated Handover Protocol thread-control helpers are not advertised as a current handoff capability by this package."`, `"This is not full Messenger Platform coverage; Messenger profile, persistent menu, personas, discovery and engagement tools, account linking, NLP, analytics, marketing messages, conversation routing configuration, and broader Page/Graph administration remain outside this adapter."`\];
+     `notes`: readonly \[`"Coverage is typed for selected Messenger Platform support workflows: Page messages send, text payloads, sender actions, attachment payload/upload helpers, conversation/message reads, Page readiness, webhook challenge handling, and X-Hub-Signature-256 validation."`, `"Runtime provider operations use Meta's facebook-nodejs-business-sdk when credentials are configured; hosts may inject a Messenger/Meta provider client override."`, `"Meta's current Messenger routing surface is Conversation Routing; deprecated Handover Protocol thread-control helpers are not advertised as a current handoff capability by this package."`, `"This is not full Messenger Platform coverage; Messenger profile, persistent menu, personas, discovery and engagement tools, account linking, NLP, analytics, marketing messages, conversation routing configuration, and broader Page/Graph administration remain outside this adapter."`\];
      `scope`: `"support-workflow-subset"`;
   \};
   `credentialRequirements`: readonly \[\{
-     `description`: `"Server-side Meta Page access token used for Messenger Platform Send and Conversations APIs."`;
+     `description`: `"Optional SDK-user-owned provider client implementing MessengerSocialProviderClient for Messenger Platform and selected Meta Graph operations."`;
+     `id`: `"messenger-provider-client"`;
+     `label`: `"Messenger/Meta provider client override"`;
+     `metadata`: \{
+        `defaultClientPolicy`: `"facebook-nodejs-business-sdk-when-configured"`;
+        `importPolicy`: `"provider-client-override-supported"`;
+        `interface`: `"MessengerSocialProviderClient"`;
+     \};
+     `required`: `false`;
+   \}, \{
+     `description`: `"Server-side Meta Page access token used by the Meta SDK-backed Graph adapter or an injected Messenger/Meta provider client."`;
      `id`: `"messenger-page-access-token"`;
      `label`: `"Messenger Page access token"`;
      `metadata`: \{
@@ -1605,14 +2130,14 @@ function defineMessengerSocialIntegration(options): DefinedIntegration<{
   \}\];
   `directions`: readonly \[`"receive-only"`, `"send-only"`, `"bidirectional"`\];
   `id`: `"social.messenger"`;
-  `limitations`: readonly \[`"Available operations depend on the SDK user's Meta app mode, Page connection, permissions, Page access token, webhook subscriptions, and messaging window rules."`, `"Meta no longer supports Handover Protocol as the normal Messenger routing model; SDK users should configure Conversation Routing outside this adapter, and the thread-control client methods are deprecated provider escape hatches only."`, `"Consent, outbound-contact policy, human escalation, attachment retention, redaction, and deletion behavior remain SDK-user configuration."`, `"This package provides Messenger transport helpers and does not choose default automation, promotional messaging, retry, or rate-limit policy."`\];
+  `limitations`: readonly \[`"Available operations depend on the SDK user's Meta app mode, Page connection, permissions, Page access token, webhook subscriptions, and messaging window rules."`, `"Meta no longer supports Handover Protocol as the normal Messenger routing model; SDK users should configure Conversation Routing outside this adapter, and the thread-control client methods are deprecated provider escape hatches only."`, `"Consent, outbound-contact policy, human escalation, attachment retention, redaction, and deletion behavior remain SDK-user configuration."`, `"This package provides Messenger payload/webhook helpers and does not choose default automation, promotional messaging, retry, HTTP transport, or rate-limit policy."`\];
   `maintainers`: readonly \[\{
      `name`: `"Cognidesk"`;
      `type`: `"official"`;
   \}\];
   `metadata`: \{
      `apiCoverage`: \{
-        `checkedAt`: `"2026-06-18"`;
+        `checkedAt`: `"2026-06-25"`;
         `fullMetaGraphCoverage`: `false`;
         `fullProviderApi`: `false`;
         `generatedFromOfficialSpec`: `false`;
@@ -1622,16 +2147,86 @@ function defineMessengerSocialIntegration(options): DefinedIntegration<{
         `selectedOperationCount`: `8`;
      \};
      `channelCoverage`: \{
-        `attachments`: `"typed-upload-send"`;
+        `attachments`: `"facebook-nodejs-business-sdk-call"`;
         `conversationRouting`: `"provider-supported-not-typed"`;
-        `conversations`: `"typed-list-read"`;
+        `conversations`: `"facebook-nodejs-business-sdk-call"`;
+        `customTransportFallback`: `"package-owned-rest-adapter"`;
         `handoverProtocolThreadControl`: `"provider-supported-deprecated-typed-thread-control"`;
-        `messages`: `"typed-send"`;
-        `pageReadiness`: `"typed-read"`;
-        `senderActions`: `"typed-send"`;
+        `messages`: `"facebook-nodejs-business-sdk-call"`;
+        `pageReadiness`: `"facebook-nodejs-business-sdk-call"`;
+        `senderActions`: `"facebook-nodejs-business-sdk-call"`;
         `webhooks`: `"typed-challenge-verify-parse"`;
      \};
      `docs`: `"https://developers.facebook.com/docs/messenger-platform"`;
+     `implementation`: \{
+        `allowedOperations`: readonly \[\{
+           `alias`: `"messenger.webhook.parse"`;
+           `checksum`: `"not-applicable-local-helper"`;
+           `id`: `"parseMessengerWebhook"`;
+           `source`: `"local-webhook-parser"`;
+           `target`: `"package.webhooks.parseMessengerWebhook"`;
+         \}, \{
+           `alias`: `"messenger.message.send"`;
+           `checksum`: `"not-applicable-rest-adapter"`;
+           `id`: `"sendMessage"`;
+           `source`: `"provider-sdk"`;
+           `target`: `"facebookBusinessSdk.FacebookAdsApi.call"`;
+         \}, \{
+           `alias`: `"messenger.senderAction.send"`;
+           `checksum`: `"not-applicable-rest-adapter"`;
+           `id`: `"sendSenderAction"`;
+           `source`: `"provider-sdk"`;
+           `target`: `"facebookBusinessSdk.FacebookAdsApi.call"`;
+         \}, \{
+           `alias`: `"messenger.attachment.upload"`;
+           `checksum`: `"not-applicable-rest-adapter"`;
+           `id`: `"uploadAttachment"`;
+           `source`: `"provider-sdk"`;
+           `target`: `"facebookBusinessSdk.FacebookAdsApi.call"`;
+         \}, \{
+           `alias`: `"messenger.conversations.list"`;
+           `checksum`: `"not-applicable-rest-adapter"`;
+           `id`: `"listConversations"`;
+           `source`: `"provider-sdk"`;
+           `target`: `"facebookBusinessSdk.FacebookAdsApi.call"`;
+         \}, \{
+           `alias`: `"messenger.conversationMessages.list"`;
+           `checksum`: `"not-applicable-rest-adapter"`;
+           `id`: `"getConversationMessages"`;
+           `source`: `"provider-sdk"`;
+           `target`: `"facebookBusinessSdk.FacebookAdsApi.call"`;
+         \}, \{
+           `alias`: `"messenger.page.read"`;
+           `checksum`: `"not-applicable-rest-adapter"`;
+           `id`: `"getPage"`;
+           `source`: `"provider-sdk"`;
+           `target`: `"facebookBusinessSdk.FacebookAdsApi.call"`;
+         \}, \{
+           `alias`: `"messenger.webhook-signature"`;
+           `checksum`: `"not-applicable-local-helper"`;
+           `id`: `"validateMessengerWebhookSignature"`;
+           `source`: `"local-signature-helper"`;
+           `target`: `"package.webhooks.validateMessengerWebhookSignature"`;
+        \}\];
+        `implementationStrategy`: `"provider-sdk-default-with-typed-domain-adapter"`;
+        `providerSdk`: \{
+           `license`: `"Platform License"`;
+           `package`: `"facebook-nodejs-business-sdk"`;
+           `runtimeCall`: `"FacebookAdsApi.call"`;
+           `runtimeEntry`: `"FacebookAdsApi"`;
+           `version`: `"24.0.1"`;
+        \};
+        `sdkDecision`: `"Meta's maintained facebook-nodejs-business-sdk@24.0.1 is provider-owned and exposes FacebookAdsApi.call(method, path, params). This package maps its strict Messenger support slice onto that SDK call surface by default; the package-owned REST adapter is retained only for explicit custom transport options such as fetch, graphApiBaseUrl, graphApiVersion, signal, timeoutMs, or retry."`;
+        `verifiedAt`: `"2026-06-25"`;
+     \};
+     `manifestOnlySafe`: `true`;
+     `providerClient`: \{
+        `customTransportFallbackPolicy`: `"package-owned-rest-adapter-for-fetch-base-version-signal-timeout-retry"`;
+        `defaultClientPolicy`: `"facebook-nodejs-business-sdk-when-configured"`;
+        `importPolicy`: `"provider-client-override-supported"`;
+        `interface`: `"MessengerSocialProviderClient"`;
+        `package`: `"facebook-nodejs-business-sdk-or-host-provided"`;
+     \};
   \};
   `name`: `"Facebook Messenger"`;
   `operations`: readonly \[\{
@@ -1868,6 +2463,24 @@ function verifyMessengerWebhookChallenge(input): string;
 
 ## References
 
+### messengerSocialOperationAliases
+
+Re-exports [messengerSocialOperationAliases](dist/manifest.md#messengersocialoperationaliases)
+
+***
+
+### messengerSocialProviderClientSupportSlice
+
+Re-exports [messengerSocialProviderClientSupportSlice](dist/manifest.md#messengersocialproviderclientsupportslice)
+
+***
+
 ### messengerSocialProviderManifest
 
 Re-exports [messengerSocialProviderManifest](dist/manifest.md#messengersocialprovidermanifest)
+
+***
+
+### messengerSocialSupportSlice
+
+Re-exports [messengerSocialSupportSlice](dist/manifest.md#messengersocialsupportslice)

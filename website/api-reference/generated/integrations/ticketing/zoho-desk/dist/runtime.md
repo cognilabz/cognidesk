@@ -2,6 +2,18 @@
 
 ## References
 
+### createUnconfiguredZohoDeskProviderClient
+
+Re-exports [createUnconfiguredZohoDeskProviderClient](../dist.md#createunconfiguredzohodeskproviderclient)
+
+***
+
+### createZohoDeskRestProviderClient
+
+Re-exports [createZohoDeskRestProviderClient](../dist.md#createzohodeskrestproviderclient)
+
+***
+
 ### createZohoDeskTicketingClient
 
 Re-exports [createZohoDeskTicketingClient](../dist.md#createzohodeskticketingclient)
@@ -11,6 +23,12 @@ Re-exports [createZohoDeskTicketingClient](../dist.md#createzohodeskticketingcli
 ### createZohoDeskTicketingLiveChecks
 
 Re-exports [createZohoDeskTicketingLiveChecks](../dist.md#createzohodeskticketinglivechecks)
+
+***
+
+### zohoDeskApiBaseUrl
+
+Re-exports [zohoDeskApiBaseUrl](../dist.md#zohodeskapibaseurl)
 
 ***
 
@@ -32,6 +50,12 @@ Re-exports [ZohoDeskJsonPrimitive](../dist.md#zohodeskjsonprimitive)
 
 ***
 
+### ZohoDeskJsonRetryOptions
+
+Re-exports [ZohoDeskJsonRetryOptions](../dist.md#zohodeskjsonretryoptions)
+
+***
+
 ### ZohoDeskJsonValue
 
 Re-exports [ZohoDeskJsonValue](../dist.md#zohodeskjsonvalue)
@@ -41,6 +65,12 @@ Re-exports [ZohoDeskJsonValue](../dist.md#zohodeskjsonvalue)
 ### ZohoDeskLiveCheckOptions
 
 Re-exports [ZohoDeskLiveCheckOptions](../dist.md#zohodesklivecheckoptions)
+
+***
+
+### ZohoDeskProviderClient
+
+Re-exports [ZohoDeskProviderClient](../dist.md#zohodeskproviderclient)
 
 ***
 

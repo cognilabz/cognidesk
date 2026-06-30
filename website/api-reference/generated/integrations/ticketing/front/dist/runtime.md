@@ -14,9 +14,27 @@ Re-exports [createFrontTicketingIntegration](../dist.md#createfrontticketinginte
 
 ***
 
+### createFrontTicketingOperationHandlers
+
+Re-exports [createFrontTicketingOperationHandlers](../dist.md#createfrontticketingoperationhandlers)
+
+***
+
 ### FrontTicketingClientOptions
 
 Re-exports [FrontTicketingClientOptions](../dist.md#frontticketingclientoptions)
+
+***
+
+### FrontTicketingIntegrationOptions
+
+Re-exports [FrontTicketingIntegrationOptions](../dist.md#frontticketingintegrationoptions)
+
+***
+
+### FrontTicketingProviderClient
+
+Re-exports [FrontTicketingProviderClient](../dist.md#frontticketingproviderclient)
 
 ***
 
@@ -41,3 +59,9 @@ Re-exports [JsonPrimitive](../dist.md#jsonprimitive)
 ### JsonValue
 
 Re-exports [JsonValue](../dist.md#jsonvalue)
+
+***
+
+### ProviderJsonRetryOptions
+
+Re-exports [ProviderJsonRetryOptions](../dist.md#providerjsonretryoptions)

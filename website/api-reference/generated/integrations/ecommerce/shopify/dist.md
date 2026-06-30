@@ -377,6 +377,10 @@ shopDomain: string;
 
 ### ShopifyGraphqlInput
 
+#### Extends
+
+- [`ShopifyGraphqlRequestOptions`](#shopifygraphqlrequestoptions)
+
 #### Properties
 
 ##### operationName?
@@ -395,6 +399,12 @@ query: string;
 
 ```ts
 optional variables?: ShopifyGraphqlVariables;
+```
+
+###### Inherited from
+
+```ts
+ShopifyGraphqlRequestOptions.variables
 ```
 
 ***
@@ -600,8 +610,24 @@ optional webhookSecret?: string;
 ### ShopifyAdminApiClient
 
 ```ts
-type ShopifyAdminApiClient = ReturnType<typeof createAdminApiClient>;
+type ShopifyAdminApiClient = AdminApiClient;
 ```
+
+***
+
+### ShopifyGraphqlRequestOptions
+
+```ts
+type ShopifyGraphqlRequestOptions = Pick<ApiClientRequestOptions, "apiVersion" | "headers" | "retries" | "signal"> & {
+  variables?: ShopifyGraphqlVariables;
+};
+```
+
+#### Type Declaration
+
+| Name | Type |
+| ------ | ------ |
+| `variables?` | [`ShopifyGraphqlVariables`](#shopifygraphqlvariables) |
 
 ***
 

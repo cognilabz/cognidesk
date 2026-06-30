@@ -4,13 +4,126 @@
 
 ### CognideskHelpCenterIntegrationOptions
 
+#### Extends
+
+- [`CreateHelpCenterClientOptions`](dist/runtime.md#createhelpcenterclientoptions)
+
 #### Properties
+
+##### client?
+
+```ts
+optional client?: HelpCenterClient;
+```
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Inherited from
+
+[`CreateHelpCenterClientOptions`](dist/runtime.md#createhelpcenterclientoptions).[`fetch`](dist/runtime.md#fetch)
+
+##### providerClient?
+
+```ts
+optional providerClient?: HelpCenterProviderClient;
+```
+
+###### Inherited from
+
+[`CreateHelpCenterClientOptions`](dist/runtime.md#createhelpcenterclientoptions).[`providerClient`](dist/runtime.md#providerclient)
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`CreateHelpCenterClientOptions`](dist/runtime.md#createhelpcenterclientoptions).[`retry`](dist/runtime.md#retry)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`CreateHelpCenterClientOptions`](dist/runtime.md#createhelpcenterclientoptions).[`signal`](dist/runtime.md#signal)
 
 ##### source
 
 ```ts
 source: HelpCenterSource;
 ```
+
+##### sourceClientFactory?
+
+```ts
+optional sourceClientFactory?: HelpCenterSourceClientFactory;
+```
+
+###### Inherited from
+
+[`CreateHelpCenterClientOptions`](dist/runtime.md#createhelpcenterclientoptions).[`sourceClientFactory`](dist/runtime.md#sourceclientfactory)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`CreateHelpCenterClientOptions`](dist/runtime.md#createhelpcenterclientoptions).[`timeoutMs`](dist/runtime.md#timeoutms)
 
 ***
 
@@ -56,15 +169,51 @@ Re-exports [cognideskHelpCenterProviderManifest](dist/manifest.md#cognideskhelpc
 
 ***
 
+### createDefaultHelpCenterSourceClient
+
+Re-exports [createDefaultHelpCenterSourceClient](dist/runtime.md#createdefaulthelpcentersourceclient)
+
+***
+
 ### createHelpCenterClient
 
 Re-exports [createHelpCenterClient](dist/runtime.md#createhelpcenterclient)
 
 ***
 
+### CreateHelpCenterClientOptions
+
+Re-exports [CreateHelpCenterClientOptions](dist/runtime.md#createhelpcenterclientoptions)
+
+***
+
+### createHelpCenterSourceClientFactory
+
+Re-exports [createHelpCenterSourceClientFactory](dist/runtime.md#createhelpcentersourceclientfactory)
+
+***
+
+### createHttpHelpCenterSourceClient
+
+Re-exports [createHttpHelpCenterSourceClient](dist/runtime.md#createhttphelpcentersourceclient)
+
+***
+
+### createUnconfiguredHelpCenterProviderClient
+
+Re-exports [createUnconfiguredHelpCenterProviderClient](dist/runtime.md#createunconfiguredhelpcenterproviderclient)
+
+***
+
 ### defineHelpCenterSource
 
 Re-exports [defineHelpCenterSource](dist/runtime.md#definehelpcentersource)
+
+***
+
+### guardHelpCenterFetch
+
+Re-exports [guardHelpCenterFetch](dist/runtime.md#guardhelpcenterfetch)
 
 ***
 
@@ -92,6 +241,18 @@ Re-exports [HelpCenterCredentialStatusInput](dist/runtime.md#helpcentercredentia
 
 ***
 
+### HelpCenterHttpEndpoints
+
+Re-exports [HelpCenterHttpEndpoints](dist/runtime.md#helpcenterhttpendpoints)
+
+***
+
+### HelpCenterHttpMethod
+
+Re-exports [HelpCenterHttpMethod](dist/runtime.md#helpcenterhttpmethod)
+
+***
+
 ### HelpCenterIngestionEvent
 
 Re-exports [HelpCenterIngestionEvent](dist/runtime.md#helpcenteringestionevent)
@@ -113,6 +274,12 @@ Re-exports [HelpCenterJsonPrimitive](dist/runtime.md#helpcenterjsonprimitive)
 ### HelpCenterJsonValue
 
 Re-exports [HelpCenterJsonValue](dist/runtime.md#helpcenterjsonvalue)
+
+***
+
+### HelpCenterProviderClient
+
+Re-exports [HelpCenterProviderClient](dist/runtime.md#helpcenterproviderclient)
 
 ***
 
@@ -170,6 +337,12 @@ Re-exports [HelpCenterSource](dist/runtime.md#helpcentersource)
 
 ***
 
+### HelpCenterSourceClientFactory
+
+Re-exports [HelpCenterSourceClientFactory](dist/runtime.md#helpcentersourceclientfactory)
+
+***
+
 ### HelpCenterWebhookPayload
 
 Re-exports [HelpCenterWebhookPayload](dist/runtime.md#helpcenterwebhookpayload)
@@ -209,6 +382,12 @@ Re-exports [parseHelpCenterWebhook](dist/runtime.md#parsehelpcenterwebhook)
 ### ParseHelpCenterWebhookOptions
 
 Re-exports [ParseHelpCenterWebhookOptions](dist/runtime.md#parsehelpcenterwebhookoptions)
+
+***
+
+### ProviderJsonRetryOptions
+
+Re-exports [ProviderJsonRetryOptions](dist/runtime.md#providerjsonretryoptions)
 
 ***
 

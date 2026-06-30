@@ -2,9 +2,21 @@
 
 ## References
 
+### createUnconfiguredWherebyVideoProviderClient
+
+Re-exports [createUnconfiguredWherebyVideoProviderClient](dist/runtime.md#createunconfiguredwherebyvideoproviderclient)
+
+***
+
 ### createWherebyFullApiGeneratedClient
 
 Re-exports [createWherebyFullApiGeneratedClient](dist/runtime.md#createwherebyfullapigeneratedclient)
+
+***
+
+### createWherebyRestProviderClient
+
+Re-exports [createWherebyRestProviderClient](dist/runtime.md#createwherebyrestproviderclient)
 
 ***
 
@@ -356,6 +368,12 @@ Re-exports [WherebyParticipantInsightsInput](dist/runtime.md#wherebyparticipanti
 
 ***
 
+### WherebyProviderJsonRetryOptions
+
+Re-exports [WherebyProviderJsonRetryOptions](dist/runtime.md#wherebyproviderjsonretryoptions)
+
+***
+
 ### WherebyRecordingOptions
 
 Re-exports [WherebyRecordingOptions](dist/runtime.md#wherebyrecordingoptions)
@@ -509,6 +527,12 @@ Re-exports [WherebyVideoJsonValue](dist/runtime.md#wherebyvideojsonvalue)
 ### wherebyVideoOperationHandlers
 
 Re-exports [wherebyVideoOperationHandlers](dist/runtime.md#wherebyvideooperationhandlers)
+
+***
+
+### WherebyVideoProviderClient
+
+Re-exports [WherebyVideoProviderClient](dist/runtime.md#wherebyvideoproviderclient)
 
 ***
 

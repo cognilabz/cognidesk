@@ -134,6 +134,154 @@ optional rcsBusinessMessagingAgent?: RcsMessagingJsonObject;
 
 ***
 
+### RcsBusinessMessagingSdkClient
+
+#### Properties
+
+##### files
+
+```ts
+files: {
+  create: Promise<RcsBusinessMessagingSdkResponse<RcsFileResource>>;
+};
+```
+
+###### create()
+
+```ts
+create(params, options?): Promise<RcsBusinessMessagingSdkResponse<RcsFileResource>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | [`RcsMessagingJsonObject`](#rcsmessagingjsonobject) & \{ `access_token?`: `string`; `agentId?`: `string`; `media?`: \{ `body?`: `unknown`; `mimeType?`: `string`; \}; `requestBody?`: [`RcsCreateFileInput`](#rcscreatefileinput); \} |
+| `options?` | [`RcsBusinessMessagingSdkRequestOptions`](#rcsbusinessmessagingsdkrequestoptions) |
+
+###### Returns
+
+`Promise`\<[`RcsBusinessMessagingSdkResponse`](#rcsbusinessmessagingsdkresponse)\<[`RcsFileResource`](#rcsfileresource)\>\>
+
+##### phones
+
+```ts
+phones: {
+  agentEvents: {
+     create: Promise<RcsBusinessMessagingSdkResponse<RcsAgentEvent>>;
+  };
+  agentMessages: {
+     create: Promise<RcsBusinessMessagingSdkResponse<RcsAgentMessage>>;
+  };
+  getCapabilities: Promise<RcsBusinessMessagingSdkResponse<RcsCapabilityResponse>>;
+};
+```
+
+###### agentEvents
+
+```ts
+agentEvents: {
+  create: Promise<RcsBusinessMessagingSdkResponse<RcsAgentEvent>>;
+};
+```
+
+###### agentEvents.create()
+
+```ts
+create(params, options?): Promise<RcsBusinessMessagingSdkResponse<RcsAgentEvent>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | [`RcsMessagingJsonObject`](#rcsmessagingjsonobject) & \{ `access_token?`: `string`; `agentId?`: `string`; `eventId?`: `string`; `parent`: `string`; `requestBody`: [`RcsAgentEvent`](#rcsagentevent); \} |
+| `options?` | [`RcsBusinessMessagingSdkRequestOptions`](#rcsbusinessmessagingsdkrequestoptions) |
+
+###### Returns
+
+`Promise`\<[`RcsBusinessMessagingSdkResponse`](#rcsbusinessmessagingsdkresponse)\<[`RcsAgentEvent`](#rcsagentevent)\>\>
+
+###### agentMessages
+
+```ts
+agentMessages: {
+  create: Promise<RcsBusinessMessagingSdkResponse<RcsAgentMessage>>;
+};
+```
+
+###### agentMessages.create()
+
+```ts
+create(params, options?): Promise<RcsBusinessMessagingSdkResponse<RcsAgentMessage>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | [`RcsMessagingJsonObject`](#rcsmessagingjsonobject) & \{ `access_token?`: `string`; `agentId?`: `string`; `messageId`: `string`; `parent`: `string`; `requestBody`: [`RcsAgentMessage`](#rcsagentmessage); \} |
+| `options?` | [`RcsBusinessMessagingSdkRequestOptions`](#rcsbusinessmessagingsdkrequestoptions) |
+
+###### Returns
+
+`Promise`\<[`RcsBusinessMessagingSdkResponse`](#rcsbusinessmessagingsdkresponse)\<[`RcsAgentMessage`](#rcsagentmessage)\>\>
+
+###### getCapabilities()
+
+```ts
+getCapabilities(params, options?): Promise<RcsBusinessMessagingSdkResponse<RcsCapabilityResponse>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | [`RcsMessagingJsonObject`](#rcsmessagingjsonobject) & \{ `access_token?`: `string`; `agentId?`: `string`; `name`: `string`; `requestId?`: `string`; \} |
+| `options?` | [`RcsBusinessMessagingSdkRequestOptions`](#rcsbusinessmessagingsdkrequestoptions) |
+
+###### Returns
+
+`Promise`\<[`RcsBusinessMessagingSdkResponse`](#rcsbusinessmessagingsdkresponse)\<[`RcsCapabilityResponse`](#rcscapabilityresponse)\>\>
+
+***
+
+### RcsBusinessMessagingSdkRequestOptions
+
+#### Properties
+
+##### rootUrl?
+
+```ts
+optional rootUrl?: string;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+***
+
+### RcsBusinessMessagingSdkResponse
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` |
+
+#### Properties
+
+##### data?
+
+```ts
+optional data?: T;
+```
+
+***
+
 ### RcsCapabilityResponse
 
 #### Indexable
@@ -270,16 +418,22 @@ optional agentName?: string;
 optional expiresAt?: string;
 ```
 
+##### providerClientConfigured?
+
+```ts
+optional providerClientConfigured?: boolean;
+```
+
 ##### scopes?
 
 ```ts
 optional scopes?: string[];
 ```
 
-##### serviceAccountClientEmail?
+##### serviceAccountConfigured?
 
 ```ts
-optional serviceAccountClientEmail?: string;
+optional serviceAccountConfigured?: boolean;
 ```
 
 ##### tokenProviderConfigured?
@@ -344,10 +498,10 @@ optional accessToken?: string;
 
 [`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`accessToken`](#accesstoken-2)
 
-##### agentId
+##### agentId?
 
 ```ts
-agentId: string;
+optional agentId?: string;
 ```
 
 ###### Inherited from
@@ -363,6 +517,16 @@ optional agentName?: string;
 ###### Inherited from
 
 [`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`agentName`](#agentname-2)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`baseUrl`](#baseurl-1)
 
 ##### capabilityPhoneNumber?
 
@@ -441,6 +605,16 @@ optional managementApiBaseUrl?: string;
 
 [`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`managementApiBaseUrl`](#managementapibaseurl-1)
 
+##### managementBaseUrl?
+
+```ts
+optional managementBaseUrl?: string;
+```
+
+###### Inherited from
+
+[`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`managementBaseUrl`](#managementbaseurl-1)
+
 ##### messagingApiBaseUrl?
 
 ```ts
@@ -450,6 +624,16 @@ optional messagingApiBaseUrl?: string;
 ###### Inherited from
 
 [`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`messagingApiBaseUrl`](#messagingapibaseurl-1)
+
+##### providerClient?
+
+```ts
+optional providerClient?: RcsMessagingProviderClient;
+```
+
+###### Inherited from
+
+[`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`providerClient`](#providerclient-2)
 
 ##### region?
 
@@ -461,6 +645,28 @@ optional region?: string;
 
 [`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`region`](#region-1)
 
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`retry`](#retry-1)
+
+##### sdkClient?
+
+```ts
+optional sdkClient?: RcsBusinessMessagingSdkClient;
+```
+
+###### Inherited from
+
+[`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`sdkClient`](#sdkclient-1)
+
 ##### serviceAccount?
 
 ```ts
@@ -470,6 +676,26 @@ optional serviceAccount?: RcsServiceAccountCredentials;
 ###### Inherited from
 
 [`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`serviceAccount`](#serviceaccount-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`signal`](#signal-2)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`RcsMessagingClientOptions`](#rcsmessagingclientoptions).[`timeoutMs`](#timeoutms-1)
 
 ##### tokenProvider?
 
@@ -484,6 +710,484 @@ optional tokenProvider?: RcsAccessTokenProvider;
 ***
 
 ### RcsMessagingClient
+
+#### Extends
+
+- [`RcsMessagingProviderClient`](#rcsmessagingproviderclient)
+
+#### Properties
+
+##### providerClient
+
+```ts
+providerClient: RcsMessagingProviderClient;
+```
+
+##### rawClient?
+
+```ts
+optional rawClient?: unknown;
+```
+
+###### Inherited from
+
+[`RcsMessagingProviderClient`](#rcsmessagingproviderclient).[`rawClient`](#rawclient-1)
+
+#### Methods
+
+##### createFile()
+
+```ts
+createFile(input): Promise<RcsFileResource>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`RcsCreateFileInput`](#rcscreatefileinput) |
+
+###### Returns
+
+`Promise`\<[`RcsFileResource`](#rcsfileresource)\>
+
+###### Inherited from
+
+[`RcsMessagingProviderClient`](#rcsmessagingproviderclient).[`createFile`](#createfile-1)
+
+##### getAgent()
+
+```ts
+getAgent(agentName?): Promise<RcsAgentResource>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `agentName?` | `string` |
+
+###### Returns
+
+`Promise`\<[`RcsAgentResource`](#rcsagentresource)\>
+
+###### Inherited from
+
+[`RcsMessagingProviderClient`](#rcsmessagingproviderclient).[`getAgent`](#getagent-1)
+
+##### getAgentLaunch()
+
+```ts
+getAgentLaunch(agentName?): Promise<RcsMessagingProviderResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `agentName?` | `string` |
+
+###### Returns
+
+`Promise`\<[`RcsMessagingProviderResponse`](#rcsmessagingproviderresponse)\>
+
+###### Inherited from
+
+[`RcsMessagingProviderClient`](#rcsmessagingproviderclient).[`getAgentLaunch`](#getagentlaunch-1)
+
+##### getAgentVerification()
+
+```ts
+getAgentVerification(agentName?): Promise<RcsMessagingProviderResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `agentName?` | `string` |
+
+###### Returns
+
+`Promise`\<[`RcsMessagingProviderResponse`](#rcsmessagingproviderresponse)\>
+
+###### Inherited from
+
+[`RcsMessagingProviderClient`](#rcsmessagingproviderclient).[`getAgentVerification`](#getagentverification-1)
+
+##### getCapabilities()
+
+```ts
+getCapabilities(input): Promise<RcsCapabilityResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | \{ `phoneNumber`: `string`; `requestId?`: `string`; \} |
+| `input.phoneNumber` | `string` |
+| `input.requestId?` | `string` |
+
+###### Returns
+
+`Promise`\<[`RcsCapabilityResponse`](#rcscapabilityresponse)\>
+
+###### Inherited from
+
+[`RcsMessagingProviderClient`](#rcsmessagingproviderclient).[`getCapabilities`](#getcapabilities-1)
+
+##### rawRequest()?
+
+```ts
+optional rawRequest<T>(operation, input?): Promise<T>;
+```
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `T` | [`RcsMessagingProviderResponse`](#rcsmessagingproviderresponse) |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `operation` | `string` |
+| `input?` | `unknown` |
+
+###### Returns
+
+`Promise`\<`T`\>
+
+###### Inherited from
+
+[`RcsMessagingProviderClient`](#rcsmessagingproviderclient).[`rawRequest`](#rawrequest-1)
+
+##### sendAgentEvent()
+
+```ts
+sendAgentEvent(input): Promise<RcsAgentEvent>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`RcsSendAgentEventInput`](#rcssendagenteventinput) |
+
+###### Returns
+
+`Promise`\<[`RcsAgentEvent`](#rcsagentevent)\>
+
+###### Inherited from
+
+[`RcsMessagingProviderClient`](#rcsmessagingproviderclient).[`sendAgentEvent`](#sendagentevent-1)
+
+##### sendCard()
+
+```ts
+sendCard(input): Promise<RcsAgentMessage>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`RcsSendCardInput`](#rcssendcardinput) |
+
+###### Returns
+
+`Promise`\<[`RcsAgentMessage`](#rcsagentmessage)\>
+
+##### sendMedia()
+
+```ts
+sendMedia(input): Promise<RcsAgentMessage>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`RcsSendMediaInput`](#rcssendmediainput) |
+
+###### Returns
+
+`Promise`\<[`RcsAgentMessage`](#rcsagentmessage)\>
+
+##### sendMessage()
+
+```ts
+sendMessage(input): Promise<RcsAgentMessage>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`RcsSendMessageInput`](#rcssendmessageinput) |
+
+###### Returns
+
+`Promise`\<[`RcsAgentMessage`](#rcsagentmessage)\>
+
+###### Inherited from
+
+[`RcsMessagingProviderClient`](#rcsmessagingproviderclient).[`sendMessage`](#sendmessage-1)
+
+##### sendReadReceipt()
+
+```ts
+sendReadReceipt(input): Promise<RcsAgentEvent>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | \{ `eventId?`: `string`; `messageId`: `string`; `phoneNumber`: `string`; \} |
+| `input.eventId?` | `string` |
+| `input.messageId` | `string` |
+| `input.phoneNumber` | `string` |
+
+###### Returns
+
+`Promise`\<[`RcsAgentEvent`](#rcsagentevent)\>
+
+##### sendText()
+
+```ts
+sendText(input): Promise<RcsAgentMessage>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`RcsSendTextInput`](#rcssendtextinput) |
+
+###### Returns
+
+`Promise`\<[`RcsAgentMessage`](#rcsagentmessage)\>
+
+##### sendTyping()
+
+```ts
+sendTyping(input): Promise<RcsAgentEvent>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | \{ `eventId?`: `string`; `phoneNumber`: `string`; \} |
+| `input.eventId?` | `string` |
+| `input.phoneNumber` | `string` |
+
+###### Returns
+
+`Promise`\<[`RcsAgentEvent`](#rcsagentevent)\>
+
+##### uploadFile()
+
+```ts
+uploadFile(input): Promise<RcsFileResource>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`RcsUploadFileInput`](#rcsuploadfileinput) |
+
+###### Returns
+
+`Promise`\<[`RcsFileResource`](#rcsfileresource)\>
+
+###### Inherited from
+
+[`RcsMessagingProviderClient`](#rcsmessagingproviderclient).[`uploadFile`](#uploadfile-1)
+
+***
+
+### RcsMessagingClientOptions
+
+#### Extended by
+
+- [`RcsLiveCheckOptions`](#rcslivecheckoptions)
+
+#### Properties
+
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+##### agentName?
+
+```ts
+optional agentName?: string;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+##### managementApiBaseUrl?
+
+```ts
+optional managementApiBaseUrl?: string;
+```
+
+##### managementBaseUrl?
+
+```ts
+optional managementBaseUrl?: string;
+```
+
+##### messagingApiBaseUrl?
+
+```ts
+optional messagingApiBaseUrl?: string;
+```
+
+##### providerClient?
+
+```ts
+optional providerClient?: RcsMessagingProviderClient;
+```
+
+##### region?
+
+```ts
+optional region?: string;
+```
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+##### sdkClient?
+
+```ts
+optional sdkClient?: RcsBusinessMessagingSdkClient;
+```
+
+##### serviceAccount?
+
+```ts
+optional serviceAccount?: RcsServiceAccountCredentials;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+##### tokenProvider?
+
+```ts
+optional tokenProvider?: RcsAccessTokenProvider;
+```
+
+***
+
+### RcsMessagingJsonObject
+
+#### Extended by
+
+- [`RcsMessagingProviderExtensionFields`](#rcsmessagingproviderextensionfields)
+- [`RcsMessagingProviderResponse`](#rcsmessagingproviderresponse)
+
+#### Indexable
+
+```ts
+[key: string]: RcsMessagingProviderExtensionValue
+```
+
+***
+
+### RcsMessagingProviderClient
+
+#### Extended by
+
+- [`RcsMessagingClient`](#rcsmessagingclient)
+
+#### Properties
+
+##### rawClient?
+
+```ts
+optional rawClient?: unknown;
+```
 
 #### Methods
 
@@ -569,6 +1273,29 @@ getCapabilities(input): Promise<RcsCapabilityResponse>;
 
 `Promise`\<[`RcsCapabilityResponse`](#rcscapabilityresponse)\>
 
+##### rawRequest()?
+
+```ts
+optional rawRequest<T>(operation, input?): Promise<T>;
+```
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `T` | [`RcsMessagingProviderResponse`](#rcsmessagingproviderresponse) |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `operation` | `string` |
+| `input?` | `unknown` |
+
+###### Returns
+
+`Promise`\<`T`\>
+
 ##### sendAgentEvent()
 
 ```ts
@@ -584,38 +1311,6 @@ sendAgentEvent(input): Promise<RcsAgentEvent>;
 ###### Returns
 
 `Promise`\<[`RcsAgentEvent`](#rcsagentevent)\>
-
-##### sendCard()
-
-```ts
-sendCard(input): Promise<RcsAgentMessage>;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | [`RcsSendCardInput`](#rcssendcardinput) |
-
-###### Returns
-
-`Promise`\<[`RcsAgentMessage`](#rcsagentmessage)\>
-
-##### sendMedia()
-
-```ts
-sendMedia(input): Promise<RcsAgentMessage>;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | [`RcsSendMediaInput`](#rcssendmediainput) |
-
-###### Returns
-
-`Promise`\<[`RcsAgentMessage`](#rcsagentmessage)\>
 
 ##### sendMessage()
 
@@ -633,59 +1328,6 @@ sendMessage(input): Promise<RcsAgentMessage>;
 
 `Promise`\<[`RcsAgentMessage`](#rcsagentmessage)\>
 
-##### sendReadReceipt()
-
-```ts
-sendReadReceipt(input): Promise<RcsAgentEvent>;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | \{ `eventId?`: `string`; `messageId`: `string`; `phoneNumber`: `string`; \} |
-| `input.eventId?` | `string` |
-| `input.messageId` | `string` |
-| `input.phoneNumber` | `string` |
-
-###### Returns
-
-`Promise`\<[`RcsAgentEvent`](#rcsagentevent)\>
-
-##### sendText()
-
-```ts
-sendText(input): Promise<RcsAgentMessage>;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | [`RcsSendTextInput`](#rcssendtextinput) |
-
-###### Returns
-
-`Promise`\<[`RcsAgentMessage`](#rcsagentmessage)\>
-
-##### sendTyping()
-
-```ts
-sendTyping(input): Promise<RcsAgentEvent>;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | \{ `eventId?`: `string`; `phoneNumber`: `string`; \} |
-| `input.eventId?` | `string` |
-| `input.phoneNumber` | `string` |
-
-###### Returns
-
-`Promise`\<[`RcsAgentEvent`](#rcsagentevent)\>
-
 ##### uploadFile()
 
 ```ts
@@ -701,126 +1343,6 @@ uploadFile(input): Promise<RcsFileResource>;
 ###### Returns
 
 `Promise`\<[`RcsFileResource`](#rcsfileresource)\>
-
-***
-
-### RcsMessagingClientOptions
-
-#### Extended by
-
-- [`RcsLiveCheckOptions`](#rcslivecheckoptions)
-
-#### Properties
-
-##### accessToken?
-
-```ts
-optional accessToken?: string;
-```
-
-##### agentId
-
-```ts
-agentId: string;
-```
-
-##### agentName?
-
-```ts
-optional agentName?: string;
-```
-
-##### fetch?
-
-```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
-```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-##### managementApiBaseUrl?
-
-```ts
-optional managementApiBaseUrl?: string;
-```
-
-##### messagingApiBaseUrl?
-
-```ts
-optional messagingApiBaseUrl?: string;
-```
-
-##### region?
-
-```ts
-optional region?: string;
-```
-
-##### serviceAccount?
-
-```ts
-optional serviceAccount?: RcsServiceAccountCredentials;
-```
-
-##### tokenProvider?
-
-```ts
-optional tokenProvider?: RcsAccessTokenProvider;
-```
-
-***
-
-### RcsMessagingJsonObject
-
-#### Extended by
-
-- [`RcsMessagingProviderExtensionFields`](#rcsmessagingproviderextensionfields)
-- [`RcsMessagingProviderResponse`](#rcsmessagingproviderresponse)
-
-#### Indexable
-
-```ts
-[key: string]: RcsMessagingProviderExtensionValue
-```
 
 ***
 
@@ -1360,7 +1882,7 @@ signature: string;
 ### RcsAccessTokenProvider
 
 ```ts
-type RcsAccessTokenProvider = (input) => Promise<string> | string;
+type RcsAccessTokenProvider = (input) => string | Promise<string>;
 ```
 
 #### Parameters
@@ -1373,7 +1895,7 @@ type RcsAccessTokenProvider = (input) => Promise<string> | string;
 
 #### Returns
 
-`Promise`\<`string`\> \| `string`
+`string` \| `Promise`\<`string`\>
 
 ***
 
@@ -1512,20 +2034,30 @@ const RCS_BUSINESS_COMMUNICATIONS_SCOPE: "https://www.googleapis.com/auth/busine
 
 ***
 
-### RCS\_DIRECT\_SLICE\_METADATA
+### RCS\_HOST\_CLIENT\_METADATA
 
 ```ts
-const RCS_DIRECT_SLICE_METADATA: {
+const RCS_HOST_CLIENT_METADATA: {
   allowlistChecksum: string;
   allowlistChecksumAlgorithm: "sha256";
   apiCoverage: {
-     checkedAt: "2026-06-21";
+     checkedAt: "2026-06-25";
      operationCatalog: "package:src/selected-operations.ts";
   };
-  checkedAt: "2026-06-21";
+  checkedAt: "2026-06-25";
   sdkDecision: {
-     notes: readonly ["googleapis@173.0.0 does not expose rcsbusinessmessaging or businesscommunications at runtime.", "@google/rcsbusinessmessaging@1.0.10 covers RBM messaging resources but not Business Communications readiness resources and its helper API uses module-level singleton initialization."];
-     viableOfficialSdk: false;
+     failClosedWithoutCredentialedTransport: true;
+     notes: readonly ["@google/rcsbusinessmessaging is the default runtime for RBM agentMessages, agentEvents, files, and phone capabilities.", "The package does not expose the Business Communications brands.agents readiness API used by this support slice, so those read-only checks use a strict typed REST adapter.", "Both runtime paths share the same accessToken, tokenProvider, and service-account credential handling.", "API key-only transport is rejected; hosts may inject RcsMessagingProviderClient when they want to wrap Google's SDK or another approved provider runtime."];
+     officialRuntimeSdk: {
+        docsUrl: "https://developers.google.com/business-communications/rcs-business-messaging/reference/libraries";
+        npmModifiedAt: "2025-04-30T16:44:00.722Z";
+        packageName: "@google/rcsbusinessmessaging";
+        status: "real-maintained-rbm-runtime";
+        versionChecked: "1.0.10";
+     };
+     selectedDefaultClient: "google-rcsbusinessmessaging-sdk-plus-businesscommunications-rest";
+     viableAsSoleDefaultRuntime: false;
+     viableForRbmMessagingRuntime: true;
   };
   selectedOperations: (
      | {
@@ -1564,9 +2096,9 @@ const RCS_DIRECT_SLICE_METADATA: {
      sourceUrl: string;
      uid: string;
   })[];
-  source: "official Google RCS for Business REST reference plus documented Discovery URLs";
-  sourceVersion: "rcsbusinessmessaging.v1 + businesscommunications.v1 public docs checked 2026-06-21";
-  strategy: "direct-http-support-slice";
+  source: "official Google RCS for Business SDK plus Business Communications REST reference";
+  sourceVersion: "rcsbusinessmessaging.v1 + businesscommunications.v1 public docs checked 2026-06-25";
+  strategy: "provider-sdk-hybrid";
 };
 ```
 
@@ -1576,17 +2108,26 @@ const RCS_DIRECT_SLICE_METADATA: {
 | ------ | ------ |
 | <a id="property-allowlistchecksum"></a> `allowlistChecksum` | `string` |
 | <a id="property-allowlistchecksumalgorithm"></a> `allowlistChecksumAlgorithm` | `"sha256"` |
-| <a id="property-apicoverage"></a> `apiCoverage` | \{ `checkedAt`: `"2026-06-21"`; `operationCatalog`: `"package:src/selected-operations.ts"`; \} |
-| `apiCoverage.checkedAt` | `"2026-06-21"` |
+| <a id="property-apicoverage"></a> `apiCoverage` | \{ `checkedAt`: `"2026-06-25"`; `operationCatalog`: `"package:src/selected-operations.ts"`; \} |
+| `apiCoverage.checkedAt` | `"2026-06-25"` |
 | `apiCoverage.operationCatalog` | `"package:src/selected-operations.ts"` |
-| <a id="property-checkedat"></a> `checkedAt` | `"2026-06-21"` |
-| <a id="property-sdkdecision"></a> `sdkDecision` | \{ `notes`: readonly \[`"googleapis@173.0.0 does not expose rcsbusinessmessaging or businesscommunications at runtime."`, `"@google/rcsbusinessmessaging@1.0.10 covers RBM messaging resources but not Business Communications readiness resources and its helper API uses module-level singleton initialization."`\]; `viableOfficialSdk`: `false`; \} |
-| `sdkDecision.notes` | readonly \[`"googleapis@173.0.0 does not expose rcsbusinessmessaging or businesscommunications at runtime."`, `"@google/rcsbusinessmessaging@1.0.10 covers RBM messaging resources but not Business Communications readiness resources and its helper API uses module-level singleton initialization."`\] |
-| `sdkDecision.viableOfficialSdk` | `false` |
+| <a id="property-checkedat"></a> `checkedAt` | `"2026-06-25"` |
+| <a id="property-sdkdecision"></a> `sdkDecision` | \{ `failClosedWithoutCredentialedTransport`: `true`; `notes`: readonly \[`"@google/rcsbusinessmessaging is the default runtime for RBM agentMessages, agentEvents, files, and phone capabilities."`, `"The package does not expose the Business Communications brands.agents readiness API used by this support slice, so those read-only checks use a strict typed REST adapter."`, `"Both runtime paths share the same accessToken, tokenProvider, and service-account credential handling."`, `"API key-only transport is rejected; hosts may inject RcsMessagingProviderClient when they want to wrap Google's SDK or another approved provider runtime."`\]; `officialRuntimeSdk`: \{ `docsUrl`: `"https://developers.google.com/business-communications/rcs-business-messaging/reference/libraries"`; `npmModifiedAt`: `"2025-04-30T16:44:00.722Z"`; `packageName`: `"@google/rcsbusinessmessaging"`; `status`: `"real-maintained-rbm-runtime"`; `versionChecked`: `"1.0.10"`; \}; `selectedDefaultClient`: `"google-rcsbusinessmessaging-sdk-plus-businesscommunications-rest"`; `viableAsSoleDefaultRuntime`: `false`; `viableForRbmMessagingRuntime`: `true`; \} |
+| `sdkDecision.failClosedWithoutCredentialedTransport` | `true` |
+| `sdkDecision.notes` | readonly \[`"@google/rcsbusinessmessaging is the default runtime for RBM agentMessages, agentEvents, files, and phone capabilities."`, `"The package does not expose the Business Communications brands.agents readiness API used by this support slice, so those read-only checks use a strict typed REST adapter."`, `"Both runtime paths share the same accessToken, tokenProvider, and service-account credential handling."`, `"API key-only transport is rejected; hosts may inject RcsMessagingProviderClient when they want to wrap Google's SDK or another approved provider runtime."`\] |
+| `sdkDecision.officialRuntimeSdk` | \{ `docsUrl`: `"https://developers.google.com/business-communications/rcs-business-messaging/reference/libraries"`; `npmModifiedAt`: `"2025-04-30T16:44:00.722Z"`; `packageName`: `"@google/rcsbusinessmessaging"`; `status`: `"real-maintained-rbm-runtime"`; `versionChecked`: `"1.0.10"`; \} |
+| `sdkDecision.officialRuntimeSdk.docsUrl` | `"https://developers.google.com/business-communications/rcs-business-messaging/reference/libraries"` |
+| `sdkDecision.officialRuntimeSdk.npmModifiedAt` | `"2025-04-30T16:44:00.722Z"` |
+| `sdkDecision.officialRuntimeSdk.packageName` | `"@google/rcsbusinessmessaging"` |
+| `sdkDecision.officialRuntimeSdk.status` | `"real-maintained-rbm-runtime"` |
+| `sdkDecision.officialRuntimeSdk.versionChecked` | `"1.0.10"` |
+| `sdkDecision.selectedDefaultClient` | `"google-rcsbusinessmessaging-sdk-plus-businesscommunications-rest"` |
+| `sdkDecision.viableAsSoleDefaultRuntime` | `false` |
+| `sdkDecision.viableForRbmMessagingRuntime` | `true` |
 | <a id="property-selectedoperations"></a> `selectedOperations` | ( \| \{ `api`: `"rcsbusinessmessaging.v1"`; `functionName`: `string`; `method`: `"POST"`; `notes?`: `never`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"rcsbusinessmessaging.v1"`; `functionName`: `string`; `method`: `"POST"`; `notes`: `string`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"rcsbusinessmessaging.v1"`; `functionName`: `string`; `method`: `"GET"`; `notes?`: `never`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"businesscommunications.v1"`; `functionName`: `string`; `method`: `"GET"`; `notes?`: `never`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \})[] |
-| <a id="property-source"></a> `source` | `"official Google RCS for Business REST reference plus documented Discovery URLs"` |
-| <a id="property-sourceversion"></a> `sourceVersion` | `"rcsbusinessmessaging.v1 + businesscommunications.v1 public docs checked 2026-06-21"` |
-| <a id="property-strategy"></a> `strategy` | `"direct-http-support-slice"` |
+| <a id="property-source"></a> `source` | `"official Google RCS for Business SDK plus Business Communications REST reference"` |
+| <a id="property-sourceversion"></a> `sourceVersion` | `"rcsbusinessmessaging.v1 + businesscommunications.v1 public docs checked 2026-06-25"` |
+| <a id="property-strategy"></a> `strategy` | `"provider-sdk-hybrid"` |
 
 ***
 
@@ -1689,14 +2230,14 @@ function createRcsMediaMessage(input): RcsAgentMessage;
 ### createRcsMessagingClient()
 
 ```ts
-function createRcsMessagingClient(options): RcsMessagingClient;
+function createRcsMessagingClient(options?): RcsMessagingClient;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`RcsMessagingClientOptions`](#rcsmessagingclientoptions) |
+| `options?` | [`RcsMessagingClientOptions`](#rcsmessagingclientoptions) |
 
 #### Returns
 
@@ -1815,6 +2356,42 @@ function createRcsMessagingLiveChecks(options): (
      \};
   \}\>;
 \})[]
+
+***
+
+### createRcsRestProviderClient()
+
+```ts
+function createRcsRestProviderClient(options): RcsMessagingProviderClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`RcsMessagingClientOptions`](#rcsmessagingclientoptions) |
+
+#### Returns
+
+[`RcsMessagingProviderClient`](#rcsmessagingproviderclient)
+
+***
+
+### createRcsSdkProviderClient()
+
+```ts
+function createRcsSdkProviderClient(options): RcsMessagingProviderClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`RcsMessagingClientOptions`](#rcsmessagingclientoptions) |
+
+#### Returns
+
+[`RcsMessagingProviderClient`](#rcsmessagingproviderclient)
 
 ***
 

@@ -2,6 +2,12 @@
 
 ## References
 
+### createOracleServiceRestProviderClient
+
+Re-exports [createOracleServiceRestProviderClient](../dist.md#createoracleservicerestproviderclient)
+
+***
+
 ### createOracleServiceTicketingClient
 
 Re-exports [createOracleServiceTicketingClient](../dist.md#createoracleserviceticketingclient)
@@ -23,6 +29,24 @@ Re-exports [createOracleServiceTicketingLiveChecks](../dist.md#createoracleservi
 ### createOracleServiceTicketingOperationHandlers
 
 Re-exports [createOracleServiceTicketingOperationHandlers](../dist.md#createoracleserviceticketingoperationhandlers)
+
+***
+
+### createUnconfiguredOracleServiceTicketingProviderClient
+
+Re-exports [createUnconfiguredOracleServiceTicketingProviderClient](../dist.md#createunconfiguredoracleserviceticketingproviderclient)
+
+***
+
+### ORACLE\_SERVICE\_DEFAULT\_API\_VERSION
+
+Re-exports [ORACLE_SERVICE_DEFAULT_API_VERSION](manifest.md#oracle_service_default_api_version)
+
+***
+
+### OracleServiceAuthOptions
+
+Re-exports [OracleServiceAuthOptions](../dist.md#oracleserviceauthoptions)
 
 ***
 
@@ -65,6 +89,24 @@ Re-exports [OracleServiceJsonValue](../dist.md#oracleservicejsonvalue)
 ### OracleServiceLiveCheckOptions
 
 Re-exports [OracleServiceLiveCheckOptions](../dist.md#oracleservicelivecheckoptions)
+
+***
+
+### OracleServiceProviderApiError
+
+Re-exports [OracleServiceProviderApiError](../dist.md#oracleserviceproviderapierror)
+
+***
+
+### OracleServiceProviderApiErrorInput
+
+Re-exports [OracleServiceProviderApiErrorInput](../dist.md#oracleserviceproviderapierrorinput)
+
+***
+
+### OracleServiceProviderApiErrorResponseMetadata
+
+Re-exports [OracleServiceProviderApiErrorResponseMetadata](../dist.md#oracleserviceproviderapierrorresponsemetadata)
 
 ***
 
@@ -143,6 +185,12 @@ Re-exports [oracleServiceTicketingCredentialStatuses](../dist.md#oracleserviceti
 ### OracleServiceTicketingIntegrationOptions
 
 Re-exports [OracleServiceTicketingIntegrationOptions](../dist.md#oracleserviceticketingintegrationoptions)
+
+***
+
+### OracleServiceTicketingProviderClient
+
+Re-exports [OracleServiceTicketingProviderClient](../dist.md#oracleserviceticketingproviderclient)
 
 ***
 

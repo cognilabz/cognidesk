@@ -20,6 +20,18 @@ Re-exports [createFive9Integration](../dist.md#createfive9integration)
 
 ***
 
+### createFive9OperationHandlers
+
+Re-exports [createFive9OperationHandlers](../dist.md#createfive9operationhandlers)
+
+***
+
+### five9CheckedProviderSdk
+
+Re-exports [five9CheckedProviderSdk](manifest.md#five9checkedprovidersdk)
+
+***
+
 ### Five9Client
 
 Re-exports [Five9Client](../dist.md#five9client)
@@ -32,9 +44,15 @@ Re-exports [Five9ClientOptions](../dist.md#five9clientoptions)
 
 ***
 
-### Five9OperationInput
+### Five9IntegrationOptions
 
-Re-exports [Five9OperationInput](../dist.md#five9operationinput)
+Re-exports [Five9IntegrationOptions](../dist.md#five9integrationoptions)
+
+***
+
+### Five9ProviderClient
+
+Re-exports [Five9ProviderClient](../dist.md#five9providerclient)
 
 ***
 
@@ -50,18 +68,30 @@ Re-exports [five9ProviderManifestInput](manifest.md#five9providermanifestinput)
 
 ***
 
-### five9SupportSlice
+### Five9RawClient
 
-Re-exports [five9SupportSlice](manifest.md#five9supportslice)
+Re-exports [Five9RawClient](../dist.md#five9rawclient)
 
 ***
 
-### ProviderExtensionRequestInput
+### Five9ReadinessInput
 
-Re-exports [ProviderExtensionRequestInput](../dist.md#providerextensionrequestinput)
+Re-exports [Five9ReadinessInput](../dist.md#five9readinessinput)
+
+***
+
+### five9RestSupportSlice
+
+Re-exports [five9RestSupportSlice](manifest.md#five9restsupportslice)
 
 ***
 
 ### ProviderJsonObject
 
 Re-exports [ProviderJsonObject](../dist.md#providerjsonobject)
+
+***
+
+### ProviderRestRetryOptions
+
+Re-exports [ProviderRestRetryOptions](../dist.md#providerrestretryoptions)

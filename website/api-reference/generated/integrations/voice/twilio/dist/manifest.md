@@ -219,6 +219,10 @@ const twilioVoiceProviderManifest: {
         coverage: "upstream-sdk";
         export: "getRawClient";
      };
+     sdkClient: {
+        coverage: "deprecated-raw-client-alias";
+        export: "getSdkClient";
+     };
   };
   name: "Twilio Programmable Voice";
   operations: readonly [{
@@ -228,7 +232,7 @@ const twilioVoiceProviderManifest: {
      exposesSensitiveData: true;
      label: "Receive voice webhook";
      providerObject: "twilioCall";
-     providerOperation: "parseWebhook";
+     providerOperation: "twilio.validateRequest";
    }, {
      alias: "voice.call.start";
      audiences: readonly ["customer-facing"];
@@ -237,7 +241,7 @@ const twilioVoiceProviderManifest: {
      externallyVisible: true;
      label: "Create outbound call";
      providerObject: "twilioCall";
-     providerOperation: "createOutboundCall";
+     providerOperation: "calls.create";
      requiresApproval: true;
      sideEffect: true;
    }, {
@@ -247,7 +251,7 @@ const twilioVoiceProviderManifest: {
      changesWorkflow: true;
      label: "Redirect call";
      providerObject: "twilioCall";
-     providerOperation: "redirectCall";
+     providerOperation: "calls(sid).update";
      sideEffect: true;
   }];
   packageName: "@cognidesk/integration-voice-twilio";
@@ -297,7 +301,7 @@ const twilioVoiceProviderManifest: {
 | `id` | `"voice.twilio"` |
 | `limitations` | readonly \[`"Live call readiness depends on the SDK user's Twilio account, voice-capable numbers, regions, webhooks, and account permissions."`\] |
 | `maintainers` | readonly \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
-| `metadata` | \{ `implementation`: \{ `sdkPackage`: `"twilio"`; `strategy`: `"official-sdk"`; `verifiedAt`: `"2026-06-21"`; `verifiedVersion`: `"6.0.2"`; \}; `rawClient`: \{ `coverage`: `"upstream-sdk"`; `export`: `"getRawClient"`; \}; \} |
+| `metadata` | \{ `implementation`: \{ `sdkPackage`: `"twilio"`; `strategy`: `"official-sdk"`; `verifiedAt`: `"2026-06-21"`; `verifiedVersion`: `"6.0.2"`; \}; `rawClient`: \{ `coverage`: `"upstream-sdk"`; `export`: `"getRawClient"`; \}; `sdkClient`: \{ `coverage`: `"deprecated-raw-client-alias"`; `export`: `"getSdkClient"`; \}; \} |
 | `metadata.implementation` | \{ `sdkPackage`: `"twilio"`; `strategy`: `"official-sdk"`; `verifiedAt`: `"2026-06-21"`; `verifiedVersion`: `"6.0.2"`; \} |
 | `metadata.implementation.sdkPackage` | `"twilio"` |
 | `metadata.implementation.strategy` | `"official-sdk"` |
@@ -306,8 +310,11 @@ const twilioVoiceProviderManifest: {
 | `metadata.rawClient` | \{ `coverage`: `"upstream-sdk"`; `export`: `"getRawClient"`; \} |
 | `metadata.rawClient.coverage` | `"upstream-sdk"` |
 | `metadata.rawClient.export` | `"getRawClient"` |
+| `metadata.sdkClient` | \{ `coverage`: `"deprecated-raw-client-alias"`; `export`: `"getSdkClient"`; \} |
+| `metadata.sdkClient.coverage` | `"deprecated-raw-client-alias"` |
+| `metadata.sdkClient.export` | `"getSdkClient"` |
 | `name` | `"Twilio Programmable Voice"` |
-| `operations` | readonly \[\{ `alias`: `"voice.call.answer"`; `audiences`: readonly \[`"customer-facing"`\]; `capability`: `"receive"`; `exposesSensitiveData`: `true`; `label`: `"Receive voice webhook"`; `providerObject`: `"twilioCall"`; `providerOperation`: `"parseWebhook"`; \}, \{ `alias`: `"voice.call.start"`; `audiences`: readonly \[`"customer-facing"`\]; `capability`: `"send"`; `exposesSensitiveData`: `true`; `externallyVisible`: `true`; `label`: `"Create outbound call"`; `providerObject`: `"twilioCall"`; `providerOperation`: `"createOutboundCall"`; `requiresApproval`: `true`; `sideEffect`: `true`; \}, \{ `alias`: `"voice.call.redirect"`; `audiences`: readonly \[`"internal-support"`\]; `capability`: `"transfer"`; `changesWorkflow`: `true`; `label`: `"Redirect call"`; `providerObject`: `"twilioCall"`; `providerOperation`: `"redirectCall"`; `sideEffect`: `true`; \}\] |
+| `operations` | readonly \[\{ `alias`: `"voice.call.answer"`; `audiences`: readonly \[`"customer-facing"`\]; `capability`: `"receive"`; `exposesSensitiveData`: `true`; `label`: `"Receive voice webhook"`; `providerObject`: `"twilioCall"`; `providerOperation`: `"twilio.validateRequest"`; \}, \{ `alias`: `"voice.call.start"`; `audiences`: readonly \[`"customer-facing"`\]; `capability`: `"send"`; `exposesSensitiveData`: `true`; `externallyVisible`: `true`; `label`: `"Create outbound call"`; `providerObject`: `"twilioCall"`; `providerOperation`: `"calls.create"`; `requiresApproval`: `true`; `sideEffect`: `true`; \}, \{ `alias`: `"voice.call.redirect"`; `audiences`: readonly \[`"internal-support"`\]; `capability`: `"transfer"`; `changesWorkflow`: `true`; `label`: `"Redirect call"`; `providerObject`: `"twilioCall"`; `providerOperation`: `"calls(sid).update"`; `sideEffect`: `true`; \}\] |
 | `packageName` | `"@cognidesk/integration-voice-twilio"` |
 | `privacyNotes` | readonly \[`"Phone numbers, call metadata, webhook parameters, and Media Stream audio metadata are exchanged with Twilio."`, `"Twilio credentials stay server-side and are never issued to browsers by this package."`\] |
 | `provider` | `"twilio"` |

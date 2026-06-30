@@ -2,9 +2,33 @@
 
 ## References
 
+### createMissingZoomVideoProviderClient
+
+Re-exports [createMissingZoomVideoProviderClient](dist/runtime.md#createmissingzoomvideoproviderclient)
+
+***
+
 ### createZoomMeetingsApiGeneratedClient
 
 Re-exports [createZoomMeetingsApiGeneratedClient](dist/runtime.md#createzoommeetingsapigeneratedclient)
+
+***
+
+### createZoomOfficialSdkVideoProviderClient
+
+Re-exports [createZoomOfficialSdkVideoProviderClient](dist/runtime.md#createzoomofficialsdkvideoproviderclient)
+
+***
+
+### createZoomRestVideoProviderClient
+
+Re-exports [createZoomRestVideoProviderClient](dist/runtime.md#createzoomrestvideoproviderclient)
+
+***
+
+### createZoomServerOAuthAccessToken
+
+Re-exports [createZoomServerOAuthAccessToken](dist/runtime.md#createzoomserveroauthaccesstoken)
 
 ***
 
@@ -122,6 +146,24 @@ Re-exports [ZOOM_MEETINGS_API_SPEC_VERSION](dist/runtime.md#zoom_meetings_api_sp
 
 ***
 
+### ZOOM\_RIVET\_MEETINGS\_REST\_EXCEPTION\_OPERATION\_UIDS
+
+Re-exports [ZOOM_RIVET_MEETINGS_REST_EXCEPTION_OPERATION_UIDS](dist/runtime.md#zoom_rivet_meetings_rest_exception_operation_uids)
+
+***
+
+### ZOOM\_RIVET\_MEETINGS\_SDK\_OPERATION\_COUNT
+
+Re-exports [ZOOM_RIVET_MEETINGS_SDK_OPERATION_COUNT](dist/runtime.md#zoom_rivet_meetings_sdk_operation_count)
+
+***
+
+### ZOOM\_RIVET\_SDK\_PACKAGE\_NAME
+
+Re-exports [ZOOM_RIVET_SDK_PACKAGE_NAME](dist/runtime.md#zoom_rivet_sdk_package_name)
+
+***
+
 ### ZoomCreateMeetingInput
 
 Re-exports [ZoomCreateMeetingInput](dist/runtime.md#zoomcreatemeetinginput)
@@ -143,12 +185,6 @@ Re-exports [ZoomDeleteMeetingInput](dist/runtime.md#zoomdeletemeetinginput)
 ### ZoomGetMeetingInput
 
 Re-exports [ZoomGetMeetingInput](dist/runtime.md#zoomgetmeetinginput)
-
-***
-
-### ZoomHttpMethod
-
-Re-exports [ZoomHttpMethod](dist/runtime.md#zoomhttpmethod)
 
 ***
 
@@ -278,6 +314,12 @@ Re-exports [ZoomOperationRequestInput](dist/runtime.md#zoomoperationrequestinput
 
 ***
 
+### ZoomProviderJsonRetryOptions
+
+Re-exports [ZoomProviderJsonRetryOptions](dist/runtime.md#zoomproviderjsonretryoptions)
+
+***
+
 ### ZoomRecurrenceType
 
 Re-exports [ZoomRecurrenceType](dist/runtime.md#zoomrecurrencetype)
@@ -287,6 +329,12 @@ Re-exports [ZoomRecurrenceType](dist/runtime.md#zoomrecurrencetype)
 ### ZoomResource
 
 Re-exports [ZoomResource](dist/runtime.md#zoomresource)
+
+***
+
+### ZoomServerOAuthTokenOptions
+
+Re-exports [ZoomServerOAuthTokenOptions](dist/runtime.md#zoomserveroauthtokenoptions)
 
 ***
 
@@ -359,6 +407,12 @@ Re-exports [ZoomVideoJsonValue](dist/runtime.md#zoomvideojsonvalue)
 ### zoomVideoOperationHandlers
 
 Re-exports [zoomVideoOperationHandlers](dist/runtime.md#zoomvideooperationhandlers)
+
+***
+
+### ZoomVideoProviderClient
+
+Re-exports [ZoomVideoProviderClient](dist/runtime.md#zoomvideoproviderclient)
 
 ***
 

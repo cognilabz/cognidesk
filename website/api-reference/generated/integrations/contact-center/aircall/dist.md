@@ -4,19 +4,27 @@
 
 ### AircallClient
 
+#### Properties
+
+##### rawClient
+
+```ts
+rawClient: AircallRawClient;
+```
+
 #### Methods
 
 ##### createHandoff()
 
 ```ts
-createHandoff(input): Promise<ProviderJsonObject>;
+createHandoff(input?): Promise<ProviderJsonObject>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | [`ConfiguredHandoffInput`](#configuredhandoffinput) |
+| `input?` | [`AircallTransferCallInput`](#aircalltransfercallinput) |
 
 ###### Returns
 
@@ -25,8 +33,30 @@ createHandoff(input): Promise<ProviderJsonObject>;
 ##### readiness()
 
 ```ts
-readiness(): Promise<ProviderJsonObject>;
+readiness(input?): Promise<ProviderJsonObject>;
 ```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`AircallReadinessInput`](#aircallreadinessinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+##### transferCall()
+
+```ts
+transferCall(input): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`AircallTransferCallInput`](#aircalltransfercallinput) |
 
 ###### Returns
 
@@ -36,6 +66,10 @@ readiness(): Promise<ProviderJsonObject>;
 
 ### AircallClientOptions
 
+#### Extended by
+
+- [`AircallIntegrationOptions`](#aircallintegrationoptions)
+
 #### Properties
 
 ##### accessToken?
@@ -44,22 +78,10 @@ readiness(): Promise<ProviderJsonObject>;
 optional accessToken?: string;
 ```
 
-##### apiBaseUrl
+##### apiBaseUrl?
 
 ```ts
-apiBaseUrl: string;
-```
-
-##### apiKey?
-
-```ts
-optional apiKey?: string;
-```
-
-##### apiKeyHeaderName?
-
-```ts
-optional apiKeyHeaderName?: string;
+optional apiBaseUrl?: string;
 ```
 
 ##### authorizationHeader?
@@ -68,10 +90,10 @@ optional apiKeyHeaderName?: string;
 optional authorizationHeader?: string;
 ```
 
-##### defaultHandoffPath?
+##### baseUrl?
 
 ```ts
-optional defaultHandoffPath?: string;
+optional baseUrl?: string;
 ```
 
 ##### fetch?
@@ -121,139 +143,236 @@ optional fetch?: {
 
 `Promise`\<`Response`\>
 
+##### rawClient?
+
+```ts
+optional rawClient?: AircallRawClient;
+```
+
 ##### readinessPath?
 
 ```ts
 optional readinessPath?: string;
 ```
 
-***
-
-### AircallOperationInput
-
-#### Extended by
-
-- [`ProviderExtensionRequestInput`](#providerextensionrequestinput)
-
-#### Properties
-
-##### body?
+##### retry?
 
 ```ts
-optional body?: unknown;
+optional retry?: number | ProviderRestRetryOptions;
 ```
 
-##### headers?
+##### signal?
 
 ```ts
-optional headers?: Record<string, string>;
+optional signal?: AbortSignal;
 ```
 
-##### idempotencyKey?
+##### timeoutMs?
 
 ```ts
-optional idempotencyKey?: string;
-```
-
-##### pathParams?
-
-```ts
-optional pathParams?: Record<string, string | number | boolean>;
-```
-
-##### query?
-
-```ts
-optional query?: Record<string, ProviderQueryValue>;
+optional timeoutMs?: number;
 ```
 
 ***
 
-### ConfiguredHandoffInput
-
-#### Properties
-
-##### idempotencyKey?
-
-```ts
-optional idempotencyKey?: string;
-```
-
-##### payload?
-
-```ts
-optional payload?: unknown;
-```
-
-##### query?
-
-```ts
-optional query?: Record<string, ProviderQueryValue>;
-```
-
-***
-
-### ProviderExtensionRequestInput
+### AircallIntegrationOptions
 
 #### Extends
 
-- [`AircallOperationInput`](#aircalloperationinput)
+- [`AircallClientOptions`](#aircallclientoptions)
 
 #### Properties
 
-##### allowMutation?
+##### accessToken?
 
 ```ts
-optional allowMutation?: boolean;
-```
-
-##### body?
-
-```ts
-optional body?: unknown;
+optional accessToken?: string;
 ```
 
 ###### Inherited from
 
-[`AircallOperationInput`](#aircalloperationinput).[`body`](#body)
+[`AircallClientOptions`](#aircallclientoptions).[`accessToken`](#accesstoken)
 
-##### classification?
+##### aircallClient?
 
 ```ts
-optional classification?: string;
+optional aircallClient?: AircallClient;
 ```
 
-##### headers?
+##### apiBaseUrl?
 
 ```ts
-optional headers?: Record<string, string>;
-```
-
-###### Inherited from
-
-[`AircallOperationInput`](#aircalloperationinput).[`headers`](#headers)
-
-##### idempotencyKey?
-
-```ts
-optional idempotencyKey?: string;
+optional apiBaseUrl?: string;
 ```
 
 ###### Inherited from
 
-[`AircallOperationInput`](#aircalloperationinput).[`idempotencyKey`](#idempotencykey)
+[`AircallClientOptions`](#aircallclientoptions).[`apiBaseUrl`](#apibaseurl)
 
-##### method?
-
-```ts
-optional method?: ProviderHttpMethod;
-```
-
-##### operationId?
+##### authorizationHeader?
 
 ```ts
-optional operationId?: string;
+optional authorizationHeader?: string;
 ```
+
+###### Inherited from
+
+[`AircallClientOptions`](#aircallclientoptions).[`authorizationHeader`](#authorizationheader)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`AircallClientOptions`](#aircallclientoptions).[`baseUrl`](#baseurl)
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Inherited from
+
+[`AircallClientOptions`](#aircallclientoptions).[`fetch`](#fetch)
+
+##### rawClient?
+
+```ts
+optional rawClient?: AircallRawClient;
+```
+
+###### Inherited from
+
+[`AircallClientOptions`](#aircallclientoptions).[`rawClient`](#rawclient-1)
+
+##### readinessPath?
+
+```ts
+optional readinessPath?: string;
+```
+
+###### Inherited from
+
+[`AircallClientOptions`](#aircallclientoptions).[`readinessPath`](#readinesspath)
+
+##### retry?
+
+```ts
+optional retry?: number | ProviderRestRetryOptions;
+```
+
+###### Inherited from
+
+[`AircallClientOptions`](#aircallclientoptions).[`retry`](#retry)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`AircallClientOptions`](#aircallclientoptions).[`signal`](#signal)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`AircallClientOptions`](#aircallclientoptions).[`timeoutMs`](#timeoutms)
+
+***
+
+### AircallRawClient
+
+#### Methods
+
+##### readiness()?
+
+```ts
+optional readiness(input?): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`AircallReadinessInput`](#aircallreadinessinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+##### transferCall()
+
+```ts
+transferCall(input): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`AircallTransferCallInput`](#aircalltransfercallinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+***
+
+### AircallReadinessInput
+
+#### Properties
 
 ##### path?
 
@@ -261,27 +380,89 @@ optional operationId?: string;
 optional path?: string;
 ```
 
-##### pathParams?
+***
+
+### AircallTransferCallInput
+
+#### Properties
+
+##### callId
 
 ```ts
-optional pathParams?: Record<string, string | number | boolean>;
+callId: string | number;
 ```
 
-###### Inherited from
-
-[`AircallOperationInput`](#aircalloperationinput).[`pathParams`](#pathparams)
-
-##### query?
+##### dispatchingStrategy?
 
 ```ts
-optional query?: Record<string, ProviderQueryValue>;
+optional dispatchingStrategy?: AircallDispatchingStrategy;
 ```
 
-###### Inherited from
+##### number?
 
-[`AircallOperationInput`](#aircalloperationinput).[`query`](#query)
+```ts
+optional number?: string;
+```
+
+##### teamId?
+
+```ts
+optional teamId?: string | number;
+```
+
+##### userId?
+
+```ts
+optional userId?: string | number;
+```
+
+***
+
+### ProviderRestRetryOptions
+
+#### Properties
+
+##### attempts?
+
+```ts
+optional attempts?: number;
+```
+
+##### baseDelayMs?
+
+```ts
+optional baseDelayMs?: number;
+```
+
+##### maxDelayMs?
+
+```ts
+optional maxDelayMs?: number;
+```
+
+##### statusCodes?
+
+```ts
+optional statusCodes?: readonly number[];
+```
 
 ## Type Aliases
+
+### AircallDispatchingStrategy
+
+```ts
+type AircallDispatchingStrategy = "random" | "simultaneous" | "longest_idle";
+```
+
+***
+
+### ConfiguredHandoffInput
+
+```ts
+type ConfiguredHandoffInput = AircallTransferCallInput;
+```
+
+***
 
 ### ProviderJsonObject
 
@@ -294,14 +475,14 @@ type ProviderJsonObject = Record<string, unknown>;
 ### createAircallClient()
 
 ```ts
-function createAircallClient(options): AircallClient;
+function createAircallClient(options?): AircallClient;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`AircallClientOptions`](#aircallclientoptions) |
+| `options?` | [`AircallClientOptions`](#aircallclientoptions) |
 
 #### Returns
 
@@ -312,70 +493,110 @@ function createAircallClient(options): AircallClient;
 ### createAircallIntegration()
 
 ```ts
-function createAircallIntegration(options): DefinedIntegration<{
-  capabilities: readonly [{
+function createAircallIntegration(options?): DefinedIntegration<{
+  capabilities: [{
      capability: "handoff";
      exposesSensitiveData: true;
-     providerObjects: readonly [{
-        kind: "contactTransfer";
-        label: "contactTransfer";
+     providerObjects: [{
+        kind: "callTransfer";
+        label: "Aircall call transfer";
      }];
      requiresCredential: true;
      sideEffect: true;
   }];
   category: "contact-center";
-  channelAudiences: readonly ["customer-facing", "internal-support", "mixed"];
+  channelAudiences: ["customer-facing", "internal-support", "mixed"];
   coverage: {
-     evidence: readonly [{
+     evidence: [{
         label: "Aircall API References";
         url: "https://developer.aircall.io/api-references/";
       }, {
         label: "Aircall Everywhere SDK";
         url: "https://github.com/aircall/aircall-everywhere";
+      }, {
+        label: "aircall-everywhere npm package";
+        url: "https://www.npmjs.com/package/aircall-everywhere";
      }];
-     notes: readonly ["aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls."];
+     notes: ["aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client.", "Runtime calls use Aircall Public API REST for documented call transfer and ping endpoints, with AircallRawClient available as the host-client override."];
      scope: "support-workflow-subset";
   };
-  credentialRequirements: readonly [{
+  credentialRequirements: [{
      id: "aircall-api-base";
      label: "Aircall Public API base URL";
-     required: true;
+     required: false;
    }, {
      id: "aircall-api-access";
-     label: "Aircall API access";
+     label: "Aircall OAuth bearer token or Basic authorization header";
      required: true;
    }, {
      id: "aircall-routing";
      label: "Aircall number/team/routing configuration";
      required: false;
   }];
-  directions: readonly ["inbound-only", "outbound-only", "bidirectional"];
+  directions: ["inbound-only", "outbound-only", "bidirectional"];
   id: "contact-center.aircall";
-  maintainers: readonly [{
+  maintainers: [{
      name: "Cognidesk";
      type: "official";
   }];
   metadata: {
      implementation: {
+        adapterKind: "aircall-public-api-rest-adapter";
         allowedOperations: readonly [{
            alias: "contact-center.handoff.request";
-           checksum: "not-applicable-host-configured";
-           id: "configuredHandoff";
+           checksum: "aircall-public-api-transfer-call-2026-06-25";
+           id: "transferCall";
            method: "POST";
-           path: "host-configured";
-           source: "host-configured";
+           path: "/calls/{callId}/transfers";
+           source: "provider-rest-adapter";
         }];
-        implementationStrategy: "direct-http-support-slice";
-        sdkDecision: "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls.";
-        verifiedAt: "2026-06-21";
+        defaultBaseUrl: "https://api.aircall.io/v1";
+        failClosed: "Built-in REST calls require Aircall credentials and documented transfer inputs before fetch; rawClient overrides must implement transferCall().";
+        implementationStrategy: "no-official-sdk-rest-adapter";
+        providerSdkDecision: {
+           checkedAt: "2026-06-25";
+           checkedPackages: readonly [{
+              checkedVersion: "2.0.6";
+              license: "ISC";
+              package: "aircall-everywhere";
+              reason: "Maintained official package embeds and communicates with Aircall Workspace in a browser; it does not expose server-side Public API transfer operations.";
+              result: "browser-workspace-iframe-sdk-not-public-api-client";
+           }];
+           defaultRestPolicy: "fail-closed-aircall-public-api-rest-adapter-with-typed-raw-client-override";
+           result: "no-suitable-server-side-public-api-sdk";
+           typedClientOverride: "AircallRawClient";
+        };
+        sdkDecision: "No maintained official backend/runtime SDK was found. aircall-everywhere is maintained, but it embeds the Workspace iframe in a browser; runtime support uses Aircall Public API REST with a strict rawClient override.";
+        verifiedAt: "2026-06-25";
      };
      manifestOnlySafe: true;
+     providerRestAdapter: {
+        adapterKind: "aircall-public-api-rest-adapter";
+        defaultBaseUrl: "https://api.aircall.io/v1";
+        defaultClientPolicy: "provider-rest-adapter-when-configured";
+        failClosed: true;
+        rawClientOverride: "AircallRawClient";
+        strategy: "no-official-sdk-rest-adapter";
+     };
+     providerSdkDecision: {
+        checkedAt: "2026-06-25";
+        checkedPackages: readonly [{
+           checkedVersion: "2.0.6";
+           license: "ISC";
+           package: "aircall-everywhere";
+           reason: "Maintained official package embeds and communicates with Aircall Workspace in a browser; it does not expose server-side Public API transfer operations.";
+           result: "browser-workspace-iframe-sdk-not-public-api-client";
+        }];
+        defaultRestPolicy: "fail-closed-aircall-public-api-rest-adapter-with-typed-raw-client-override";
+        result: "no-suitable-server-side-public-api-sdk";
+        typedClientOverride: "AircallRawClient";
+     };
   };
   name: "Aircall";
-  operations: readonly [{
+  operations: [{
      alias: "contact-center.handoff.request";
      capability: "handoff";
-     providerObject: "contactTransfer";
+     providerObject: "callTransfer";
   }];
   packageName: "@cognidesk/integration-contact-center-aircall";
   provider: "aircall";
@@ -389,74 +610,114 @@ function createAircallIntegration(options): DefinedIntegration<{
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`AircallClientOptions`](#aircallclientoptions) |
+| `options?` | [`AircallIntegrationOptions`](#aircallintegrationoptions) |
 
 #### Returns
 
 [`DefinedIntegration`](../../../packages/integration-kit/dist.md#definedintegration)\<\{
-  `capabilities`: readonly \[\{
+  `capabilities`: \[\{
      `capability`: `"handoff"`;
      `exposesSensitiveData`: `true`;
-     `providerObjects`: readonly \[\{
-        `kind`: `"contactTransfer"`;
-        `label`: `"contactTransfer"`;
+     `providerObjects`: \[\{
+        `kind`: `"callTransfer"`;
+        `label`: `"Aircall call transfer"`;
      \}\];
      `requiresCredential`: `true`;
      `sideEffect`: `true`;
   \}\];
   `category`: `"contact-center"`;
-  `channelAudiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
+  `channelAudiences`: \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
   `coverage`: \{
-     `evidence`: readonly \[\{
+     `evidence`: \[\{
         `label`: `"Aircall API References"`;
         `url`: `"https://developer.aircall.io/api-references/"`;
       \}, \{
         `label`: `"Aircall Everywhere SDK"`;
         `url`: `"https://github.com/aircall/aircall-everywhere"`;
+      \}, \{
+        `label`: `"aircall-everywhere npm package"`;
+        `url`: `"https://www.npmjs.com/package/aircall-everywhere"`;
      \}\];
-     `notes`: readonly \[`"aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls."`\];
+     `notes`: \[`"aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client."`, `"Runtime calls use Aircall Public API REST for documented call transfer and ping endpoints, with AircallRawClient available as the host-client override."`\];
      `scope`: `"support-workflow-subset"`;
   \};
-  `credentialRequirements`: readonly \[\{
+  `credentialRequirements`: \[\{
      `id`: `"aircall-api-base"`;
      `label`: `"Aircall Public API base URL"`;
-     `required`: `true`;
+     `required`: `false`;
    \}, \{
      `id`: `"aircall-api-access"`;
-     `label`: `"Aircall API access"`;
+     `label`: `"Aircall OAuth bearer token or Basic authorization header"`;
      `required`: `true`;
    \}, \{
      `id`: `"aircall-routing"`;
      `label`: `"Aircall number/team/routing configuration"`;
      `required`: `false`;
   \}\];
-  `directions`: readonly \[`"inbound-only"`, `"outbound-only"`, `"bidirectional"`\];
+  `directions`: \[`"inbound-only"`, `"outbound-only"`, `"bidirectional"`\];
   `id`: `"contact-center.aircall"`;
-  `maintainers`: readonly \[\{
+  `maintainers`: \[\{
      `name`: `"Cognidesk"`;
      `type`: `"official"`;
   \}\];
   `metadata`: \{
      `implementation`: \{
+        `adapterKind`: `"aircall-public-api-rest-adapter"`;
         `allowedOperations`: readonly \[\{
            `alias`: `"contact-center.handoff.request"`;
-           `checksum`: `"not-applicable-host-configured"`;
-           `id`: `"configuredHandoff"`;
+           `checksum`: `"aircall-public-api-transfer-call-2026-06-25"`;
+           `id`: `"transferCall"`;
            `method`: `"POST"`;
-           `path`: `"host-configured"`;
-           `source`: `"host-configured"`;
+           `path`: `"/calls/{callId}/transfers"`;
+           `source`: `"provider-rest-adapter"`;
         \}\];
-        `implementationStrategy`: `"direct-http-support-slice"`;
-        `sdkDecision`: `"aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls."`;
-        `verifiedAt`: `"2026-06-21"`;
+        `defaultBaseUrl`: `"https://api.aircall.io/v1"`;
+        `failClosed`: `"Built-in REST calls require Aircall credentials and documented transfer inputs before fetch; rawClient overrides must implement transferCall()."`;
+        `implementationStrategy`: `"no-official-sdk-rest-adapter"`;
+        `providerSdkDecision`: \{
+           `checkedAt`: `"2026-06-25"`;
+           `checkedPackages`: readonly \[\{
+              `checkedVersion`: `"2.0.6"`;
+              `license`: `"ISC"`;
+              `package`: `"aircall-everywhere"`;
+              `reason`: `"Maintained official package embeds and communicates with Aircall Workspace in a browser; it does not expose server-side Public API transfer operations."`;
+              `result`: `"browser-workspace-iframe-sdk-not-public-api-client"`;
+           \}\];
+           `defaultRestPolicy`: `"fail-closed-aircall-public-api-rest-adapter-with-typed-raw-client-override"`;
+           `result`: `"no-suitable-server-side-public-api-sdk"`;
+           `typedClientOverride`: `"AircallRawClient"`;
+        \};
+        `sdkDecision`: `"No maintained official backend/runtime SDK was found. aircall-everywhere is maintained, but it embeds the Workspace iframe in a browser; runtime support uses Aircall Public API REST with a strict rawClient override."`;
+        `verifiedAt`: `"2026-06-25"`;
      \};
      `manifestOnlySafe`: `true`;
+     `providerRestAdapter`: \{
+        `adapterKind`: `"aircall-public-api-rest-adapter"`;
+        `defaultBaseUrl`: `"https://api.aircall.io/v1"`;
+        `defaultClientPolicy`: `"provider-rest-adapter-when-configured"`;
+        `failClosed`: `true`;
+        `rawClientOverride`: `"AircallRawClient"`;
+        `strategy`: `"no-official-sdk-rest-adapter"`;
+     \};
+     `providerSdkDecision`: \{
+        `checkedAt`: `"2026-06-25"`;
+        `checkedPackages`: readonly \[\{
+           `checkedVersion`: `"2.0.6"`;
+           `license`: `"ISC"`;
+           `package`: `"aircall-everywhere"`;
+           `reason`: `"Maintained official package embeds and communicates with Aircall Workspace in a browser; it does not expose server-side Public API transfer operations."`;
+           `result`: `"browser-workspace-iframe-sdk-not-public-api-client"`;
+        \}\];
+        `defaultRestPolicy`: `"fail-closed-aircall-public-api-rest-adapter-with-typed-raw-client-override"`;
+        `result`: `"no-suitable-server-side-public-api-sdk"`;
+        `typedClientOverride`: `"AircallRawClient"`;
+     \};
   \};
   `name`: `"Aircall"`;
-  `operations`: readonly \[\{
+  `operations`: \[\{
      `alias`: `"contact-center.handoff.request"`;
      `capability`: `"handoff"`;
-     `providerObject`: `"contactTransfer"`;
+     `providerObject`: `"callTransfer"`;
   \}\];
   `packageName`: `"@cognidesk/integration-contact-center-aircall"`;
   `provider`: `"aircall"`;
@@ -465,7 +726,41 @@ function createAircallIntegration(options): DefinedIntegration<{
   `contact-center.handoff.request`: (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>;
 \}\>
 
+***
+
+### createAircallOperationHandlers()
+
+```ts
+function createAircallOperationHandlers(options?): {
+  contact-center.handoff.request: (input) => Promise<ProviderJsonObject>;
+};
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`AircallIntegrationOptions`](#aircallintegrationoptions) |
+
+#### Returns
+
+```ts
+{
+  contact-center.handoff.request: (input) => Promise<ProviderJsonObject>;
+}
+```
+
+| Name | Type |
+| ------ | ------ |
+| `contact-center.handoff.request()` | (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\> |
+
 ## References
+
+### aircallOperationAliases
+
+Re-exports [aircallOperationAliases](dist/manifest.md#aircalloperationaliases)
+
+***
 
 ### aircallProviderManifest
 
@@ -476,6 +771,12 @@ Re-exports [aircallProviderManifest](dist/manifest.md#aircallprovidermanifest)
 ### aircallProviderManifestInput
 
 Re-exports [aircallProviderManifestInput](dist/manifest.md#aircallprovidermanifestinput)
+
+***
+
+### aircallRestSupportSlice
+
+Re-exports [aircallRestSupportSlice](dist/manifest.md#aircallrestsupportslice)
 
 ***
 

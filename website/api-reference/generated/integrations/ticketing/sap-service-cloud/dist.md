@@ -1,5 +1,63 @@
 # integrations/ticketing/sap-service-cloud/dist
 
+## Classes
+
+### SapServiceCloudProviderApiError
+
+#### Extends
+
+- `Error`
+
+#### Constructors
+
+##### Constructor
+
+```ts
+new SapServiceCloudProviderApiError(input): SapServiceCloudProviderApiError;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`SapServiceCloudProviderApiErrorInput`](#sapservicecloudproviderapierrorinput) |
+
+###### Returns
+
+[`SapServiceCloudProviderApiError`](#sapservicecloudproviderapierror)
+
+###### Overrides
+
+```ts
+Error.constructor
+```
+
+#### Properties
+
+##### body
+
+```ts
+readonly body: unknown;
+```
+
+##### provider
+
+```ts
+readonly provider: "sap-service-cloud" = "sap-service-cloud";
+```
+
+##### response
+
+```ts
+readonly response: SapServiceCloudProviderApiErrorResponseMetadata;
+```
+
+##### status
+
+```ts
+readonly status: number;
+```
+
 ## Interfaces
 
 ### SapReadServiceRequestOperationInput
@@ -24,22 +82,46 @@ objectId: string;
 optional accessToken?: string;
 ```
 
+##### apiAccessConfigured?
+
+```ts
+optional apiAccessConfigured?: boolean;
+```
+
+##### authConfigured?
+
+```ts
+optional authConfigured?: boolean;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
 ##### password?
 
 ```ts
 optional password?: string;
 ```
 
+##### providerClient?
+
+```ts
+optional providerClient?: SapServiceCloudTicketingProviderClient;
+```
+
+##### providerClientConfigured?
+
+```ts
+optional providerClientConfigured?: boolean;
+```
+
 ##### scopes?
 
 ```ts
 optional scopes?: string[];
-```
-
-##### tenantUrl?
-
-```ts
-optional tenantUrl?: string;
 ```
 
 ##### username?
@@ -83,82 +165,61 @@ optional accessToken?: string;
 
 [`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`accessToken`](#accesstoken-2)
 
+##### auth?
+
+```ts
+optional auth?: SapServiceCloudAuthOptions;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`auth`](#auth-1)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`baseUrl`](#baseurl-2)
+
 ##### client?
 
 ```ts
 optional client?: Pick<SapServiceCloudTicketingClient, "readiness">;
 ```
 
-##### fetch?
+##### csrfToken?
 
 ```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
-```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Inherited from
-
-[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`fetch`](#fetch-1)
-
-##### fetchCsrfToken?
-
-```ts
-optional fetchCsrfToken?: boolean;
+optional csrfToken?: string;
 ```
 
 ###### Inherited from
 
-[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`fetchCsrfToken`](#fetchcsrftoken-1)
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`csrfToken`](#csrftoken-1)
 
-##### odataPath?
+##### headers?
 
 ```ts
-optional odataPath?: string;
+optional headers?: Record<string, string>;
 ```
 
 ###### Inherited from
 
-[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`odataPath`](#odatapath-1)
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`headers`](#headers-2)
+
+##### odataBasePath?
+
+```ts
+optional odataBasePath?: string;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`odataBasePath`](#odatabasepath-1)
 
 ##### password?
 
@@ -170,15 +231,35 @@ optional password?: string;
 
 [`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`password`](#password-2)
 
-##### tenantUrl
+##### providerClient?
 
 ```ts
-tenantUrl: string;
+optional providerClient?: SapServiceCloudTicketingProviderClient;
 ```
 
 ###### Inherited from
 
-[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`tenantUrl`](#tenanturl-2)
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`providerClient`](#providerclient-2)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`signal`](#signal-1)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`timeoutMs`](#timeoutms-1)
 
 ##### username?
 
@@ -189,6 +270,66 @@ optional username?: string;
 ###### Inherited from
 
 [`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`username`](#username-2)
+
+***
+
+### SapServiceCloudProviderApiErrorInput
+
+#### Properties
+
+##### body
+
+```ts
+body: unknown;
+```
+
+##### message
+
+```ts
+message: string;
+```
+
+##### response
+
+```ts
+response: SapServiceCloudProviderApiErrorResponseMetadata;
+```
+
+##### status
+
+```ts
+status: number;
+```
+
+***
+
+### SapServiceCloudProviderApiErrorResponseMetadata
+
+#### Properties
+
+##### headers
+
+```ts
+headers: Record<string, string>;
+```
+
+##### requestId?
+
+```ts
+optional requestId?: string;
+```
+
+##### statusText
+
+```ts
+statusText: string;
+```
+
+##### url
+
+```ts
+url: string;
+```
 
 ***
 
@@ -220,7 +361,210 @@ optional username?: string;
 
 ***
 
-### SapServiceCloudTicketingClient
+### SapServiceCloudTicketingClientOptions
+
+#### Extended by
+
+- [`SapServiceCloudLiveCheckOptions`](#sapservicecloudlivecheckoptions)
+- [`SapServiceCloudTicketingIntegrationOptions`](#sapservicecloudticketingintegrationoptions)
+
+#### Properties
+
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+##### auth?
+
+```ts
+optional auth?: SapServiceCloudAuthOptions;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+##### csrfToken?
+
+```ts
+optional csrfToken?: string;
+```
+
+##### headers?
+
+```ts
+optional headers?: Record<string, string>;
+```
+
+##### odataBasePath?
+
+```ts
+optional odataBasePath?: string;
+```
+
+##### password?
+
+```ts
+optional password?: string;
+```
+
+##### providerClient?
+
+```ts
+optional providerClient?: SapServiceCloudTicketingProviderClient;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+##### username?
+
+```ts
+optional username?: string;
+```
+
+***
+
+### SapServiceCloudTicketingIntegrationOptions
+
+#### Extends
+
+- [`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions)
+
+#### Properties
+
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`accessToken`](#accesstoken-2)
+
+##### auth?
+
+```ts
+optional auth?: SapServiceCloudAuthOptions;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`auth`](#auth-1)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`baseUrl`](#baseurl-2)
+
+##### client?
+
+```ts
+optional client?: SapServiceCloudTicketingProviderClient;
+```
+
+##### csrfToken?
+
+```ts
+optional csrfToken?: string;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`csrfToken`](#csrftoken-1)
+
+##### headers?
+
+```ts
+optional headers?: Record<string, string>;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`headers`](#headers-2)
+
+##### odataBasePath?
+
+```ts
+optional odataBasePath?: string;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`odataBasePath`](#odatabasepath-1)
+
+##### password?
+
+```ts
+optional password?: string;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`password`](#password-2)
+
+##### providerClient?
+
+```ts
+optional providerClient?: SapServiceCloudTicketingProviderClient;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`providerClient`](#providerclient-2)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`signal`](#signal-1)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`timeoutMs`](#timeoutms-1)
+
+##### username?
+
+```ts
+optional username?: string;
+```
+
+###### Inherited from
+
+[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`username`](#username-2)
+
+***
+
+### SapServiceCloudTicketingProviderClient
 
 #### Methods
 
@@ -302,227 +646,6 @@ etag?): Promise<SapServiceRequestResource>;
 ###### Returns
 
 `Promise`\<[`SapServiceRequestResource`](#sapservicerequestresource)\>
-
-***
-
-### SapServiceCloudTicketingClientOptions
-
-#### Extended by
-
-- [`SapServiceCloudLiveCheckOptions`](#sapservicecloudlivecheckoptions)
-- [`SapServiceCloudTicketingIntegrationOptions`](#sapservicecloudticketingintegrationoptions)
-
-#### Properties
-
-##### accessToken?
-
-```ts
-optional accessToken?: string;
-```
-
-##### fetch?
-
-```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
-```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-##### fetchCsrfToken?
-
-```ts
-optional fetchCsrfToken?: boolean;
-```
-
-##### odataPath?
-
-```ts
-optional odataPath?: string;
-```
-
-##### password?
-
-```ts
-optional password?: string;
-```
-
-##### tenantUrl
-
-```ts
-tenantUrl: string;
-```
-
-##### username?
-
-```ts
-optional username?: string;
-```
-
-***
-
-### SapServiceCloudTicketingIntegrationOptions
-
-#### Extends
-
-- [`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions)
-
-#### Properties
-
-##### accessToken?
-
-```ts
-optional accessToken?: string;
-```
-
-###### Inherited from
-
-[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`accessToken`](#accesstoken-2)
-
-##### client?
-
-```ts
-optional client?: SapServiceCloudTicketingClient;
-```
-
-##### fetch?
-
-```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
-```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Inherited from
-
-[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`fetch`](#fetch-1)
-
-##### fetchCsrfToken?
-
-```ts
-optional fetchCsrfToken?: boolean;
-```
-
-###### Inherited from
-
-[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`fetchCsrfToken`](#fetchcsrftoken-1)
-
-##### odataPath?
-
-```ts
-optional odataPath?: string;
-```
-
-###### Inherited from
-
-[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`odataPath`](#odatapath-1)
-
-##### password?
-
-```ts
-optional password?: string;
-```
-
-###### Inherited from
-
-[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`password`](#password-2)
-
-##### tenantUrl
-
-```ts
-tenantUrl: string;
-```
-
-###### Inherited from
-
-[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`tenantUrl`](#tenanturl-2)
-
-##### username?
-
-```ts
-optional username?: string;
-```
-
-###### Inherited from
-
-[`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions).[`username`](#username-2)
 
 ***
 
@@ -758,6 +881,27 @@ optional statusCode?: string;
 
 ## Type Aliases
 
+### SapServiceCloudAuthOptions
+
+```ts
+type SapServiceCloudAuthOptions =
+  | {
+  accessToken: string;
+  type: "bearer";
+}
+  | {
+  password: string;
+  type: "basic";
+  username: string;
+}
+  | {
+  headers: Record<string, string>;
+  type: "headers";
+};
+```
+
+***
+
 ### SapServiceCloudJsonPrimitive
 
 ```ts
@@ -804,6 +948,22 @@ type SapServiceCloudProviderQuery = Record<string, SapServiceCloudProviderExtens
 
 ***
 
+### SapServiceCloudSdkHttpDestination
+
+```ts
+type SapServiceCloudSdkHttpDestination = Parameters<typeof executeHttpRequest>[0];
+```
+
+***
+
+### SapServiceCloudTicketingClient
+
+```ts
+type SapServiceCloudTicketingClient = SapServiceCloudTicketingProviderClient;
+```
+
+***
+
 ### SapServiceRequestResource
 
 ```ts
@@ -832,10 +992,10 @@ type SapServiceRequestResource = SapServiceCloudProviderPayload & {
 
 ## Functions
 
-### createSapServiceCloudTicketingClient()
+### createSapServiceCloudODataProviderClient()
 
 ```ts
-function createSapServiceCloudTicketingClient(options): SapServiceCloudTicketingClient;
+function createSapServiceCloudODataProviderClient(options): SapServiceCloudTicketingProviderClient;
 ```
 
 #### Parameters
@@ -846,14 +1006,32 @@ function createSapServiceCloudTicketingClient(options): SapServiceCloudTicketing
 
 #### Returns
 
-[`SapServiceCloudTicketingClient`](#sapservicecloudticketingclient)
+[`SapServiceCloudTicketingProviderClient`](#sapservicecloudticketingproviderclient)
+
+***
+
+### createSapServiceCloudTicketingClient()
+
+```ts
+function createSapServiceCloudTicketingClient(options?): SapServiceCloudTicketingProviderClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`SapServiceCloudTicketingClientOptions`](#sapservicecloudticketingclientoptions) |
+
+#### Returns
+
+[`SapServiceCloudTicketingProviderClient`](#sapservicecloudticketingproviderclient)
 
 ***
 
 ### createSapServiceCloudTicketingIntegration()
 
 ```ts
-function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<{
+function createSapServiceCloudTicketingIntegration(options?): DefinedIntegration<{
   capabilities: {
      audiences?: ("customer-facing" | "internal-support" | "mixed")[];
      capability: string;
@@ -951,7 +1129,7 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
      audiences: readonly ["customer-facing", "internal-support", "mixed"];
      capability: "handoff";
      changesWorkflow: true;
-     description: "Creates or updates SAP Service Cloud ServiceRequestCollection records as SDK-configured support handoff targets.";
+     description: "Creates or updates SAP Service Cloud ServiceRequestCollection records through the built-in OData adapter or host provider client as SDK-configured support handoff targets.";
      exposesSensitiveData: true;
      label: "Create SAP Service Cloud handoff";
      providerObjects: readonly [{
@@ -965,7 +1143,7 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
      audiences: readonly ["customer-facing", "internal-support", "mixed"];
      capability: "create-provider-object";
      changesWorkflow: true;
-     description: "Creates SAP Service Cloud ServiceRequestCollection tickets from SDK-user-selected workflows.";
+     description: "Creates SAP Service Cloud ServiceRequestCollection tickets through the built-in OData adapter or host provider client from SDK-user-selected workflows.";
      exposesSensitiveData: true;
      label: "Create SAP service requests";
      providerObjects: readonly [{
@@ -991,7 +1169,7 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
      audiences: readonly ["internal-support", "mixed"];
      capability: "update-provider-object";
      changesWorkflow: true;
-     description: "Updates SAP Service Cloud ticket fields, statuses, priorities, or SDK-user custom fields.";
+     description: "Updates SAP Service Cloud ticket fields, statuses, priorities, or SDK-user custom fields through the built-in OData adapter or host provider client.";
      exposesSensitiveData: true;
      label: "Update SAP service requests";
      providerObjects: readonly [{
@@ -1004,7 +1182,7 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
    }, {
      audiences: readonly ["customer-facing", "internal-support", "mixed"];
      capability: "search-provider-object";
-     description: "Queries SAP Service Cloud ServiceRequestCollection with SDK-user-supplied OData filters and projections.";
+     description: "Queries SAP Service Cloud ServiceRequestCollection with SDK-user-supplied OData query controls.";
      exposesSensitiveData: true;
      label: "Search SAP service requests";
      providerObjects: readonly [{
@@ -1030,28 +1208,42 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
         label: "SAP Cloud for Customer OData Services PDF";
         url: "https://help.sap.com/doc/77979cd206da4b7f9bd264b390d373fc/CLOUD/en-US/OData_Services.pdf";
      }];
-     notes: readonly ["Coverage is typed for SAP Cloud for Customer OData ServiceRequestCollection create, read by ObjectID, patch, collection query, CSRF token preflight, and readiness checks used by Cognidesk support workflows.", "This is not full SAP Service Cloud API coverage; notes, descriptions, attachments, involved parties, service categories, code-list discovery, custom OData services, communication arrangements, workflow actions, v2 migration policy, and broader SAP Cloud for Customer APIs remain outside this adapter."];
+     notes: readonly ["Runtime coverage uses the built-in SAP Service Cloud OData adapter backed by the official SAP Cloud SDK HTTP client for selected ServiceRequestCollection create, read by ObjectID, update, search, and readiness workflows when baseUrl plus access credentials are provided.", "A host-injected SapServiceCloudTicketingProviderClient remains available as an override for SDK-user-owned generated clients, destination handling, authentication, retries, or endpoint policy.", "This is not full SAP Service Cloud API coverage; notes, descriptions, attachments, involved parties, service categories, code-list discovery, custom OData services, communication arrangements, workflow actions, v2 migration policy, and broader SAP Cloud for Customer APIs remain outside this adapter."];
      scope: "support-workflow-subset";
   };
   credentialRequirements: readonly [{
-     description: "The SDK user's SAP Cloud for Customer or SAP Service Cloud tenant URL.";
-     id: "sap-service-cloud-tenant";
-     label: "SAP Service Cloud tenant URL";
-     required: true;
-   }, {
-     description: "Server-side Basic Auth, communication user/arrangement, or OAuth bearer access authorized for the SAP Cloud for Customer OData API.";
-     id: "sap-service-cloud-api-access";
-     label: "SAP Service Cloud OData API access";
+     description: "Optional SapServiceCloudTicketingProviderClient override that encapsulates SAP Service Cloud tenant routing, generated SDK/provider runtime, authentication, retries, and endpoint policy.";
+     id: "sap-service-cloud-provider-client";
+     label: "Optional SAP Service Cloud provider client override";
      metadata: {
-        privilegeGuidance: "These strings are Cognidesk capability labels for ServiceRequestCollection access, not official SAP OAuth scope names. SAP authorization depends on communication arrangements, business user permissions, and exposed OData services.";
+        credentialOwnership: "host-managed-override";
+        defaultClientPolicy: "built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client";
+        injectionInterface: "SapServiceCloudTicketingProviderClient";
+     };
+     required: false;
+   }, {
+     description: "SAP Service Cloud tenant base URL used by the built-in OData adapter, or supplied by a host provider client override.";
+     id: "sap-service-cloud-instance";
+     label: "SAP Service Cloud base URL";
+     metadata: {
+        requiredWhen: "built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client";
+     };
+     required: false;
+   }, {
+     description: "Server-side SAP Service Cloud access supplied as accessToken, basic auth, auth headers, or encapsulated in a host provider client override.";
+     id: "sap-service-cloud-api-access";
+     label: "SAP Service Cloud API access";
+     metadata: {
+        privilegeGuidance: "These strings are Cognidesk capability labels for ServiceRequestCollection access, not official SAP OAuth scope names. SAP authorization depends on the host client's communication arrangements, destination/auth configuration, business user permissions, and exposed services.";
+        requiredWhen: "built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client";
         scopeKind: "internal-capability-labels";
      };
-     required: true;
+     required: false;
      scopes: readonly ["ServiceRequestCollection:read", "ServiceRequestCollection:write"];
   }];
   directions: readonly ["bidirectional"];
   id: "ticketing.sap-service-cloud";
-  limitations: readonly ["SAP tenant OData exposure, communication arrangements, required fields, statuses, code lists, workflow rules, and extensions are SDK-user configuration.", "SDK users own escalation timing, customer matching, field mapping, reply visibility, retention, and notification policy before calling SAP APIs."];
+  limitations: readonly ["SAP tenant exposure, communication arrangements, required fields, statuses, code lists, workflow rules, and extensions are SDK-user host-client configuration.", "The built-in adapter covers selected ServiceRequestCollection OData operations only; hosts can still inject a SapServiceCloudTicketingProviderClient for generated clients, destinations, custom auth, CSRF preflights, or retry policy.", "SDK users own escalation timing, customer matching, field mapping, reply visibility, retention, and notification policy before calling SAP APIs."];
   maintainers: readonly [{
      name: "Cognidesk";
      type: "official";
@@ -1059,10 +1251,10 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
   metadata: {
      channelCoverage: {
         attachmentFolder: "provider-supported-not-typed";
-        csrfToken: "typed-selected";
+        csrfToken: "typed-optional-header-supported-host-owned-prefetch";
         notesInvolvedPartiesCodeLists: "provider-supported-not-typed";
-        readinessSearch: "typed-search";
-        serviceRequests: "typed-create-read-update-search";
+        readinessSearch: "typed-odata-adapter-readiness";
+        serviceRequests: "typed-odata-adapter-create-read-update-search";
         workflowRulesCommunicationArrangements: "not-covered";
      };
      checkedProviderApiCoverage: {
@@ -1070,53 +1262,79 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
         coverageArtifact: "docs/provider-coverage/sap-service-cloud-checked-c4c-odata-2026-06-18.inventory.json";
         gapFamilyCount: 1;
         implementedFamilyCount: 2;
-        implementedOperationCount: 5;
+        implementedOperationCount: 4;
         sourceKind: "checked-endpoint-family-inventory";
         verifiedAt: "2026-06-18";
      };
-     implementation: {
-        strategy: "direct-http-support-slice";
-     };
-     implementationStrategy: {
-        checkedAt: "2026-06-21";
-        reason: "SAP Cloud SDK for JavaScript is maintained and viable for OData v2/generator/HTTP transport, but this package keeps the reviewed ServiceRequestCollection slice until a redistributable EDMX/source artifact can be pinned.";
-        strategy: "sdk-viable-reviewed-support-slice";
-        viableLibraries: readonly [{
-           integrity: "sha512-/t1ncLEnm3yTzHRkIgpNcUMGHk7jvQ1nSHrb7YgvgU+/Q2P5Au8llPEH/zudXZ8Bd3k9Qdrfdq/hl+w+YWkBIg==";
-           packageName: "@sap-cloud-sdk/odata-v2";
-           version: "4.7.0";
+     checkedProviderSdk: {
+        candidates: readonly [{
+           checkedVersion: "4.7.0";
+           license: "Apache-2.0";
+           package: "@sap-cloud-sdk/http-client";
+           reason: "Official SAP Cloud SDK HTTP client provides executeHttpRequest and typed request/response surfaces suitable for the package's existing ServiceRequestCollection OData mapping.";
+           result: "accepted-runtime-http-client";
          }, {
-           integrity: "sha512-aW17rUVIZl5RA3WoTTErBwwWCX5A3AresM13Vs7fKEc3Z52919KTlH+7Cpf/9qJrNDQUZU6RzCw+bHd5gs8wHA==";
-           packageName: "@sap-cloud-sdk/generator";
-           version: "4.7.0";
+           checkedVersion: "4.7.0";
+           license: "Apache-2.0";
+           package: "@sap-cloud-sdk/odata-v2";
+           reason: "Official generic SAP Cloud SDK OData v2 runtime; requires generated service client metadata and host destination/auth setup rather than providing a SAP Service Cloud ServiceRequestCollection client.";
+           result: "not-generated-client-in-this-package";
          }, {
-           integrity: "sha512-7+S6ru7SrnyKA2MGimX09oix0EVwmPGcCAz0TRwFZVnglU+VTRmZ8QdcwcVTR26E9YhkR4OVl6EK7jb2Z0OxfQ==";
-           packageName: "@sap-cloud-sdk/http-client";
-           version: "4.7.0";
+           checkedVersion: "4.7.0";
+           license: "Apache-2.0";
+           package: "@sap-cloud-sdk/generator";
+           reason: "Official generator for EDMX-based clients; this package does not own or redistribute tenant/version-specific SAP Service Cloud metadata.";
+           result: "not-runtime-client";
         }];
+        checkedAt: "2026-06-25";
+        reason: "SAP Cloud SDK for JavaScript is official and current. No generated ServiceRequestCollection client is bundled here, so this package owns the typed OData path/body mapping while delegating runtime HTTP execution to @sap-cloud-sdk/http-client.";
+        sources: readonly ["https://sap.github.io/cloud-sdk/docs/js/overview", "https://sap.github.io/cloud-sdk/docs/js/features/odata/overview", "https://sap.github.io/cloud-sdk/docs/js/features/odata/generate-client", "https://www.npmjs.com/package/@sap-cloud-sdk/http-client", "https://www.npmjs.com/package/@sap-cloud-sdk/odata-v2"];
+        verdict: "sdk-backed-generic-odata-http-client";
      };
-     supportOperationSlice: {
-        allowlistSha256: "0878a63145c55ce016d71a56643a963adc9fe945c7d0a029286d567e5027f30f";
-        checkedAt: "2026-06-21";
+     implementation: {
+        adapterKind: "sap-cloud-sdk-http-client-odata-adapter";
+        defaultFetchClient: "none-provider-client-override-only";
+        defaultHttpClient: "executeHttpRequest";
+        manifestImport: "no-client-initialization";
+        packageOwnedODataMapping: true;
+        packageOwnedRestClient: false;
+        providerClientInterface: "SapServiceCloudTicketingProviderClient";
+        providerClientOverride: true;
+        providerSdkPackage: "@sap-cloud-sdk/http-client";
+        strategy: "provider-sdk-http-client-odata-adapter";
+     };
+     implementationStrategy: "sap-cloud-sdk-http-client-odata-adapter";
+     providerClient: {
+        defaultClient: "built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client";
+        importPolicy: "optional-host-override";
+        injectionPolicy: "optional-runtime-override";
+        interface: "SapServiceCloudTicketingProviderClient";
+     };
+     providerRestAdapterSupportSurface: {
+        adapterKind: "sap-cloud-sdk-http-client-odata-adapter";
         operations: readonly [{
            alias: "ticket.create";
-           method: "POST";
-           path: "{odataPath}/ServiceRequestCollection";
+           providerClientMethod: "createServiceRequest";
          }, {
            alias: "ticket.read";
-           method: "GET";
-           path: "{odataPath}/ServiceRequestCollection('{ObjectID}')";
+           providerClientMethod: "getServiceRequest";
          }, {
            alias: "ticket.update";
-           method: "PATCH";
-           path: "{odataPath}/ServiceRequestCollection('{ObjectID}')";
+           providerClientMethod: "updateServiceRequest";
          }, {
            alias: "ticket.search";
-           method: "GET";
-           path: "{odataPath}/ServiceRequestCollection";
+           providerClientMethod: "searchServiceRequests";
         }];
-        sourceKind: "official-docs-reviewed-slice";
-        sourceVersion: "/sap/c4c/odata/v1/c4codataapi";
+        source: "Built-in SAP Service Cloud OData mapping executed through SAP Cloud SDK HTTP client";
+     };
+     providerSdkRuntime: {
+        checkedVersion: "4.7.0";
+        compatibilityFallback: "Explicit host fetch or retry options keep the legacy integration-kit JSON transport for callers that require fetch injection or integration-kit retry semantics.";
+        defaultRuntime: "SAP Cloud SDK HTTP client executes the package-owned ServiceRequestCollection OData mapping.";
+        importedRuntimeFunction: "executeHttpRequest";
+        importedRuntimeTypes: readonly ["HttpRequestConfig", "HttpResponse", "Method"];
+        license: "Apache-2.0";
+        package: "@sap-cloud-sdk/http-client";
      };
   };
   name: "SAP Service Cloud";
@@ -1157,7 +1375,7 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
   privacyNotes: readonly ["SAP service requests can contain customer account/contact details, ticket descriptions, categories, priorities, involved parties, notes, and internal routing data.", "SAP API credentials stay server-side and Studio receives only readiness and scope status."];
   provider: "sap-service-cloud";
   trustLevel: "official";
-}, SapServiceCloudTicketingIntegrationOptions, {
+}, unknown, {
   ticket.create: (input) => Promise<SapServiceRequestResource>;
   ticket.read: (input) => Promise<SapServiceRequestResource>;
   ticket.search: (input?) => Promise<SapServiceSearchResult<SapServiceRequestResource>>;
@@ -1169,7 +1387,7 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`SapServiceCloudTicketingIntegrationOptions`](#sapservicecloudticketingintegrationoptions) |
+| `options?` | [`SapServiceCloudTicketingIntegrationOptions`](#sapservicecloudticketingintegrationoptions) |
 
 #### Returns
 
@@ -1271,7 +1489,7 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
      `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
      `capability`: `"handoff"`;
      `changesWorkflow`: `true`;
-     `description`: `"Creates or updates SAP Service Cloud ServiceRequestCollection records as SDK-configured support handoff targets."`;
+     `description`: `"Creates or updates SAP Service Cloud ServiceRequestCollection records through the built-in OData adapter or host provider client as SDK-configured support handoff targets."`;
      `exposesSensitiveData`: `true`;
      `label`: `"Create SAP Service Cloud handoff"`;
      `providerObjects`: readonly \[\{
@@ -1285,7 +1503,7 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
      `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
      `capability`: `"create-provider-object"`;
      `changesWorkflow`: `true`;
-     `description`: `"Creates SAP Service Cloud ServiceRequestCollection tickets from SDK-user-selected workflows."`;
+     `description`: `"Creates SAP Service Cloud ServiceRequestCollection tickets through the built-in OData adapter or host provider client from SDK-user-selected workflows."`;
      `exposesSensitiveData`: `true`;
      `label`: `"Create SAP service requests"`;
      `providerObjects`: readonly \[\{
@@ -1311,7 +1529,7 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
      `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
      `capability`: `"update-provider-object"`;
      `changesWorkflow`: `true`;
-     `description`: `"Updates SAP Service Cloud ticket fields, statuses, priorities, or SDK-user custom fields."`;
+     `description`: `"Updates SAP Service Cloud ticket fields, statuses, priorities, or SDK-user custom fields through the built-in OData adapter or host provider client."`;
      `exposesSensitiveData`: `true`;
      `label`: `"Update SAP service requests"`;
      `providerObjects`: readonly \[\{
@@ -1324,7 +1542,7 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
    \}, \{
      `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
      `capability`: `"search-provider-object"`;
-     `description`: `"Queries SAP Service Cloud ServiceRequestCollection with SDK-user-supplied OData filters and projections."`;
+     `description`: `"Queries SAP Service Cloud ServiceRequestCollection with SDK-user-supplied OData query controls."`;
      `exposesSensitiveData`: `true`;
      `label`: `"Search SAP service requests"`;
      `providerObjects`: readonly \[\{
@@ -1350,28 +1568,42 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
         `label`: `"SAP Cloud for Customer OData Services PDF"`;
         `url`: `"https://help.sap.com/doc/77979cd206da4b7f9bd264b390d373fc/CLOUD/en-US/OData_Services.pdf"`;
      \}\];
-     `notes`: readonly \[`"Coverage is typed for SAP Cloud for Customer OData ServiceRequestCollection create, read by ObjectID, patch, collection query, CSRF token preflight, and readiness checks used by Cognidesk support workflows."`, `"This is not full SAP Service Cloud API coverage; notes, descriptions, attachments, involved parties, service categories, code-list discovery, custom OData services, communication arrangements, workflow actions, v2 migration policy, and broader SAP Cloud for Customer APIs remain outside this adapter."`\];
+     `notes`: readonly \[`"Runtime coverage uses the built-in SAP Service Cloud OData adapter backed by the official SAP Cloud SDK HTTP client for selected ServiceRequestCollection create, read by ObjectID, update, search, and readiness workflows when baseUrl plus access credentials are provided."`, `"A host-injected SapServiceCloudTicketingProviderClient remains available as an override for SDK-user-owned generated clients, destination handling, authentication, retries, or endpoint policy."`, `"This is not full SAP Service Cloud API coverage; notes, descriptions, attachments, involved parties, service categories, code-list discovery, custom OData services, communication arrangements, workflow actions, v2 migration policy, and broader SAP Cloud for Customer APIs remain outside this adapter."`\];
      `scope`: `"support-workflow-subset"`;
   \};
   `credentialRequirements`: readonly \[\{
-     `description`: `"The SDK user's SAP Cloud for Customer or SAP Service Cloud tenant URL."`;
-     `id`: `"sap-service-cloud-tenant"`;
-     `label`: `"SAP Service Cloud tenant URL"`;
-     `required`: `true`;
-   \}, \{
-     `description`: `"Server-side Basic Auth, communication user/arrangement, or OAuth bearer access authorized for the SAP Cloud for Customer OData API."`;
-     `id`: `"sap-service-cloud-api-access"`;
-     `label`: `"SAP Service Cloud OData API access"`;
+     `description`: `"Optional SapServiceCloudTicketingProviderClient override that encapsulates SAP Service Cloud tenant routing, generated SDK/provider runtime, authentication, retries, and endpoint policy."`;
+     `id`: `"sap-service-cloud-provider-client"`;
+     `label`: `"Optional SAP Service Cloud provider client override"`;
      `metadata`: \{
-        `privilegeGuidance`: `"These strings are Cognidesk capability labels for ServiceRequestCollection access, not official SAP OAuth scope names. SAP authorization depends on communication arrangements, business user permissions, and exposed OData services."`;
+        `credentialOwnership`: `"host-managed-override"`;
+        `defaultClientPolicy`: `"built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client"`;
+        `injectionInterface`: `"SapServiceCloudTicketingProviderClient"`;
+     \};
+     `required`: `false`;
+   \}, \{
+     `description`: `"SAP Service Cloud tenant base URL used by the built-in OData adapter, or supplied by a host provider client override."`;
+     `id`: `"sap-service-cloud-instance"`;
+     `label`: `"SAP Service Cloud base URL"`;
+     `metadata`: \{
+        `requiredWhen`: `"built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client"`;
+     \};
+     `required`: `false`;
+   \}, \{
+     `description`: `"Server-side SAP Service Cloud access supplied as accessToken, basic auth, auth headers, or encapsulated in a host provider client override."`;
+     `id`: `"sap-service-cloud-api-access"`;
+     `label`: `"SAP Service Cloud API access"`;
+     `metadata`: \{
+        `privilegeGuidance`: `"These strings are Cognidesk capability labels for ServiceRequestCollection access, not official SAP OAuth scope names. SAP authorization depends on the host client's communication arrangements, destination/auth configuration, business user permissions, and exposed services."`;
+        `requiredWhen`: `"built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client"`;
         `scopeKind`: `"internal-capability-labels"`;
      \};
-     `required`: `true`;
+     `required`: `false`;
      `scopes`: readonly \[`"ServiceRequestCollection:read"`, `"ServiceRequestCollection:write"`\];
   \}\];
   `directions`: readonly \[`"bidirectional"`\];
   `id`: `"ticketing.sap-service-cloud"`;
-  `limitations`: readonly \[`"SAP tenant OData exposure, communication arrangements, required fields, statuses, code lists, workflow rules, and extensions are SDK-user configuration."`, `"SDK users own escalation timing, customer matching, field mapping, reply visibility, retention, and notification policy before calling SAP APIs."`\];
+  `limitations`: readonly \[`"SAP tenant exposure, communication arrangements, required fields, statuses, code lists, workflow rules, and extensions are SDK-user host-client configuration."`, `"The built-in adapter covers selected ServiceRequestCollection OData operations only; hosts can still inject a SapServiceCloudTicketingProviderClient for generated clients, destinations, custom auth, CSRF preflights, or retry policy."`, `"SDK users own escalation timing, customer matching, field mapping, reply visibility, retention, and notification policy before calling SAP APIs."`\];
   `maintainers`: readonly \[\{
      `name`: `"Cognidesk"`;
      `type`: `"official"`;
@@ -1379,10 +1611,10 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
   `metadata`: \{
      `channelCoverage`: \{
         `attachmentFolder`: `"provider-supported-not-typed"`;
-        `csrfToken`: `"typed-selected"`;
+        `csrfToken`: `"typed-optional-header-supported-host-owned-prefetch"`;
         `notesInvolvedPartiesCodeLists`: `"provider-supported-not-typed"`;
-        `readinessSearch`: `"typed-search"`;
-        `serviceRequests`: `"typed-create-read-update-search"`;
+        `readinessSearch`: `"typed-odata-adapter-readiness"`;
+        `serviceRequests`: `"typed-odata-adapter-create-read-update-search"`;
         `workflowRulesCommunicationArrangements`: `"not-covered"`;
      \};
      `checkedProviderApiCoverage`: \{
@@ -1390,53 +1622,79 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
         `coverageArtifact`: `"docs/provider-coverage/sap-service-cloud-checked-c4c-odata-2026-06-18.inventory.json"`;
         `gapFamilyCount`: `1`;
         `implementedFamilyCount`: `2`;
-        `implementedOperationCount`: `5`;
+        `implementedOperationCount`: `4`;
         `sourceKind`: `"checked-endpoint-family-inventory"`;
         `verifiedAt`: `"2026-06-18"`;
      \};
-     `implementation`: \{
-        `strategy`: `"direct-http-support-slice"`;
-     \};
-     `implementationStrategy`: \{
-        `checkedAt`: `"2026-06-21"`;
-        `reason`: `"SAP Cloud SDK for JavaScript is maintained and viable for OData v2/generator/HTTP transport, but this package keeps the reviewed ServiceRequestCollection slice until a redistributable EDMX/source artifact can be pinned."`;
-        `strategy`: `"sdk-viable-reviewed-support-slice"`;
-        `viableLibraries`: readonly \[\{
-           `integrity`: `"sha512-/t1ncLEnm3yTzHRkIgpNcUMGHk7jvQ1nSHrb7YgvgU+/Q2P5Au8llPEH/zudXZ8Bd3k9Qdrfdq/hl+w+YWkBIg=="`;
-           `packageName`: `"@sap-cloud-sdk/odata-v2"`;
-           `version`: `"4.7.0"`;
+     `checkedProviderSdk`: \{
+        `candidates`: readonly \[\{
+           `checkedVersion`: `"4.7.0"`;
+           `license`: `"Apache-2.0"`;
+           `package`: `"@sap-cloud-sdk/http-client"`;
+           `reason`: `"Official SAP Cloud SDK HTTP client provides executeHttpRequest and typed request/response surfaces suitable for the package's existing ServiceRequestCollection OData mapping."`;
+           `result`: `"accepted-runtime-http-client"`;
          \}, \{
-           `integrity`: `"sha512-aW17rUVIZl5RA3WoTTErBwwWCX5A3AresM13Vs7fKEc3Z52919KTlH+7Cpf/9qJrNDQUZU6RzCw+bHd5gs8wHA=="`;
-           `packageName`: `"@sap-cloud-sdk/generator"`;
-           `version`: `"4.7.0"`;
+           `checkedVersion`: `"4.7.0"`;
+           `license`: `"Apache-2.0"`;
+           `package`: `"@sap-cloud-sdk/odata-v2"`;
+           `reason`: `"Official generic SAP Cloud SDK OData v2 runtime; requires generated service client metadata and host destination/auth setup rather than providing a SAP Service Cloud ServiceRequestCollection client."`;
+           `result`: `"not-generated-client-in-this-package"`;
          \}, \{
-           `integrity`: `"sha512-7+S6ru7SrnyKA2MGimX09oix0EVwmPGcCAz0TRwFZVnglU+VTRmZ8QdcwcVTR26E9YhkR4OVl6EK7jb2Z0OxfQ=="`;
-           `packageName`: `"@sap-cloud-sdk/http-client"`;
-           `version`: `"4.7.0"`;
+           `checkedVersion`: `"4.7.0"`;
+           `license`: `"Apache-2.0"`;
+           `package`: `"@sap-cloud-sdk/generator"`;
+           `reason`: `"Official generator for EDMX-based clients; this package does not own or redistribute tenant/version-specific SAP Service Cloud metadata."`;
+           `result`: `"not-runtime-client"`;
         \}\];
+        `checkedAt`: `"2026-06-25"`;
+        `reason`: `"SAP Cloud SDK for JavaScript is official and current. No generated ServiceRequestCollection client is bundled here, so this package owns the typed OData path/body mapping while delegating runtime HTTP execution to @sap-cloud-sdk/http-client."`;
+        `sources`: readonly \[`"https://sap.github.io/cloud-sdk/docs/js/overview"`, `"https://sap.github.io/cloud-sdk/docs/js/features/odata/overview"`, `"https://sap.github.io/cloud-sdk/docs/js/features/odata/generate-client"`, `"https://www.npmjs.com/package/@sap-cloud-sdk/http-client"`, `"https://www.npmjs.com/package/@sap-cloud-sdk/odata-v2"`\];
+        `verdict`: `"sdk-backed-generic-odata-http-client"`;
      \};
-     `supportOperationSlice`: \{
-        `allowlistSha256`: `"0878a63145c55ce016d71a56643a963adc9fe945c7d0a029286d567e5027f30f"`;
-        `checkedAt`: `"2026-06-21"`;
+     `implementation`: \{
+        `adapterKind`: `"sap-cloud-sdk-http-client-odata-adapter"`;
+        `defaultFetchClient`: `"none-provider-client-override-only"`;
+        `defaultHttpClient`: `"executeHttpRequest"`;
+        `manifestImport`: `"no-client-initialization"`;
+        `packageOwnedODataMapping`: `true`;
+        `packageOwnedRestClient`: `false`;
+        `providerClientInterface`: `"SapServiceCloudTicketingProviderClient"`;
+        `providerClientOverride`: `true`;
+        `providerSdkPackage`: `"@sap-cloud-sdk/http-client"`;
+        `strategy`: `"provider-sdk-http-client-odata-adapter"`;
+     \};
+     `implementationStrategy`: `"sap-cloud-sdk-http-client-odata-adapter"`;
+     `providerClient`: \{
+        `defaultClient`: `"built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client"`;
+        `importPolicy`: `"optional-host-override"`;
+        `injectionPolicy`: `"optional-runtime-override"`;
+        `interface`: `"SapServiceCloudTicketingProviderClient"`;
+     \};
+     `providerRestAdapterSupportSurface`: \{
+        `adapterKind`: `"sap-cloud-sdk-http-client-odata-adapter"`;
         `operations`: readonly \[\{
            `alias`: `"ticket.create"`;
-           `method`: `"POST"`;
-           `path`: `"{odataPath}/ServiceRequestCollection"`;
+           `providerClientMethod`: `"createServiceRequest"`;
          \}, \{
            `alias`: `"ticket.read"`;
-           `method`: `"GET"`;
-           `path`: `"{odataPath}/ServiceRequestCollection('{ObjectID}')"`;
+           `providerClientMethod`: `"getServiceRequest"`;
          \}, \{
            `alias`: `"ticket.update"`;
-           `method`: `"PATCH"`;
-           `path`: `"{odataPath}/ServiceRequestCollection('{ObjectID}')"`;
+           `providerClientMethod`: `"updateServiceRequest"`;
          \}, \{
            `alias`: `"ticket.search"`;
-           `method`: `"GET"`;
-           `path`: `"{odataPath}/ServiceRequestCollection"`;
+           `providerClientMethod`: `"searchServiceRequests"`;
         \}\];
-        `sourceKind`: `"official-docs-reviewed-slice"`;
-        `sourceVersion`: `"/sap/c4c/odata/v1/c4codataapi"`;
+        `source`: `"Built-in SAP Service Cloud OData mapping executed through SAP Cloud SDK HTTP client"`;
+     \};
+     `providerSdkRuntime`: \{
+        `checkedVersion`: `"4.7.0"`;
+        `compatibilityFallback`: `"Explicit host fetch or retry options keep the legacy integration-kit JSON transport for callers that require fetch injection or integration-kit retry semantics."`;
+        `defaultRuntime`: `"SAP Cloud SDK HTTP client executes the package-owned ServiceRequestCollection OData mapping."`;
+        `importedRuntimeFunction`: `"executeHttpRequest"`;
+        `importedRuntimeTypes`: readonly \[`"HttpRequestConfig"`, `"HttpResponse"`, `"Method"`\];
+        `license`: `"Apache-2.0"`;
+        `package`: `"@sap-cloud-sdk/http-client"`;
      \};
   \};
   `name`: `"SAP Service Cloud"`;
@@ -1477,7 +1735,7 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
   `privacyNotes`: readonly \[`"SAP service requests can contain customer account/contact details, ticket descriptions, categories, priorities, involved parties, notes, and internal routing data."`, `"SAP API credentials stay server-side and Studio receives only readiness and scope status."`\];
   `provider`: `"sap-service-cloud"`;
   `trustLevel`: `"official"`;
-\}, [`SapServiceCloudTicketingIntegrationOptions`](#sapservicecloudticketingintegrationoptions), \{
+\}, `unknown`, \{
   `ticket.create`: (`input`) => `Promise`\<[`SapServiceRequestResource`](#sapservicerequestresource)\>;
   `ticket.read`: (`input`) => `Promise`\<[`SapServiceRequestResource`](#sapservicerequestresource)\>;
   `ticket.search`: (`input?`) => `Promise`\<[`SapServiceSearchResult`](#sapservicesearchresult)\<[`SapServiceRequestResource`](#sapservicerequestresource)\>\>;
@@ -1489,7 +1747,7 @@ function createSapServiceCloudTicketingIntegration(options): DefinedIntegration<
 ### createSapServiceCloudTicketingLiveChecks()
 
 ```ts
-function createSapServiceCloudTicketingLiveChecks(options): {
+function createSapServiceCloudTicketingLiveChecks(options?): {
   description: string;
   id: string;
   requiredCredentialIds: string[];
@@ -1506,7 +1764,7 @@ function createSapServiceCloudTicketingLiveChecks(options): {
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`SapServiceCloudLiveCheckOptions`](#sapservicecloudlivecheckoptions) |
+| `options?` | [`SapServiceCloudLiveCheckOptions`](#sapservicecloudlivecheckoptions) |
 
 #### Returns
 
@@ -1539,7 +1797,7 @@ function createSapServiceCloudTicketingOperationHandlers(client): {
 
 | Parameter | Type |
 | ------ | ------ |
-| `client` | [`SapServiceCloudTicketingClient`](#sapservicecloudticketingclient) |
+| `client` | [`SapServiceCloudTicketingProviderClient`](#sapservicecloudticketingproviderclient) |
 
 #### Returns
 
@@ -1558,6 +1816,18 @@ function createSapServiceCloudTicketingOperationHandlers(client): {
 | `ticket.read()` | (`input`) => `Promise`\<[`SapServiceRequestResource`](#sapservicerequestresource)\> |
 | `ticket.search()` | (`input?`) => `Promise`\<[`SapServiceSearchResult`](#sapservicesearchresult)\<[`SapServiceRequestResource`](#sapservicerequestresource)\>\> |
 | `ticket.update()` | (`input`) => `Promise`\<[`SapServiceRequestResource`](#sapservicerequestresource)\> |
+
+***
+
+### createUnconfiguredSapServiceCloudProviderClient()
+
+```ts
+function createUnconfiguredSapServiceCloudProviderClient(): SapServiceCloudTicketingProviderClient;
+```
+
+#### Returns
+
+[`SapServiceCloudTicketingProviderClient`](#sapservicecloudticketingproviderclient)
 
 ***
 

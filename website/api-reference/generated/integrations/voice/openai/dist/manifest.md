@@ -10,139 +10,6 @@ const OPENAI_REALTIME_V1_MODEL: "gpt-realtime-2" = "gpt-realtime-2";
 
 ***
 
-### openAIVoiceIntegration
-
-```ts
-const openAIVoiceIntegration: DefinedIntegration<{
-  capabilities: (
-     | {
-     audiences: "customer-facing"[];
-     capability: string;
-     changesWorkflow?: never;
-     description: string;
-     exposesSensitiveData: true;
-     label: string;
-     providerObjects: {
-        kind: string;
-        label: string;
-     }[];
-     requiresCredential: true;
-     sideEffect?: never;
-   }
-     | {
-     audiences: "customer-facing"[];
-     capability: string;
-     changesWorkflow?: never;
-     description: string;
-     exposesSensitiveData: true;
-     label: string;
-     providerObjects: {
-        kind: string;
-        label: string;
-     }[];
-     requiresCredential: true;
-     sideEffect: true;
-   }
-     | {
-     audiences: ("customer-facing" | "internal-support")[];
-     capability: string;
-     changesWorkflow: true;
-     description: string;
-     exposesSensitiveData?: never;
-     label: string;
-     providerObjects: {
-        kind: string;
-        label: string;
-     }[];
-     requiresCredential: true;
-     sideEffect: true;
-  })[];
-  category: string;
-  channelAudiences: ("customer-facing" | "mixed")[];
-  coverage: {
-     evidence: {
-        label: string;
-        url: string;
-     }[];
-     notes: string[];
-     scope: "provider-api-subset";
-  };
-  credentialRequirements: {
-     description: string;
-     id: string;
-     label: string;
-     metadata: {
-        minimumAccess: string[];
-        projectScoped: boolean;
-        scopeModel: string;
-     };
-     required: true;
-  }[];
-  directions: "bidirectional"[];
-  id: string;
-  limitations: string[];
-  maintainers: {
-     name: string;
-     type: "official";
-  }[];
-  metadata: {
-     channelCoverage: {
-        ephemeralSessionIssuance: string;
-        outboundCalling: string;
-        realtimeAudio: string;
-        realtimeToolCalls: string;
-        realtimeTranscript: string;
-        telephony: string;
-        transcriptionOnlySessions: string;
-     };
-     implementation: {
-        adapterCoverage: string[];
-        rawClientEscapeHatch: boolean;
-        sdkPackages: string[];
-        strategy: string;
-     };
-     integrationEntryPoints: {
-        manifest: string;
-        runtime: string;
-     };
-     integrationName: string;
-     integrationPackageName: string;
-  };
-  name: string;
-  operations: (
-     | {
-     alias: string;
-     capability: string;
-     exposesSensitiveData: true;
-     externallyVisible?: never;
-     providerObject: string;
-     providerOperation: string;
-     requiresCredential: true;
-     sideEffect?: never;
-   }
-     | {
-     alias: string;
-     capability: string;
-     exposesSensitiveData?: never;
-     externallyVisible: true;
-     providerObject: string;
-     providerOperation: string;
-     requiresCredential: true;
-     sideEffect: true;
-  })[];
-  packageName: string;
-  privacyNotes: string[];
-  provider: string;
-  trustLevel: "official";
-}, unknown, {
-  voice.session.start: (input) => Promise<unknown>;
-  voice.speak: (input) => Promise<unknown>;
-  voice.turn.finalize: (input) => Promise<unknown>;
-}>;
-```
-
-***
-
 ### openAIVoiceManifestInput
 
 ```ts
@@ -231,8 +98,11 @@ const openAIVoiceManifestInput: {
      implementation: {
         adapterCoverage: string[];
         rawClientEscapeHatch: boolean;
+        sdkPackage: string;
         sdkPackages: string[];
         strategy: string;
+        verifiedAt: string;
+        verifiedVersion: string;
      };
      integrationEntryPoints: {
         manifest: string;
@@ -240,6 +110,11 @@ const openAIVoiceManifestInput: {
      };
      integrationName: string;
      integrationPackageName: string;
+     rawClient: {
+        coverage: string;
+        export: string;
+        option: string;
+     };
   };
   name: string;
   operations: (
@@ -286,7 +161,7 @@ const openAIVoiceManifestInput: {
 | <a id="property-id"></a> `id` | `string` |
 | <a id="property-limitations"></a> `limitations` | `string`[] |
 | <a id="property-maintainers"></a> `maintainers` | \{ `name`: `string`; `type`: `"official"`; \}[] |
-| <a id="property-metadata"></a> `metadata` | \{ `channelCoverage`: \{ `ephemeralSessionIssuance`: `string`; `outboundCalling`: `string`; `realtimeAudio`: `string`; `realtimeToolCalls`: `string`; `realtimeTranscript`: `string`; `telephony`: `string`; `transcriptionOnlySessions`: `string`; \}; `implementation`: \{ `adapterCoverage`: `string`[]; `rawClientEscapeHatch`: `boolean`; `sdkPackages`: `string`[]; `strategy`: `string`; \}; `integrationEntryPoints`: \{ `manifest`: `string`; `runtime`: `string`; \}; `integrationName`: `string`; `integrationPackageName`: `string`; \} |
+| <a id="property-metadata"></a> `metadata` | \{ `channelCoverage`: \{ `ephemeralSessionIssuance`: `string`; `outboundCalling`: `string`; `realtimeAudio`: `string`; `realtimeToolCalls`: `string`; `realtimeTranscript`: `string`; `telephony`: `string`; `transcriptionOnlySessions`: `string`; \}; `implementation`: \{ `adapterCoverage`: `string`[]; `rawClientEscapeHatch`: `boolean`; `sdkPackage`: `string`; `sdkPackages`: `string`[]; `strategy`: `string`; `verifiedAt`: `string`; `verifiedVersion`: `string`; \}; `integrationEntryPoints`: \{ `manifest`: `string`; `runtime`: `string`; \}; `integrationName`: `string`; `integrationPackageName`: `string`; `rawClient`: \{ `coverage`: `string`; `export`: `string`; `option`: `string`; \}; \} |
 | `metadata.channelCoverage` | \{ `ephemeralSessionIssuance`: `string`; `outboundCalling`: `string`; `realtimeAudio`: `string`; `realtimeToolCalls`: `string`; `realtimeTranscript`: `string`; `telephony`: `string`; `transcriptionOnlySessions`: `string`; \} |
 | `metadata.channelCoverage.ephemeralSessionIssuance` | `string` |
 | `metadata.channelCoverage.outboundCalling` | `string` |
@@ -295,16 +170,23 @@ const openAIVoiceManifestInput: {
 | `metadata.channelCoverage.realtimeTranscript` | `string` |
 | `metadata.channelCoverage.telephony` | `string` |
 | `metadata.channelCoverage.transcriptionOnlySessions` | `string` |
-| `metadata.implementation` | \{ `adapterCoverage`: `string`[]; `rawClientEscapeHatch`: `boolean`; `sdkPackages`: `string`[]; `strategy`: `string`; \} |
+| `metadata.implementation` | \{ `adapterCoverage`: `string`[]; `rawClientEscapeHatch`: `boolean`; `sdkPackage`: `string`; `sdkPackages`: `string`[]; `strategy`: `string`; `verifiedAt`: `string`; `verifiedVersion`: `string`; \} |
 | `metadata.implementation.adapterCoverage` | `string`[] |
 | `metadata.implementation.rawClientEscapeHatch` | `boolean` |
+| `metadata.implementation.sdkPackage` | `string` |
 | `metadata.implementation.sdkPackages` | `string`[] |
 | `metadata.implementation.strategy` | `string` |
+| `metadata.implementation.verifiedAt` | `string` |
+| `metadata.implementation.verifiedVersion` | `string` |
 | `metadata.integrationEntryPoints` | \{ `manifest`: `string`; `runtime`: `string`; \} |
 | `metadata.integrationEntryPoints.manifest` | `string` |
 | `metadata.integrationEntryPoints.runtime` | `string` |
 | `metadata.integrationName` | `string` |
 | `metadata.integrationPackageName` | `string` |
+| `metadata.rawClient` | \{ `coverage`: `string`; `export`: `string`; `option`: `string`; \} |
+| `metadata.rawClient.coverage` | `string` |
+| `metadata.rawClient.export` | `string` |
+| `metadata.rawClient.option` | `string` |
 | <a id="property-name"></a> `name` | `string` |
 | <a id="property-operations"></a> `operations` | ( \| \{ `alias`: `string`; `capability`: `string`; `exposesSensitiveData`: `true`; `externallyVisible?`: `never`; `providerObject`: `string`; `providerOperation`: `string`; `requiresCredential`: `true`; `sideEffect?`: `never`; \} \| \{ `alias`: `string`; `capability`: `string`; `exposesSensitiveData?`: `never`; `externallyVisible`: `true`; `providerObject`: `string`; `providerOperation`: `string`; `requiresCredential`: `true`; `sideEffect`: `true`; \})[] |
 | <a id="property-packagename"></a> `packageName` | `string` |
@@ -495,8 +377,11 @@ const openAIVoiceProviderManifest: {
      implementation: {
         adapterCoverage: string[];
         rawClientEscapeHatch: boolean;
+        sdkPackage: string;
         sdkPackages: string[];
         strategy: string;
+        verifiedAt: string;
+        verifiedVersion: string;
      };
      integrationEntryPoints: {
         manifest: string;
@@ -504,6 +389,11 @@ const openAIVoiceProviderManifest: {
      };
      integrationName: string;
      integrationPackageName: string;
+     rawClient: {
+        coverage: string;
+        export: string;
+        option: string;
+     };
   };
   name: string;
   operations: (
@@ -574,7 +464,7 @@ const openAIVoiceProviderManifest: {
 | `id` | `string` |
 | `limitations` | `string`[] |
 | `maintainers` | \{ `name`: `string`; `type`: `"official"`; \}[] |
-| `metadata` | \{ `channelCoverage`: \{ `ephemeralSessionIssuance`: `string`; `outboundCalling`: `string`; `realtimeAudio`: `string`; `realtimeToolCalls`: `string`; `realtimeTranscript`: `string`; `telephony`: `string`; `transcriptionOnlySessions`: `string`; \}; `implementation`: \{ `adapterCoverage`: `string`[]; `rawClientEscapeHatch`: `boolean`; `sdkPackages`: `string`[]; `strategy`: `string`; \}; `integrationEntryPoints`: \{ `manifest`: `string`; `runtime`: `string`; \}; `integrationName`: `string`; `integrationPackageName`: `string`; \} |
+| `metadata` | \{ `channelCoverage`: \{ `ephemeralSessionIssuance`: `string`; `outboundCalling`: `string`; `realtimeAudio`: `string`; `realtimeToolCalls`: `string`; `realtimeTranscript`: `string`; `telephony`: `string`; `transcriptionOnlySessions`: `string`; \}; `implementation`: \{ `adapterCoverage`: `string`[]; `rawClientEscapeHatch`: `boolean`; `sdkPackage`: `string`; `sdkPackages`: `string`[]; `strategy`: `string`; `verifiedAt`: `string`; `verifiedVersion`: `string`; \}; `integrationEntryPoints`: \{ `manifest`: `string`; `runtime`: `string`; \}; `integrationName`: `string`; `integrationPackageName`: `string`; `rawClient`: \{ `coverage`: `string`; `export`: `string`; `option`: `string`; \}; \} |
 | `metadata.channelCoverage` | \{ `ephemeralSessionIssuance`: `string`; `outboundCalling`: `string`; `realtimeAudio`: `string`; `realtimeToolCalls`: `string`; `realtimeTranscript`: `string`; `telephony`: `string`; `transcriptionOnlySessions`: `string`; \} |
 | `metadata.channelCoverage.ephemeralSessionIssuance` | `string` |
 | `metadata.channelCoverage.outboundCalling` | `string` |
@@ -583,16 +473,23 @@ const openAIVoiceProviderManifest: {
 | `metadata.channelCoverage.realtimeTranscript` | `string` |
 | `metadata.channelCoverage.telephony` | `string` |
 | `metadata.channelCoverage.transcriptionOnlySessions` | `string` |
-| `metadata.implementation` | \{ `adapterCoverage`: `string`[]; `rawClientEscapeHatch`: `boolean`; `sdkPackages`: `string`[]; `strategy`: `string`; \} |
+| `metadata.implementation` | \{ `adapterCoverage`: `string`[]; `rawClientEscapeHatch`: `boolean`; `sdkPackage`: `string`; `sdkPackages`: `string`[]; `strategy`: `string`; `verifiedAt`: `string`; `verifiedVersion`: `string`; \} |
 | `metadata.implementation.adapterCoverage` | `string`[] |
 | `metadata.implementation.rawClientEscapeHatch` | `boolean` |
+| `metadata.implementation.sdkPackage` | `string` |
 | `metadata.implementation.sdkPackages` | `string`[] |
 | `metadata.implementation.strategy` | `string` |
+| `metadata.implementation.verifiedAt` | `string` |
+| `metadata.implementation.verifiedVersion` | `string` |
 | `metadata.integrationEntryPoints` | \{ `manifest`: `string`; `runtime`: `string`; \} |
 | `metadata.integrationEntryPoints.manifest` | `string` |
 | `metadata.integrationEntryPoints.runtime` | `string` |
 | `metadata.integrationName` | `string` |
 | `metadata.integrationPackageName` | `string` |
+| `metadata.rawClient` | \{ `coverage`: `string`; `export`: `string`; `option`: `string`; \} |
+| `metadata.rawClient.coverage` | `string` |
+| `metadata.rawClient.export` | `string` |
+| `metadata.rawClient.option` | `string` |
 | `name` | `string` |
 | `operations` | ( \| \{ `alias`: `string`; `capability`: `string`; `exposesSensitiveData`: `true`; `externallyVisible?`: `never`; `providerObject`: `string`; `providerOperation`: `string`; `requiresCredential`: `true`; `sideEffect?`: `never`; \} \| \{ `alias`: `string`; `capability`: `string`; `exposesSensitiveData?`: `never`; `externallyVisible`: `true`; `providerObject`: `string`; `providerOperation`: `string`; `requiresCredential`: `true`; `sideEffect`: `true`; \})[] |
 | `packageName` | `string` |

@@ -395,6 +395,7 @@ const StudioActionAudienceSchema: z.ZodEnum<{
 ```ts
 const StudioAgentIntrospectionSchema: z.ZodObject<{
   agent: z.ZodObject<{
+     behavior: z.ZodOptional<z.ZodUnknown>;
      channelPolicies: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
      handoffPolicy: z.ZodOptional<z.ZodUnknown>;
      id: z.ZodString;
@@ -559,7 +560,12 @@ const StudioAgentIntrospectionSchema: z.ZodObject<{
         stateMachine: "stateMachine";
      }>;
      knowledge: z.ZodArray<z.ZodObject<{
+        description: z.ZodOptional<z.ZodString>;
+        documentCount: z.ZodOptional<z.ZodNumber>;
+        documents: z.ZodOptional<z.ZodArray<z.ZodObject<..., ...>>>;
+        metadata: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
         name: z.ZodString;
+        title: z.ZodOptional<z.ZodString>;
      }, z.core.$strip>>;
      mermaid: z.ZodString;
      priority: z.ZodNumber;
@@ -576,7 +582,19 @@ const StudioAgentIntrospectionSchema: z.ZodObject<{
      }, z.core.$strip>>;
   }, z.core.$strip>>;
   knowledge: z.ZodArray<z.ZodObject<{
+     description: z.ZodOptional<z.ZodString>;
+     documentCount: z.ZodOptional<z.ZodNumber>;
+     documents: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        content: z.ZodOptional<z.ZodString>;
+        contentSnippet: z.ZodOptional<z.ZodString>;
+        id: z.ZodString;
+        metadata: z.ZodOptional<z.ZodRecord<..., ...>>;
+        name: z.ZodOptional<z.ZodString>;
+        title: z.ZodOptional<z.ZodString>;
+     }, z.core.$strip>>>;
+     metadata: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
      name: z.ZodString;
+     title: z.ZodOptional<z.ZodString>;
   }, z.core.$strip>>;
   targetId: z.ZodString;
   tools: z.ZodArray<z.ZodObject<{
@@ -1553,7 +1571,19 @@ const StudioJourneySummarySchema: z.ZodObject<{
      stateMachine: "stateMachine";
   }>;
   knowledge: z.ZodArray<z.ZodObject<{
+     description: z.ZodOptional<z.ZodString>;
+     documentCount: z.ZodOptional<z.ZodNumber>;
+     documents: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        content: z.ZodOptional<z.ZodString>;
+        contentSnippet: z.ZodOptional<z.ZodString>;
+        id: z.ZodString;
+        metadata: z.ZodOptional<z.ZodRecord<..., ...>>;
+        name: z.ZodOptional<z.ZodString>;
+        title: z.ZodOptional<z.ZodString>;
+     }, z.core.$strip>>>;
+     metadata: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
      name: z.ZodString;
+     title: z.ZodOptional<z.ZodString>;
   }, z.core.$strip>>;
   mermaid: z.ZodString;
   priority: z.ZodNumber;
@@ -1577,7 +1607,19 @@ const StudioJourneySummarySchema: z.ZodObject<{
 
 ```ts
 const StudioKnowledgeSummarySchema: z.ZodObject<{
+  description: z.ZodOptional<z.ZodString>;
+  documentCount: z.ZodOptional<z.ZodNumber>;
+  documents: z.ZodOptional<z.ZodArray<z.ZodObject<{
+     content: z.ZodOptional<z.ZodString>;
+     contentSnippet: z.ZodOptional<z.ZodString>;
+     id: z.ZodString;
+     metadata: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+     name: z.ZodOptional<z.ZodString>;
+     title: z.ZodOptional<z.ZodString>;
+  }, z.core.$strip>>>;
+  metadata: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
   name: z.ZodString;
+  title: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>;
 ```
 

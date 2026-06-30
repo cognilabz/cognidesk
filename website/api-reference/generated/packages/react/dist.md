@@ -2734,6 +2734,12 @@ optional onAssistantTextDelta(textDelta): void | Promise<void>;
 
 #### Properties
 
+##### expiresAt?
+
+```ts
+optional expiresAt?: number;
+```
+
 ##### id
 
 ```ts
@@ -2842,6 +2848,12 @@ prompts: PromptState[];
 id: string;
 ```
 
+##### intermediate?
+
+```ts
+optional intermediate?: boolean;
+```
+
 ##### offset?
 
 ```ts
@@ -2872,6 +2884,36 @@ status: "failed" | "aborted" | "sending" | "streaming" | "sent";
 text: string;
 ```
 
+##### visibleToModel?
+
+```ts
+optional visibleToModel?: boolean;
+```
+
+***
+
+### ChatStartInput
+
+#### Properties
+
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
+##### channel?
+
+```ts
+optional channel?: ConversationChannelInput;
+```
+
+##### context
+
+```ts
+context: unknown;
+```
+
 ***
 
 ### ChatWidgetProps
@@ -2884,10 +2926,22 @@ text: string;
 optional agentId?: string;
 ```
 
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
 ##### appearance?
 
 ```ts
 optional appearance?: AppearanceConfiguration;
+```
+
+##### autoStart?
+
+```ts
+optional autoStart?: boolean;
 ```
 
 ##### channel?
@@ -2896,10 +2950,22 @@ optional appearance?: AppearanceConfiguration;
 optional channel?: ConversationChannelInput;
 ```
 
+##### chatStart?
+
+```ts
+optional chatStart?: ChatStartBehavior;
+```
+
 ##### client
 
 ```ts
 client: CognideskClient;
+```
+
+##### composer?
+
+```ts
+optional composer?: ReactNode;
 ```
 
 ##### conversationId?
@@ -3547,9 +3613,10 @@ startVoiceConversation(input): Promise<StartVoiceResult>;
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | \{ `agentId?`: `string`; `app?`: `unknown`; `client?`: `VoiceStartClientHints`; `context?`: `unknown`; `id?`: `string`; \} |
+| `input` | \{ `agentId?`: `string`; `app?`: `unknown`; `chatStart?`: [`ChatStartAction`](#chatstartaction); `client?`: `VoiceStartClientHints`; `context?`: `unknown`; `id?`: `string`; \} |
 | `input.agentId?` | `string` |
 | `input.app?` | `unknown` |
+| `input.chatStart?` | [`ChatStartAction`](#chatstartaction) |
 | `input.client?` | `VoiceStartClientHints` |
 | `input.context?` | `unknown` |
 | `input.id?` | `string` |
@@ -3569,9 +3636,10 @@ startVoiceSegment(conversationId, input?): Promise<StartVoiceResult>;
 | Parameter | Type |
 | ------ | ------ |
 | `conversationId` | `string` |
-| `input?` | \{ `app?`: `unknown`; `client?`: `VoiceStartClientHints`; \} |
+| `input?` | \{ `app?`: `unknown`; `client?`: `VoiceStartClientHints`; `initialGreeting?`: `string`; \} |
 | `input.app?` | `unknown` |
 | `input.client?` | `VoiceStartClientHints` |
+| `input.initialGreeting?` | `string` |
 
 ###### Returns
 
@@ -3871,10 +3939,22 @@ optional headers?: HeadersInit;
 optional agentId?: string;
 ```
 
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
 ##### channel?
 
 ```ts
 optional channel?: ConversationChannelInput;
+```
+
+##### chatStart?
+
+```ts
+optional chatStart?: ChatStartAction;
 ```
 
 ##### context?
@@ -3949,6 +4029,12 @@ lifecycle: string;
 
 ```ts
 updatedAt: string;
+```
+
+##### events?
+
+```ts
+optional events?: RuntimeEvent[];
 ```
 
 ***
@@ -6184,10 +6270,28 @@ optional url?: string;
 optional agentId?: string;
 ```
 
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
+##### autoStart?
+
+```ts
+optional autoStart?: boolean;
+```
+
 ##### channel?
 
 ```ts
 optional channel?: ConversationChannelInput;
+```
+
+##### chatStart?
+
+```ts
+optional chatStart?: ChatStartBehavior;
 ```
 
 ##### client
@@ -6256,6 +6360,12 @@ optional app?: unknown;
 optional audioContext?: AudioContext;
 ```
 
+##### chatStart?
+
+```ts
+optional chatStart?: ChatStartBehavior;
+```
+
 ##### client
 
 ```ts
@@ -6279,6 +6389,15 @@ optional initialContext?: unknown;
 ```ts
 optional mediaConstraints?: MediaStreamConstraints;
 ```
+
+##### suppressCaptureDuringPlayback?
+
+```ts
+optional suppressCaptureDuringPlayback?: boolean;
+```
+
+Defaults to true. Disable only when the app explicitly wants barge-in while
+assistant audio is playing and has reliable echo isolation.
 
 ##### WebSocket?
 
@@ -7249,6 +7368,43 @@ type ChatActivityLabelKind =
   | "action"
   | "tool"
   | "knowledge";
+```
+
+***
+
+### ChatStartAction
+
+```ts
+type ChatStartAction =
+  | string
+  | false
+  | null
+  | undefined
+  | {
+  text: string;
+  type?: "message";
+  visibleToModel?: boolean;
+}
+  | {
+  maxWords?: number;
+  purpose?: string;
+  type: "generatedPreamble";
+}
+  | {
+  type: "none";
+};
+```
+
+***
+
+### ChatStartBehavior
+
+```ts
+type ChatStartBehavior =
+  | ChatStartAction
+  | ((input) =>
+  | ChatStartAction
+  | Promise<ChatStartAction>);
 ```
 
 ***

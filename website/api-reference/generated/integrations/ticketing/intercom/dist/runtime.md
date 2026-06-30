@@ -41,3 +41,9 @@ Re-exports [intercomTicketingProviderManifest](manifest.md#intercomticketingprov
 ### intercomTicketingProviderOperations
 
 Re-exports [intercomTicketingProviderOperations](../dist.md#intercomticketingprovideroperations)
+
+***
+
+### IntercomTicketingRawClient
+
+Re-exports [IntercomTicketingRawClient](../dist.md#intercomticketingrawclient)

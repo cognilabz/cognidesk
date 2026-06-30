@@ -806,6 +806,16 @@ optional marketplaceId?: string;
 
 [`AmazonMarketplaceClientOptions`](#amazonmarketplaceclientoptions).[`marketplaceId`](#marketplaceid-2)
 
+##### officialSdk?
+
+```ts
+optional officialSdk?: AmazonSpApiOfficialSdk;
+```
+
+###### Inherited from
+
+[`AmazonMarketplaceClientOptions`](#amazonmarketplaceclientoptions).[`officialSdk`](#officialsdk-1)
+
 ##### refreshToken?
 
 ```ts
@@ -1306,6 +1316,12 @@ optional lwaTokenUrl?: string;
 
 ```ts
 optional marketplaceId?: string;
+```
+
+##### officialSdk?
+
+```ts
+optional officialSdk?: AmazonSpApiOfficialSdk;
 ```
 
 ##### refreshToken?
@@ -2773,97 +2789,205 @@ optional message?: string;
 ##### NotificationsSpApi?
 
 ```ts
-optional NotificationsSpApi?: unknown;
-```
-
-##### Orders\_v2026SpApi?
-
-```ts
-optional Orders_v2026SpApi?: unknown;
-```
-
-##### OrdersSpApi?
-
-```ts
-optional OrdersSpApi?: unknown;
-```
-
-##### SellersSpApi?
-
-```ts
-optional SellersSpApi?: {
-  ApiClient: (basePath?) => {
-     enableAutoRetrievalAccessToken?: (clientId, clientSecret, refreshToken, accessToken?) => void;
-  };
-  SellersApi: (apiClient) => {
-     getMarketplaceParticipations: () => Promise<unknown>;
-  };
+optional NotificationsSpApi?: {
+  ApiClient: AmazonSpApiOfficialApiClientConstructor;
+  NotificationsApi: (apiClient) => AmazonNotificationsSdkApi;
 };
 ```
 
 ###### ApiClient
 
 ```ts
-ApiClient: (basePath?) => {
-  enableAutoRetrievalAccessToken?: (clientId, clientSecret, refreshToken, accessToken?) => void;
-};
+ApiClient: AmazonSpApiOfficialApiClientConstructor;
+```
+
+###### NotificationsApi
+
+```ts
+NotificationsApi: (apiClient) => AmazonNotificationsSdkApi;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `basePath?` | `string` |
+| `apiClient` | `AmazonSpApiOfficialApiClient` |
 
 ###### Returns
 
+`AmazonNotificationsSdkApi`
+
+##### Orders\_v2026SpApi?
+
 ```ts
-{
-  enableAutoRetrievalAccessToken?: (clientId, clientSecret, refreshToken, accessToken?) => void;
-}
+optional Orders_v2026SpApi?: {
+  ApiClient: AmazonSpApiOfficialApiClientConstructor;
+  GetOrderApi: (apiClient) => AmazonOrdersV2026GetSdkApi;
+  SearchOrdersApi: (apiClient) => AmazonOrdersV2026SearchSdkApi;
+};
 ```
 
-| Name | Type |
+###### ApiClient
+
+```ts
+ApiClient: AmazonSpApiOfficialApiClientConstructor;
+```
+
+###### GetOrderApi
+
+```ts
+GetOrderApi: (apiClient) => AmazonOrdersV2026GetSdkApi;
+```
+
+###### Parameters
+
+| Parameter | Type |
 | ------ | ------ |
-| `enableAutoRetrievalAccessToken()?` | (`clientId`, `clientSecret`, `refreshToken`, `accessToken?`) => `void` |
+| `apiClient` | `AmazonSpApiOfficialApiClient` |
+
+###### Returns
+
+`AmazonOrdersV2026GetSdkApi`
+
+###### SearchOrdersApi
+
+```ts
+SearchOrdersApi: (apiClient) => AmazonOrdersV2026SearchSdkApi;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `apiClient` | `AmazonSpApiOfficialApiClient` |
+
+###### Returns
+
+`AmazonOrdersV2026SearchSdkApi`
+
+##### OrdersSpApi?
+
+```ts
+optional OrdersSpApi?: {
+  ApiClient: AmazonSpApiOfficialApiClientConstructor;
+  OrdersV0Api: (apiClient) => AmazonOrdersV0SdkApi;
+};
+```
+
+###### ApiClient
+
+```ts
+ApiClient: AmazonSpApiOfficialApiClientConstructor;
+```
+
+###### OrdersV0Api
+
+```ts
+OrdersV0Api: (apiClient) => AmazonOrdersV0SdkApi;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `apiClient` | `AmazonSpApiOfficialApiClient` |
+
+###### Returns
+
+`AmazonOrdersV0SdkApi`
+
+##### SellersSpApi?
+
+```ts
+optional SellersSpApi?: {
+  ApiClient: AmazonSpApiOfficialApiClientConstructor;
+  SellersApi: (apiClient) => AmazonSellersSdkApi;
+};
+```
+
+###### ApiClient
+
+```ts
+ApiClient: AmazonSpApiOfficialApiClientConstructor;
+```
 
 ###### SellersApi
 
 ```ts
-SellersApi: (apiClient) => {
-  getMarketplaceParticipations: () => Promise<unknown>;
-};
+SellersApi: (apiClient) => AmazonSellersSdkApi;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `apiClient` | `unknown` |
+| `apiClient` | `AmazonSpApiOfficialApiClient` |
 
 ###### Returns
 
-```ts
-{
-  getMarketplaceParticipations: () => Promise<unknown>;
-}
-```
-
-| Name | Type |
-| ------ | ------ |
-| `getMarketplaceParticipations()` | () => `Promise`\<`unknown`\> |
+`AmazonSellersSdkApi`
 
 ##### SolicitationsSpApi?
 
 ```ts
-optional SolicitationsSpApi?: unknown;
+optional SolicitationsSpApi?: {
+  ApiClient: AmazonSpApiOfficialApiClientConstructor;
+  SolicitationsApi: (apiClient) => AmazonSolicitationsSdkApi;
+};
 ```
+
+###### ApiClient
+
+```ts
+ApiClient: AmazonSpApiOfficialApiClientConstructor;
+```
+
+###### SolicitationsApi
+
+```ts
+SolicitationsApi: (apiClient) => AmazonSolicitationsSdkApi;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `apiClient` | `AmazonSpApiOfficialApiClient` |
+
+###### Returns
+
+`AmazonSolicitationsSdkApi`
 
 ##### TokensSpApi?
 
 ```ts
-optional TokensSpApi?: unknown;
+optional TokensSpApi?: {
+  ApiClient: AmazonSpApiOfficialApiClientConstructor;
+  TokensApi: (apiClient) => AmazonTokensSdkApi;
+};
 ```
+
+###### ApiClient
+
+```ts
+ApiClient: AmazonSpApiOfficialApiClientConstructor;
+```
+
+###### TokensApi
+
+```ts
+TokensApi: (apiClient) => AmazonTokensSdkApi;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `apiClient` | `AmazonSpApiOfficialApiClient` |
+
+###### Returns
+
+`AmazonTokensSdkApi`
 
 ***
 
@@ -3498,6 +3622,22 @@ const amazonMarketplaceIntegration: DefinedIntegration<{
 }, unknown, AmazonMarketplaceOperations>;
 ```
 
+***
+
+### createAmazonIntegration
+
+```ts
+const createAmazonIntegration: typeof createAmazonMarketplaceIntegration;
+```
+
+***
+
+### createAmazonIntegrationOperationHandlers
+
+```ts
+const createAmazonIntegrationOperationHandlers: typeof createAmazonMarketplaceIntegrationOperationHandlers;
+```
+
 ## Functions
 
 ### amazonMarketplaceCredentialStatuses()
@@ -3564,6 +3704,972 @@ function createAmazonMarketplaceClient(options): AmazonMarketplaceClient;
 
 ***
 
+### createAmazonMarketplaceIntegration()
+
+```ts
+function createAmazonMarketplaceIntegration(options?): DefinedIntegration<{
+  capabilities: {
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+     capability: string;
+     changesWorkflow?: boolean;
+     description?: string;
+     exposesSensitiveData?: boolean;
+     extension?: boolean;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        schemaName?: string;
+     }[];
+     requiresCredential?: boolean;
+     sideEffect?: boolean;
+  }[];
+  category: string;
+  channelAudiences: ("customer-facing" | "internal-support" | "mixed")[];
+  coverage: {
+     evidence: {
+        label: string;
+        url?: string;
+     }[];
+     notes: string[];
+     scope:   | "support-workflow-subset"
+        | "provider-api-subset"
+        | "connector-required"
+        | "local-protocol"
+        | "full-provider-api";
+  };
+  credentialRequirements: {
+     description?: string;
+     id: string;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     required: boolean;
+     scopes: string[];
+  }[];
+  directions: (
+     | "receive-only"
+     | "send-only"
+     | "inbound-only"
+     | "outbound-only"
+    | "bidirectional")[];
+  id: string;
+  limitations: string[];
+  maintainers: {
+     name: string;
+     type: "community" | "official" | "unknown" | "partner";
+     url?: string;
+  }[];
+  metadata?: Record<string, unknown>;
+  name: string;
+  operations: {
+     alias: string;
+     audience?: "customer-facing" | "internal-support" | "mixed";
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+     capability: string;
+     changesWorkflow?: boolean;
+     description?: string;
+     exposesSensitiveData?: boolean;
+     extension: boolean;
+     externallyVisible?: boolean;
+     inputSchema?: unknown;
+     inputSchemaName?: string;
+     inputSchemaRef?: string;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     outputSchema?: unknown;
+     outputSchemaName?: string;
+     outputSchemaRef?: string;
+     providerObject?: string;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        schemaName?: string;
+     }[];
+     providerOperation?: string;
+     requiredPolicyIds?: string[];
+     requiresApproval?: boolean;
+     requiresCredential?: boolean;
+     sideEffect?: boolean;
+  }[];
+  packageName: string;
+  privacyNotes: string[];
+  provider: string;
+  trustLevel: "community" | "official" | "verified" | "experimental";
+} & {
+  capabilities: readonly [{
+     audiences: readonly ["customer-facing", "internal-support", "mixed"];
+     capability: "receive";
+     description: "Parses SP-API notification payloads from SQS, EventBridge, or SDK-user webhooks after configured verification succeeds.";
+     exposesSensitiveData: true;
+     label: "Receive Amazon marketplace notifications";
+     providerObjects: readonly [{
+        kind: "amazonNotification";
+        label: "Amazon Notification";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: readonly ["customer-facing", "internal-support", "mixed"];
+     capability: "read-provider-object";
+     description: "Reads seller orders, order items, buyer information where authorized, solicitation metadata, seller participation, and notification configuration.";
+     exposesSensitiveData: true;
+     label: "Read Amazon marketplace records";
+     providerObjects: readonly [{
+        kind: "amazonOrder";
+        label: "Amazon Order";
+      }, {
+        kind: "amazonOrderItem";
+        label: "Amazon Order Item";
+      }, {
+        kind: "amazonBuyerInfo";
+        label: "Amazon Buyer Info";
+      }, {
+        kind: "amazonSolicitation";
+        label: "Amazon Solicitation";
+      }, {
+        kind: "amazonSellerAccount";
+        label: "Amazon Seller Account";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: readonly ["internal-support", "mixed"];
+     capability: "search-provider-object";
+     description: "Searches orders and notification resources with SDK-user-supplied marketplace, date, status, and pagination filters.";
+     exposesSensitiveData: true;
+     label: "Search Amazon marketplace records";
+     providerObjects: readonly [{
+        kind: "amazonOrder";
+        label: "Amazon Order";
+      }, {
+        kind: "amazonNotificationSubscription";
+        label: "Amazon Notification Subscription";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: readonly ["customer-facing", "internal-support", "mixed"];
+     capability: "create-provider-object";
+     changesWorkflow: true;
+     description: "Creates review/feedback solicitations and notification subscriptions only when the SDK user's marketplace policy allows outbound actions.";
+     exposesSensitiveData: true;
+     label: "Create Amazon support actions";
+     providerObjects: readonly [{
+        kind: "amazonSolicitation";
+        label: "Amazon Solicitation";
+      }, {
+        kind: "amazonNotificationSubscription";
+        label: "Amazon Notification Subscription";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: readonly ["internal-support", "mixed"];
+     capability: "delete-provider-object";
+     changesWorkflow: true;
+     description: "Deletes Amazon notification subscriptions only when the SDK user's marketplace policy allows subscription lifecycle changes.";
+     exposesSensitiveData: true;
+     label: "Delete Amazon support resources";
+     providerObjects: readonly [{
+        kind: "amazonNotificationSubscription";
+        label: "Amazon Notification Subscription";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: readonly ["customer-facing", "mixed"];
+     capability: "send";
+     description: "Sends supported Solicitations API review/feedback requests chosen by the SDK user's workflow.";
+     exposesSensitiveData: true;
+     label: "Send Amazon buyer solicitations";
+     providerObjects: readonly [{
+        kind: "amazonSolicitation";
+        label: "Amazon Solicitation";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: readonly ["internal-support"];
+     capability: "marketplace.notification-signature";
+     description: "Requires a SDK-user verifier, shared secret, or gateway signature policy before returning normalized Amazon notification payloads.";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Validate Amazon notification ingress";
+     providerObjects: readonly [{
+        kind: "amazonVerifiedNotification";
+        label: "Amazon Verified Notification";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: readonly ["internal-support"];
+     capability: "marketplace.sigv4";
+     description: "Optionally signs SP-API REST requests with AWS SigV4 for SDK users that operate signed gateways or explicit authorization paths.";
+     extension: true;
+     label: "Sign Amazon SP-API requests";
+     providerObjects: readonly [{
+        kind: "amazonSignedRequest";
+        label: "Amazon Signed Request";
+     }];
+     requiresCredential: true;
+  }];
+  category: "marketplace";
+  channelAudiences: readonly ["customer-facing", "internal-support", "mixed"];
+  coverage: {
+     evidence: readonly [{
+        label: "Amazon official SP-API JavaScript SDK";
+        url: "https://github.com/amzn/selling-partner-api-sdk";
+      }, {
+        label: "Amazon prebuilt JavaScript SDK tutorial";
+        url: "https://developer-docs.amazon.com/sp-api/docs/automate-your-sp-api-calls-using-a-prebuilt-javascript-sdk";
+      }, {
+        label: "Amazon SP-API Orders v0 reference";
+        url: "https://developer-docs.amazon.com/sp-api/reference/orders-v0";
+      }, {
+        label: "Amazon SP-API Orders v2026-01-01 reference";
+        url: "https://developer-docs.amazon.com/sp-api/reference/orders-v2026-01-01";
+      }, {
+        label: "Amazon SP-API Restricted Data Token";
+        url: "https://developer-docs.amazon.com/sp-api/reference/createrestricteddatatoken";
+      }, {
+        label: "Amazon SP-API Notifications API";
+        url: "https://developer-docs.amazon.com/sp-api/docs/notifications-api";
+     }];
+     notes: readonly ["Coverage is limited to Cognidesk marketplace support primitives, not full Amazon SP-API ownership.", "The official Amazon JavaScript SDK is the preferred raw-client escape hatch, but this package keeps local helpers for RDT and normalized support operations because the SDK README notes RDT requires an extra step.", "Manifest/runtime exports do not expose Cognidesk-generated full-provider SP-API clones.", "Orders v0 remains available for existing SDK callers while Amazon's removal window remains relevant; v2026 order helpers are exposed for migration flows."];
+     scope: "support-workflow-subset";
+  };
+  credentialRequirements: readonly [{
+     description: "Login with Amazon client ID and secret owned by the SDK user for SP-API token refresh.";
+     id: "amazon-lwa-client";
+     label: "Amazon LWA client credentials";
+     required: true;
+   }, {
+     description: "Seller-authorized refresh/access token for role-gated SP-API calls, or grantless token material for Notifications API operations.";
+     id: "amazon-lwa-token";
+     label: "Amazon LWA refresh or access token";
+     required: true;
+   }, {
+     description: "Optional IAM role/region and SigV4 material for SDK users who operate through signed gateway paths.";
+     id: "amazon-aws-role-region";
+     label: "Amazon SP-API AWS role and region";
+     required: false;
+   }, {
+     description: "SDK-user-selected Amazon marketplace such as ATVPDKIKX0DER or A1PA6795UKMFR9.";
+     id: "amazon-marketplace-id";
+     label: "Amazon marketplace ID";
+     required: true;
+   }, {
+     description: "Notifications API destination, SQS/EventBridge routing, and SDK-user webhook gateway metadata.";
+     id: "amazon-notification-destination";
+     label: "Amazon notification destination";
+     required: true;
+   }, {
+     description: "SDK-user-provided verifier, shared secret, or gateway signature policy for fail-closed notification ingestion.";
+     id: "amazon-notification-signature";
+     label: "Amazon notification verification";
+     required: true;
+  }];
+  directions: readonly ["receive-only", "send-only", "bidirectional"];
+  id: "marketplace.amazon";
+  limitations: readonly ["The SDK user chooses marketplaces, roles, restricted-data-token policy, notification topics, outbound solicitation rules, operator visibility, retention, consent, and redaction.", "Some SP-API operations require role approval, restricted data tokens, marketplace availability, or grantless authorization; this package exposes typed support foundations and does not decide seller eligibility.", "Amazon notification transports vary by destination; this package fails closed unless the SDK user configures a verifier, gateway signature, or shared-secret check appropriate to their ingress path."];
+  maintainers: readonly [{
+     name: "Cognidesk";
+     type: "official";
+  }];
+  metadata: {
+     channelCoverage: {
+        buyerInfoRdt: "typed-read-restricted";
+        lwaTokenRefresh: "typed-token-refresh";
+        notificationDestinations: "typed-read";
+        notificationIngress: "typed-verify-parse";
+        notificationSubscriptions: "typed-create-read-delete";
+        orderItems: "typed-read";
+        ordersV0: "typed-read-search";
+        ordersV2026: "typed-read-search";
+        rawSellingPartnerApi: "official-sdk-escape-hatch";
+        restrictedDataTokens: "typed-create";
+        sellerParticipation: "typed-read";
+        sigv4Signing: "typed-sign";
+        solicitations: "typed-read-create-send";
+     };
+     implementation: {
+        caveats: readonly ["The npm package has no root types metadata; this package uses a local typed facade for raw SDK loading.", "RDT support remains local because the SDK README says some APIs need an extra RDT step."];
+        sdkModifiedAt: "2026-05-29T13:03:51.597Z";
+        sdkPackage: "@amazon-sp-api-release/amazon-sp-api-sdk-js";
+        sdkRepository: "https://github.com/amzn/selling-partner-api-sdk";
+        sdkVersionChecked: "1.9.0";
+        strategy: "official-sdk-plus-support-slice";
+     };
+     supportSlice: {
+        allowlist: (
+           | "amazon.refreshAccessToken"
+           | "amazon.createRestrictedDataToken"
+           | "amazon.getOrders"
+           | "amazon.getOrder"
+           | "amazon.getOrderBuyerInfo"
+           | "amazon.getOrderItems"
+           | "amazon.getOrderItemsBuyerInfo"
+           | "amazon.searchOrdersV2026"
+           | "amazon.getOrderV2026"
+           | "amazon.getSolicitationActionsForOrder"
+           | "amazon.createProductReviewAndSellerFeedbackSolicitation"
+           | "amazon.getMarketplaceParticipations"
+           | "amazon.getDestinations"
+           | "amazon.getDestination"
+           | "amazon.createSubscription"
+           | "amazon.getSubscription"
+           | "amazon.deleteSubscription"
+          | "amazon.parseNotificationWebhook")[];
+        source: "local-reviewed-support-operations";
+        verifiedAt: "2026-06-21";
+     };
+  };
+  name: "Amazon Marketplace";
+  operations: readonly [{
+     alias: "amazon.refreshAccessToken";
+     capability: "read-provider-object";
+     extension: true;
+     label: "Refresh Amazon LWA access token";
+     providerOperation: "lwa.refreshAccessToken";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.createRestrictedDataToken";
+     capability: "create-provider-object";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Create Amazon restricted data token";
+     providerOperation: "tokens.createRestrictedDataToken";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.getOrders";
+     capability: "search-provider-object";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Search Amazon orders";
+     providerOperation: "ordersV0.getOrders";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.getOrder";
+     capability: "read-provider-object";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Read Amazon order";
+     providerOperation: "ordersV0.getOrder";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.getOrderBuyerInfo";
+     capability: "read-provider-object";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Read Amazon order buyer info";
+     providerOperation: "ordersV0.getOrderBuyerInfo";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.getOrderItems";
+     capability: "read-provider-object";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Read Amazon order items";
+     providerOperation: "ordersV0.getOrderItems";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.getOrderItemsBuyerInfo";
+     capability: "read-provider-object";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Read Amazon order item buyer info";
+     providerOperation: "ordersV0.getOrderItemsBuyerInfo";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.searchOrdersV2026";
+     capability: "search-provider-object";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Search Amazon Orders v2026";
+     providerOperation: "ordersV2026.searchOrders";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.getOrderV2026";
+     capability: "read-provider-object";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Read Amazon Orders v2026 order";
+     providerOperation: "ordersV2026.getOrder";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.getSolicitationActionsForOrder";
+     capability: "read-provider-object";
+     extension: true;
+     label: "Read Amazon solicitation actions";
+     providerOperation: "solicitations.getActionsForOrder";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.createProductReviewAndSellerFeedbackSolicitation";
+     capability: "send";
+     changesWorkflow: true;
+     extension: true;
+     label: "Create Amazon review and seller feedback solicitation";
+     providerOperation: "solicitations.createProductReviewAndSellerFeedback";
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     alias: "amazon.getMarketplaceParticipations";
+     capability: "read-provider-object";
+     extension: true;
+     label: "Read Amazon marketplace participations";
+     providerOperation: "sellers.getMarketplaceParticipations";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.getDestinations";
+     capability: "search-provider-object";
+     extension: true;
+     label: "List Amazon notification destinations";
+     providerOperation: "notifications.getDestinations";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.getDestination";
+     capability: "read-provider-object";
+     extension: true;
+     label: "Read Amazon notification destination";
+     providerOperation: "notifications.getDestination";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.createSubscription";
+     capability: "create-provider-object";
+     changesWorkflow: true;
+     extension: true;
+     label: "Create Amazon notification subscription";
+     providerOperation: "notifications.createSubscription";
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     alias: "amazon.getSubscription";
+     capability: "read-provider-object";
+     extension: true;
+     label: "Read Amazon notification subscription";
+     providerOperation: "notifications.getSubscription";
+     requiresCredential: true;
+   }, {
+     alias: "amazon.deleteSubscription";
+     capability: "delete-provider-object";
+     changesWorkflow: true;
+     extension: true;
+     label: "Delete Amazon notification subscription";
+     providerOperation: "notifications.deleteSubscription";
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     alias: "amazon.parseNotificationWebhook";
+     capability: "receive";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Parse Amazon notification webhook";
+     providerOperation: "notifications.parseWebhook";
+     requiresCredential: true;
+  }];
+  packageName: "@cognidesk/integration-marketplace-amazon";
+  privacyNotes: readonly ["Amazon marketplace orders, order items, buyer information, seller account records, solicitations, and notifications can contain customer data, addresses, identifiers, and support context.", "LWA secrets, refresh tokens, access tokens, AWS role/signing material, notification shared secrets, and verifier logic stay server-side; Studio receives only readiness and capability metadata."];
+  provider: "amazon";
+  trustLevel: "official";
+}, unknown, AmazonMarketplaceOperations>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | `AmazonMarketplaceIntegrationOptions` |
+
+#### Returns
+
+[`DefinedIntegration`](../../../packages/integration-kit/dist.md#definedintegration)\<\{
+  `capabilities`: \{
+     `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+     `capability`: `string`;
+     `changesWorkflow?`: `boolean`;
+     `description?`: `string`;
+     `exposesSensitiveData?`: `boolean`;
+     `extension?`: `boolean`;
+     `label?`: `string`;
+     `metadata?`: `Record`\<`string`, `unknown`\>;
+     `providerObjects?`: \{
+        `description?`: `string`;
+        `kind`: `string`;
+        `label?`: `string`;
+        `metadata?`: `Record`\<`string`, `unknown`\>;
+        `schemaName?`: `string`;
+     \}[];
+     `requiresCredential?`: `boolean`;
+     `sideEffect?`: `boolean`;
+  \}[];
+  `category`: `string`;
+  `channelAudiences`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+  `coverage`: \{
+     `evidence`: \{
+        `label`: `string`;
+        `url?`: `string`;
+     \}[];
+     `notes`: `string`[];
+     `scope`:   \| `"support-workflow-subset"`
+        \| `"provider-api-subset"`
+        \| `"connector-required"`
+        \| `"local-protocol"`
+        \| `"full-provider-api"`;
+  \};
+  `credentialRequirements`: \{
+     `description?`: `string`;
+     `id`: `string`;
+     `label?`: `string`;
+     `metadata?`: `Record`\<`string`, `unknown`\>;
+     `required`: `boolean`;
+     `scopes`: `string`[];
+  \}[];
+  `directions`: (
+     \| `"receive-only"`
+     \| `"send-only"`
+     \| `"inbound-only"`
+     \| `"outbound-only"`
+    \| `"bidirectional"`)[];
+  `id`: `string`;
+  `limitations`: `string`[];
+  `maintainers`: \{
+     `name`: `string`;
+     `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`;
+     `url?`: `string`;
+  \}[];
+  `metadata?`: `Record`\<`string`, `unknown`\>;
+  `name`: `string`;
+  `operations`: \{
+     `alias`: `string`;
+     `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`;
+     `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+     `capability`: `string`;
+     `changesWorkflow?`: `boolean`;
+     `description?`: `string`;
+     `exposesSensitiveData?`: `boolean`;
+     `extension`: `boolean`;
+     `externallyVisible?`: `boolean`;
+     `inputSchema?`: `unknown`;
+     `inputSchemaName?`: `string`;
+     `inputSchemaRef?`: `string`;
+     `label?`: `string`;
+     `metadata?`: `Record`\<`string`, `unknown`\>;
+     `outputSchema?`: `unknown`;
+     `outputSchemaName?`: `string`;
+     `outputSchemaRef?`: `string`;
+     `providerObject?`: `string`;
+     `providerObjects?`: \{
+        `description?`: `string`;
+        `kind`: `string`;
+        `label?`: `string`;
+        `metadata?`: `Record`\<`string`, `unknown`\>;
+        `schemaName?`: `string`;
+     \}[];
+     `providerOperation?`: `string`;
+     `requiredPolicyIds?`: `string`[];
+     `requiresApproval?`: `boolean`;
+     `requiresCredential?`: `boolean`;
+     `sideEffect?`: `boolean`;
+  \}[];
+  `packageName`: `string`;
+  `privacyNotes`: `string`[];
+  `provider`: `string`;
+  `trustLevel`: `"community"` \| `"official"` \| `"verified"` \| `"experimental"`;
+\} & \{
+  `capabilities`: readonly \[\{
+     `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
+     `capability`: `"receive"`;
+     `description`: `"Parses SP-API notification payloads from SQS, EventBridge, or SDK-user webhooks after configured verification succeeds."`;
+     `exposesSensitiveData`: `true`;
+     `label`: `"Receive Amazon marketplace notifications"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"amazonNotification"`;
+        `label`: `"Amazon Notification"`;
+     \}\];
+     `requiresCredential`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
+     `capability`: `"read-provider-object"`;
+     `description`: `"Reads seller orders, order items, buyer information where authorized, solicitation metadata, seller participation, and notification configuration."`;
+     `exposesSensitiveData`: `true`;
+     `label`: `"Read Amazon marketplace records"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"amazonOrder"`;
+        `label`: `"Amazon Order"`;
+      \}, \{
+        `kind`: `"amazonOrderItem"`;
+        `label`: `"Amazon Order Item"`;
+      \}, \{
+        `kind`: `"amazonBuyerInfo"`;
+        `label`: `"Amazon Buyer Info"`;
+      \}, \{
+        `kind`: `"amazonSolicitation"`;
+        `label`: `"Amazon Solicitation"`;
+      \}, \{
+        `kind`: `"amazonSellerAccount"`;
+        `label`: `"Amazon Seller Account"`;
+     \}\];
+     `requiresCredential`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
+     `capability`: `"search-provider-object"`;
+     `description`: `"Searches orders and notification resources with SDK-user-supplied marketplace, date, status, and pagination filters."`;
+     `exposesSensitiveData`: `true`;
+     `label`: `"Search Amazon marketplace records"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"amazonOrder"`;
+        `label`: `"Amazon Order"`;
+      \}, \{
+        `kind`: `"amazonNotificationSubscription"`;
+        `label`: `"Amazon Notification Subscription"`;
+     \}\];
+     `requiresCredential`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
+     `capability`: `"create-provider-object"`;
+     `changesWorkflow`: `true`;
+     `description`: `"Creates review/feedback solicitations and notification subscriptions only when the SDK user's marketplace policy allows outbound actions."`;
+     `exposesSensitiveData`: `true`;
+     `label`: `"Create Amazon support actions"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"amazonSolicitation"`;
+        `label`: `"Amazon Solicitation"`;
+      \}, \{
+        `kind`: `"amazonNotificationSubscription"`;
+        `label`: `"Amazon Notification Subscription"`;
+     \}\];
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
+     `capability`: `"delete-provider-object"`;
+     `changesWorkflow`: `true`;
+     `description`: `"Deletes Amazon notification subscriptions only when the SDK user's marketplace policy allows subscription lifecycle changes."`;
+     `exposesSensitiveData`: `true`;
+     `label`: `"Delete Amazon support resources"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"amazonNotificationSubscription"`;
+        `label`: `"Amazon Notification Subscription"`;
+     \}\];
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"customer-facing"`, `"mixed"`\];
+     `capability`: `"send"`;
+     `description`: `"Sends supported Solicitations API review/feedback requests chosen by the SDK user's workflow."`;
+     `exposesSensitiveData`: `true`;
+     `label`: `"Send Amazon buyer solicitations"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"amazonSolicitation"`;
+        `label`: `"Amazon Solicitation"`;
+     \}\];
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"internal-support"`\];
+     `capability`: `"marketplace.notification-signature"`;
+     `description`: `"Requires a SDK-user verifier, shared secret, or gateway signature policy before returning normalized Amazon notification payloads."`;
+     `exposesSensitiveData`: `true`;
+     `extension`: `true`;
+     `label`: `"Validate Amazon notification ingress"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"amazonVerifiedNotification"`;
+        `label`: `"Amazon Verified Notification"`;
+     \}\];
+     `requiresCredential`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"internal-support"`\];
+     `capability`: `"marketplace.sigv4"`;
+     `description`: `"Optionally signs SP-API REST requests with AWS SigV4 for SDK users that operate signed gateways or explicit authorization paths."`;
+     `extension`: `true`;
+     `label`: `"Sign Amazon SP-API requests"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"amazonSignedRequest"`;
+        `label`: `"Amazon Signed Request"`;
+     \}\];
+     `requiresCredential`: `true`;
+  \}\];
+  `category`: `"marketplace"`;
+  `channelAudiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
+  `coverage`: \{
+     `evidence`: readonly \[\{
+        `label`: `"Amazon official SP-API JavaScript SDK"`;
+        `url`: `"https://github.com/amzn/selling-partner-api-sdk"`;
+      \}, \{
+        `label`: `"Amazon prebuilt JavaScript SDK tutorial"`;
+        `url`: `"https://developer-docs.amazon.com/sp-api/docs/automate-your-sp-api-calls-using-a-prebuilt-javascript-sdk"`;
+      \}, \{
+        `label`: `"Amazon SP-API Orders v0 reference"`;
+        `url`: `"https://developer-docs.amazon.com/sp-api/reference/orders-v0"`;
+      \}, \{
+        `label`: `"Amazon SP-API Orders v2026-01-01 reference"`;
+        `url`: `"https://developer-docs.amazon.com/sp-api/reference/orders-v2026-01-01"`;
+      \}, \{
+        `label`: `"Amazon SP-API Restricted Data Token"`;
+        `url`: `"https://developer-docs.amazon.com/sp-api/reference/createrestricteddatatoken"`;
+      \}, \{
+        `label`: `"Amazon SP-API Notifications API"`;
+        `url`: `"https://developer-docs.amazon.com/sp-api/docs/notifications-api"`;
+     \}\];
+     `notes`: readonly \[`"Coverage is limited to Cognidesk marketplace support primitives, not full Amazon SP-API ownership."`, `"The official Amazon JavaScript SDK is the preferred raw-client escape hatch, but this package keeps local helpers for RDT and normalized support operations because the SDK README notes RDT requires an extra step."`, `"Manifest/runtime exports do not expose Cognidesk-generated full-provider SP-API clones."`, `"Orders v0 remains available for existing SDK callers while Amazon's removal window remains relevant; v2026 order helpers are exposed for migration flows."`\];
+     `scope`: `"support-workflow-subset"`;
+  \};
+  `credentialRequirements`: readonly \[\{
+     `description`: `"Login with Amazon client ID and secret owned by the SDK user for SP-API token refresh."`;
+     `id`: `"amazon-lwa-client"`;
+     `label`: `"Amazon LWA client credentials"`;
+     `required`: `true`;
+   \}, \{
+     `description`: `"Seller-authorized refresh/access token for role-gated SP-API calls, or grantless token material for Notifications API operations."`;
+     `id`: `"amazon-lwa-token"`;
+     `label`: `"Amazon LWA refresh or access token"`;
+     `required`: `true`;
+   \}, \{
+     `description`: `"Optional IAM role/region and SigV4 material for SDK users who operate through signed gateway paths."`;
+     `id`: `"amazon-aws-role-region"`;
+     `label`: `"Amazon SP-API AWS role and region"`;
+     `required`: `false`;
+   \}, \{
+     `description`: `"SDK-user-selected Amazon marketplace such as ATVPDKIKX0DER or A1PA6795UKMFR9."`;
+     `id`: `"amazon-marketplace-id"`;
+     `label`: `"Amazon marketplace ID"`;
+     `required`: `true`;
+   \}, \{
+     `description`: `"Notifications API destination, SQS/EventBridge routing, and SDK-user webhook gateway metadata."`;
+     `id`: `"amazon-notification-destination"`;
+     `label`: `"Amazon notification destination"`;
+     `required`: `true`;
+   \}, \{
+     `description`: `"SDK-user-provided verifier, shared secret, or gateway signature policy for fail-closed notification ingestion."`;
+     `id`: `"amazon-notification-signature"`;
+     `label`: `"Amazon notification verification"`;
+     `required`: `true`;
+  \}\];
+  `directions`: readonly \[`"receive-only"`, `"send-only"`, `"bidirectional"`\];
+  `id`: `"marketplace.amazon"`;
+  `limitations`: readonly \[`"The SDK user chooses marketplaces, roles, restricted-data-token policy, notification topics, outbound solicitation rules, operator visibility, retention, consent, and redaction."`, `"Some SP-API operations require role approval, restricted data tokens, marketplace availability, or grantless authorization; this package exposes typed support foundations and does not decide seller eligibility."`, `"Amazon notification transports vary by destination; this package fails closed unless the SDK user configures a verifier, gateway signature, or shared-secret check appropriate to their ingress path."`\];
+  `maintainers`: readonly \[\{
+     `name`: `"Cognidesk"`;
+     `type`: `"official"`;
+  \}\];
+  `metadata`: \{
+     `channelCoverage`: \{
+        `buyerInfoRdt`: `"typed-read-restricted"`;
+        `lwaTokenRefresh`: `"typed-token-refresh"`;
+        `notificationDestinations`: `"typed-read"`;
+        `notificationIngress`: `"typed-verify-parse"`;
+        `notificationSubscriptions`: `"typed-create-read-delete"`;
+        `orderItems`: `"typed-read"`;
+        `ordersV0`: `"typed-read-search"`;
+        `ordersV2026`: `"typed-read-search"`;
+        `rawSellingPartnerApi`: `"official-sdk-escape-hatch"`;
+        `restrictedDataTokens`: `"typed-create"`;
+        `sellerParticipation`: `"typed-read"`;
+        `sigv4Signing`: `"typed-sign"`;
+        `solicitations`: `"typed-read-create-send"`;
+     \};
+     `implementation`: \{
+        `caveats`: readonly \[`"The npm package has no root types metadata; this package uses a local typed facade for raw SDK loading."`, `"RDT support remains local because the SDK README says some APIs need an extra RDT step."`\];
+        `sdkModifiedAt`: `"2026-05-29T13:03:51.597Z"`;
+        `sdkPackage`: `"@amazon-sp-api-release/amazon-sp-api-sdk-js"`;
+        `sdkRepository`: `"https://github.com/amzn/selling-partner-api-sdk"`;
+        `sdkVersionChecked`: `"1.9.0"`;
+        `strategy`: `"official-sdk-plus-support-slice"`;
+     \};
+     `supportSlice`: \{
+        `allowlist`: (
+           \| `"amazon.refreshAccessToken"`
+           \| `"amazon.createRestrictedDataToken"`
+           \| `"amazon.getOrders"`
+           \| `"amazon.getOrder"`
+           \| `"amazon.getOrderBuyerInfo"`
+           \| `"amazon.getOrderItems"`
+           \| `"amazon.getOrderItemsBuyerInfo"`
+           \| `"amazon.searchOrdersV2026"`
+           \| `"amazon.getOrderV2026"`
+           \| `"amazon.getSolicitationActionsForOrder"`
+           \| `"amazon.createProductReviewAndSellerFeedbackSolicitation"`
+           \| `"amazon.getMarketplaceParticipations"`
+           \| `"amazon.getDestinations"`
+           \| `"amazon.getDestination"`
+           \| `"amazon.createSubscription"`
+           \| `"amazon.getSubscription"`
+           \| `"amazon.deleteSubscription"`
+          \| `"amazon.parseNotificationWebhook"`)[];
+        `source`: `"local-reviewed-support-operations"`;
+        `verifiedAt`: `"2026-06-21"`;
+     \};
+  \};
+  `name`: `"Amazon Marketplace"`;
+  `operations`: readonly \[\{
+     `alias`: `"amazon.refreshAccessToken"`;
+     `capability`: `"read-provider-object"`;
+     `extension`: `true`;
+     `label`: `"Refresh Amazon LWA access token"`;
+     `providerOperation`: `"lwa.refreshAccessToken"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.createRestrictedDataToken"`;
+     `capability`: `"create-provider-object"`;
+     `exposesSensitiveData`: `true`;
+     `extension`: `true`;
+     `label`: `"Create Amazon restricted data token"`;
+     `providerOperation`: `"tokens.createRestrictedDataToken"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.getOrders"`;
+     `capability`: `"search-provider-object"`;
+     `exposesSensitiveData`: `true`;
+     `extension`: `true`;
+     `label`: `"Search Amazon orders"`;
+     `providerOperation`: `"ordersV0.getOrders"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.getOrder"`;
+     `capability`: `"read-provider-object"`;
+     `exposesSensitiveData`: `true`;
+     `extension`: `true`;
+     `label`: `"Read Amazon order"`;
+     `providerOperation`: `"ordersV0.getOrder"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.getOrderBuyerInfo"`;
+     `capability`: `"read-provider-object"`;
+     `exposesSensitiveData`: `true`;
+     `extension`: `true`;
+     `label`: `"Read Amazon order buyer info"`;
+     `providerOperation`: `"ordersV0.getOrderBuyerInfo"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.getOrderItems"`;
+     `capability`: `"read-provider-object"`;
+     `exposesSensitiveData`: `true`;
+     `extension`: `true`;
+     `label`: `"Read Amazon order items"`;
+     `providerOperation`: `"ordersV0.getOrderItems"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.getOrderItemsBuyerInfo"`;
+     `capability`: `"read-provider-object"`;
+     `exposesSensitiveData`: `true`;
+     `extension`: `true`;
+     `label`: `"Read Amazon order item buyer info"`;
+     `providerOperation`: `"ordersV0.getOrderItemsBuyerInfo"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.searchOrdersV2026"`;
+     `capability`: `"search-provider-object"`;
+     `exposesSensitiveData`: `true`;
+     `extension`: `true`;
+     `label`: `"Search Amazon Orders v2026"`;
+     `providerOperation`: `"ordersV2026.searchOrders"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.getOrderV2026"`;
+     `capability`: `"read-provider-object"`;
+     `exposesSensitiveData`: `true`;
+     `extension`: `true`;
+     `label`: `"Read Amazon Orders v2026 order"`;
+     `providerOperation`: `"ordersV2026.getOrder"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.getSolicitationActionsForOrder"`;
+     `capability`: `"read-provider-object"`;
+     `extension`: `true`;
+     `label`: `"Read Amazon solicitation actions"`;
+     `providerOperation`: `"solicitations.getActionsForOrder"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.createProductReviewAndSellerFeedbackSolicitation"`;
+     `capability`: `"send"`;
+     `changesWorkflow`: `true`;
+     `extension`: `true`;
+     `label`: `"Create Amazon review and seller feedback solicitation"`;
+     `providerOperation`: `"solicitations.createProductReviewAndSellerFeedback"`;
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+   \}, \{
+     `alias`: `"amazon.getMarketplaceParticipations"`;
+     `capability`: `"read-provider-object"`;
+     `extension`: `true`;
+     `label`: `"Read Amazon marketplace participations"`;
+     `providerOperation`: `"sellers.getMarketplaceParticipations"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.getDestinations"`;
+     `capability`: `"search-provider-object"`;
+     `extension`: `true`;
+     `label`: `"List Amazon notification destinations"`;
+     `providerOperation`: `"notifications.getDestinations"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.getDestination"`;
+     `capability`: `"read-provider-object"`;
+     `extension`: `true`;
+     `label`: `"Read Amazon notification destination"`;
+     `providerOperation`: `"notifications.getDestination"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.createSubscription"`;
+     `capability`: `"create-provider-object"`;
+     `changesWorkflow`: `true`;
+     `extension`: `true`;
+     `label`: `"Create Amazon notification subscription"`;
+     `providerOperation`: `"notifications.createSubscription"`;
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+   \}, \{
+     `alias`: `"amazon.getSubscription"`;
+     `capability`: `"read-provider-object"`;
+     `extension`: `true`;
+     `label`: `"Read Amazon notification subscription"`;
+     `providerOperation`: `"notifications.getSubscription"`;
+     `requiresCredential`: `true`;
+   \}, \{
+     `alias`: `"amazon.deleteSubscription"`;
+     `capability`: `"delete-provider-object"`;
+     `changesWorkflow`: `true`;
+     `extension`: `true`;
+     `label`: `"Delete Amazon notification subscription"`;
+     `providerOperation`: `"notifications.deleteSubscription"`;
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+   \}, \{
+     `alias`: `"amazon.parseNotificationWebhook"`;
+     `capability`: `"receive"`;
+     `exposesSensitiveData`: `true`;
+     `extension`: `true`;
+     `label`: `"Parse Amazon notification webhook"`;
+     `providerOperation`: `"notifications.parseWebhook"`;
+     `requiresCredential`: `true`;
+  \}\];
+  `packageName`: `"@cognidesk/integration-marketplace-amazon"`;
+  `privacyNotes`: readonly \[`"Amazon marketplace orders, order items, buyer information, seller account records, solicitations, and notifications can contain customer data, addresses, identifiers, and support context."`, `"LWA secrets, refresh tokens, access tokens, AWS role/signing material, notification shared secrets, and verifier logic stay server-side; Studio receives only readiness and capability metadata."`\];
+  `provider`: `"amazon"`;
+  `trustLevel`: `"official"`;
+\}, `unknown`, `AmazonMarketplaceOperations`\>
+
+***
+
+### createAmazonMarketplaceIntegrationOperationHandlers()
+
+```ts
+function createAmazonMarketplaceIntegrationOperationHandlers(options?): AmazonMarketplaceOperations;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | `AmazonMarketplaceIntegrationOptions` |
+
+#### Returns
+
+`AmazonMarketplaceOperations`
+
+***
+
 ### createAmazonMarketplaceLiveChecks()
 
 ```ts
@@ -3618,6 +4724,36 @@ function createAmazonRestrictedDataToken(options, input): Promise<AmazonRestrict
 #### Returns
 
 `Promise`\<[`AmazonRestrictedDataTokenResponse`](#amazonrestricteddatatokenresponse)\>
+
+***
+
+### createAmazonSpApiOfficialSdkApis()
+
+```ts
+function createAmazonSpApiOfficialSdkApis(options): AmazonSpApiOfficialSdkApis;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`AmazonMarketplaceClientOptions`](#amazonmarketplaceclientoptions) |
+
+#### Returns
+
+`AmazonSpApiOfficialSdkApis`
+
+***
+
+### getAmazonSpApiOfficialSdk()
+
+```ts
+function getAmazonSpApiOfficialSdk(): AmazonSpApiOfficialSdk;
+```
+
+#### Returns
+
+[`AmazonSpApiOfficialSdk`](#amazonspapiofficialsdk)
 
 ***
 

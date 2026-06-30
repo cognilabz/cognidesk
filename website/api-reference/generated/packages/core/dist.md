@@ -389,6 +389,22 @@ createConversation<TConversationContext>(input): Promise<ConversationRecord<TCon
 
 `Promise`\<[`ConversationRecord`](#conversationrecord)\<`TConversationContext`\>\>
 
+##### deleteConversation()
+
+```ts
+deleteConversation(conversationId): Promise<boolean>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `conversationId` | `string` |
+
+###### Returns
+
+`Promise`\<`boolean`\>
+
 ##### emit()
 
 ```ts
@@ -532,6 +548,28 @@ endVoiceSegment(input): Promise<RuntimeEvent>;
 ###### Returns
 
 `Promise`\<[`RuntimeEvent`](#runtimeevent)\>
+
+##### getConversation()
+
+```ts
+getConversation<TConversationContext>(conversationId): Promise<ConversationRecord<TConversationContext>>;
+```
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TConversationContext` | `unknown` |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `conversationId` | `string` |
+
+###### Returns
+
+`Promise`\<[`ConversationRecord`](#conversationrecord)\<`TConversationContext`\>\>
 
 ##### getSnapshot()
 
@@ -914,6 +952,28 @@ submitWidget(input): Promise<RuntimeEvent>;
 ###### Returns
 
 `Promise`\<[`RuntimeEvent`](#runtimeevent)\>
+
+##### updateConversationContext()
+
+```ts
+updateConversationContext<TConversationContext>(input): Promise<ConversationRecord<TConversationContext>>;
+```
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TConversationContext` | `unknown` |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`UpdateRuntimeConversationContextInput`](#updateruntimeconversationcontextinput)\<`TConversationContext`\> |
+
+###### Returns
+
+`Promise`\<[`ConversationRecord`](#conversationrecord)\<`TConversationContext`\>\>
 
 ***
 
@@ -2010,10 +2070,75 @@ optional tags?: string[];
 
 #### Properties
 
+##### chatStart?
+
+```ts
+optional chatStart?: AgentChatStartBehavior;
+```
+
 ##### interruptOnNewMessage?
 
 ```ts
 optional interruptOnNewMessage?: boolean;
+```
+
+***
+
+### AgentChatStartInput
+
+#### Properties
+
+##### app
+
+```ts
+app: unknown;
+```
+
+##### channel?
+
+```ts
+optional channel?: unknown;
+```
+
+##### context
+
+```ts
+context: unknown;
+```
+
+##### conversation
+
+```ts
+conversation: {
+  agentId: string;
+  channel?: unknown;
+  context: unknown;
+  id: string;
+};
+```
+
+###### agentId
+
+```ts
+agentId: string;
+```
+
+###### channel?
+
+```ts
+optional channel?: unknown;
+```
+
+###### context
+
+```ts
+context: unknown;
+```
+
+###### id
+
+```ts
+id: string;
 ```
 
 ***
@@ -3966,7 +4091,7 @@ optional source?: ChannelEventSourceEvidence<TRawPayload>;
 ##### assistantMessageMode?
 
 ```ts
-optional assistantMessageMode?: "canonical" | "intermediate" | "none";
+optional assistantMessageMode?: "none" | "canonical" | "intermediate";
 ```
 
 ##### disposition?
@@ -4918,14 +5043,14 @@ optional timezone?: string;
 
 ```ts
 optional deliveryMode?:
+  | "none"
   | "approval"
   | "send"
   | "draft"
   | "notify"
   | "artifact"
   | "handoff-review"
-  | "provider-operation"
-  | "none";
+  | "provider-operation";
 ```
 
 ##### exposesSensitiveData?
@@ -5197,14 +5322,14 @@ optional channel?: ConversationChannelInput;
 
 ```ts
 optional deliveryMode?:
+  | "none"
   | "approval"
   | "send"
   | "draft"
   | "notify"
   | "artifact"
   | "handoff-review"
-  | "provider-operation"
-  | "none";
+  | "provider-operation";
 ```
 
 ###### Inherited from
@@ -5894,14 +6019,14 @@ optional timezone?: string;
 
 ```ts
 optional deliveryMode?:
+  | "none"
   | "approval"
   | "send"
   | "draft"
   | "notify"
   | "artifact"
   | "handoff-review"
-  | "provider-operation"
-  | "none";
+  | "provider-operation";
 ```
 
 ###### Inherited from
@@ -6174,14 +6299,14 @@ optional capability?: ChannelCapability;
 
 ```ts
 optional deliveryMode?:
+  | "none"
   | "approval"
   | "send"
   | "draft"
   | "notify"
   | "artifact"
   | "handoff-review"
-  | "provider-operation"
-  | "none";
+  | "provider-operation";
 ```
 
 ##### editableFields?
@@ -7007,14 +7132,14 @@ optional capability?: ChannelCapability;
 
 ```ts
 optional deliveryMode?:
+  | "none"
   | "approval"
   | "send"
   | "draft"
   | "notify"
   | "artifact"
   | "handoff-review"
-  | "provider-operation"
-  | "none";
+  | "provider-operation";
 ```
 
 ###### Inherited from
@@ -7224,7 +7349,7 @@ optional channel?: ConversationChannelInput;
 
 ###### Inherited from
 
-[`ChannelEventSource`](#channeleventsource).[`channel`](#channel-3)
+[`ChannelEventSource`](#channeleventsource).[`channel`](#channel-4)
 
 ##### id
 
@@ -8537,7 +8662,7 @@ optional channel?: ConversationChannelInput;
 
 ###### Inherited from
 
-[`CreateConversationInput`](#createconversationinput).[`channel`](#channel-13)
+[`CreateConversationInput`](#createconversationinput).[`channel`](#channel-14)
 
 ##### context
 
@@ -8547,7 +8672,7 @@ context: TConversationContext;
 
 ###### Inherited from
 
-[`CreateConversationInput`](#createconversationinput).[`context`](#context-2)
+[`CreateConversationInput`](#createconversationinput).[`context`](#context-3)
 
 ##### id?
 
@@ -9661,12 +9786,12 @@ optional app?: unknown;
 
 ###### Inherited from
 
-[`HandleUserMessageInput`](#handleusermessageinput).[`app`](#app-9)
+[`HandleUserMessageInput`](#handleusermessageinput).[`app`](#app-10)
 
 ##### assistantMessageMode?
 
 ```ts
-optional assistantMessageMode?: "canonical" | "intermediate" | "none";
+optional assistantMessageMode?: "none" | "canonical" | "intermediate";
 ```
 
 ###### Inherited from
@@ -9681,7 +9806,7 @@ optional channel?: ConversationChannel;
 
 ###### Inherited from
 
-[`HandleUserMessageInput`](#handleusermessageinput).[`channel`](#channel-17)
+[`HandleUserMessageInput`](#handleusermessageinput).[`channel`](#channel-18)
 
 ##### conversationId
 
@@ -10343,7 +10468,7 @@ optional app?: unknown;
 ##### assistantMessageMode?
 
 ```ts
-optional assistantMessageMode?: "canonical" | "intermediate" | "none";
+optional assistantMessageMode?: "none" | "canonical" | "intermediate";
 ```
 
 ##### channel?
@@ -10464,12 +10589,12 @@ optional app?: unknown;
 
 ###### Inherited from
 
-[`HandleUserMessageInput`](#handleusermessageinput).[`app`](#app-9)
+[`HandleUserMessageInput`](#handleusermessageinput).[`app`](#app-10)
 
 ##### assistantMessageMode?
 
 ```ts
-optional assistantMessageMode?: "canonical" | "intermediate" | "none";
+optional assistantMessageMode?: "none" | "canonical" | "intermediate";
 ```
 
 ###### Inherited from
@@ -10484,7 +10609,7 @@ optional channel?: ConversationChannel;
 
 ###### Inherited from
 
-[`HandleUserMessageInput`](#handleusermessageinput).[`channel`](#channel-17)
+[`HandleUserMessageInput`](#handleusermessageinput).[`channel`](#channel-18)
 
 ##### channelSegmentId
 
@@ -10628,7 +10753,7 @@ conversation: ConversationRecord;
 
 ###### Inherited from
 
-[`HandleUserMessageResult`](#handleusermessageresult).[`conversation`](#conversation-3)
+[`HandleUserMessageResult`](#handleusermessageresult).[`conversation`](#conversation-4)
 
 ##### events
 
@@ -11386,6 +11511,16 @@ optional beforeUpdatedAt?: string;
 
 Timestamp-only range filter. Use `before` for lossless cursor pagination.
 
+##### customerId?
+
+```ts
+optional customerId?: string;
+```
+
+Filters conversations by an application-defined customer identifier in
+conversation context. Built-in adapters match `context.customerId` and
+`context.customer.id`.
+
 ##### limit?
 
 ```ts
@@ -11491,6 +11626,20 @@ Timestamp-only range filter. Use `before` for lossless cursor pagination.
 ###### Inherited from
 
 [`ListConversationsOptions`](#listconversationsoptions).[`beforeUpdatedAt`](#beforeupdatedat)
+
+##### customerId?
+
+```ts
+optional customerId?: string;
+```
+
+Filters conversations by an application-defined customer identifier in
+conversation context. Built-in adapters match `context.customerId` and
+`context.customer.id`.
+
+###### Inherited from
+
+[`ListConversationsOptions`](#listconversationsoptions).[`customerId`](#customerid)
 
 ##### limit?
 
@@ -17233,10 +17382,22 @@ updatedAt: string;
 optional content?: TelemetryContentMode;
 ```
 
+##### customMetrics?
+
+```ts
+optional customMetrics?: TelemetryCustomMetricDefinition[];
+```
+
 ##### enabled?
 
 ```ts
 optional enabled?: boolean;
+```
+
+##### enrichSpan?
+
+```ts
+optional enrichSpan?: TelemetrySpanEnricher;
 ```
 
 ***
@@ -17988,6 +18149,22 @@ createConversation<TConversationContext>(input): Promise<ConversationRecord<TCon
 
 `Promise`\<[`ConversationRecord`](#conversationrecord)\<`TConversationContext`\>\>
 
+##### deleteConversation()
+
+```ts
+deleteConversation(conversationId): Promise<boolean>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `conversationId` | `string` |
+
+###### Returns
+
+`Promise`\<`boolean`\>
+
 ##### getConversation()
 
 ```ts
@@ -18089,6 +18266,29 @@ saveSnapshot(snapshot): Promise<void>;
 ###### Returns
 
 `Promise`\<`void`\>
+
+##### updateConversationContext()
+
+```ts
+updateConversationContext<TConversationContext>(conversationId, input): Promise<ConversationRecord<TConversationContext>>;
+```
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TConversationContext` | `unknown` |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `conversationId` | `string` |
+| `input` | [`UpdateConversationContextInput`](#updateconversationcontextinput)\<`TConversationContext`\> |
+
+###### Returns
+
+`Promise`\<[`ConversationRecord`](#conversationrecord)\<`TConversationContext`\>\>
 
 ##### updateConversationLifecycle()
 
@@ -18200,6 +18400,22 @@ recordException(error): void;
 
 `void`
 
+##### recordMetric()
+
+```ts
+recordMetric(metric): void;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `metric` | [`TelemetryCustomMetric`](#telemetrycustommetric) |
+
+###### Returns
+
+`void`
+
 ##### setAttribute()
 
 ```ts
@@ -18212,6 +18428,22 @@ setAttribute(name, value): void;
 | ------ | ------ |
 | `name` | `string` |
 | `value` | `string` \| `number` \| `boolean` |
+
+###### Returns
+
+`void`
+
+##### setAttributes()
+
+```ts
+setAttributes(attributes): void;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `attributes` | `Attributes` |
 
 ###### Returns
 
@@ -18300,6 +18532,138 @@ optional attributes?: Attributes;
 
 ***
 
+### TelemetryCustomMetric
+
+#### Properties
+
+##### attributes?
+
+```ts
+optional attributes?: Attributes;
+```
+
+##### name
+
+```ts
+name: string;
+```
+
+##### value
+
+```ts
+value: number;
+```
+
+***
+
+### TelemetryCustomMetricDefinition
+
+#### Properties
+
+##### description?
+
+```ts
+optional description?: string;
+```
+
+##### kind
+
+```ts
+kind: "counter" | "histogram";
+```
+
+##### name
+
+```ts
+name: string;
+```
+
+##### unit?
+
+```ts
+optional unit?: string;
+```
+
+***
+
+### TelemetrySpanEnrichment
+
+#### Properties
+
+##### attributes?
+
+```ts
+optional attributes?: Attributes;
+```
+
+##### events?
+
+```ts
+optional events?: TelemetrySpanEvent[];
+```
+
+##### metricAttributes?
+
+```ts
+optional metricAttributes?: Attributes;
+```
+
+##### metrics?
+
+```ts
+optional metrics?: TelemetryCustomMetric[];
+```
+
+***
+
+### TelemetrySpanEnrichmentInput
+
+#### Properties
+
+##### attributes
+
+```ts
+attributes: Attributes;
+```
+
+##### metricAttributes
+
+```ts
+metricAttributes: Attributes;
+```
+
+##### metricKind?
+
+```ts
+optional metricKind?: TelemetryMetricKind;
+```
+
+##### spanName
+
+```ts
+spanName: string;
+```
+
+***
+
+### TelemetrySpanEvent
+
+#### Properties
+
+##### attributes?
+
+```ts
+optional attributes?: Attributes;
+```
+
+##### name
+
+```ts
+name: string;
+```
+
+***
+
 ### TelemetrySpanOptions
 
 #### Properties
@@ -18367,7 +18731,7 @@ optional signal?: AbortSignal;
 ##### toolChoice?
 
 ```ts
-optional toolChoice?: "required" | "none" | "auto";
+optional toolChoice?: "none" | "required" | "auto";
 ```
 
 ##### tools?
@@ -18786,6 +19150,60 @@ optional priority?: number;
 
 ***
 
+### UpdateConversationContextInput
+
+#### Extended by
+
+- [`UpdateRuntimeConversationContextInput`](#updateruntimeconversationcontextinput)
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TConversationContext` | `unknown` |
+
+#### Properties
+
+##### context
+
+```ts
+context: TConversationContext;
+```
+
+***
+
+### UpdateRuntimeConversationContextInput
+
+#### Extends
+
+- [`UpdateConversationContextInput`](#updateconversationcontextinput)\<`TConversationContext`\>
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TConversationContext` | `unknown` |
+
+#### Properties
+
+##### context
+
+```ts
+context: TConversationContext;
+```
+
+###### Inherited from
+
+[`UpdateConversationContextInput`](#updateconversationcontextinput).[`context`](#context-11)
+
+##### conversationId
+
+```ts
+conversationId: string;
+```
+
+***
+
 ### UsageRecord
 
 #### Properties
@@ -19186,6 +19604,41 @@ type AgentChannelPolicyMap = Record<string, AgentChannelPolicyOptions>;
 
 ```ts
 type AgentChannelPolicyOptions = Record<string, AgentPolicyValue>;
+```
+
+***
+
+### AgentChatStartAction
+
+```ts
+type AgentChatStartAction =
+  | string
+  | false
+  | null
+  | undefined
+  | {
+  text: string;
+  type?: "message";
+  visibleToModel?: boolean;
+}
+  | {
+  maxWords?: number;
+  purpose?: string;
+  type: "generatedPreamble";
+}
+  | {
+  type: "none";
+};
+```
+
+***
+
+### AgentChatStartBehavior
+
+```ts
+type AgentChatStartBehavior =
+  | AgentChatStartAction
+  | ((input) => MaybePromise$1<AgentChatStartAction>);
 ```
 
 ***
@@ -20865,6 +21318,32 @@ type SupportReference =
 ```ts
 type TelemetryContentMode = "redacted" | "full";
 ```
+
+***
+
+### TelemetryMetricKind
+
+```ts
+type TelemetryMetricKind = "runtime" | "model" | "tool" | "action" | "knowledge";
+```
+
+***
+
+### TelemetrySpanEnricher
+
+```ts
+type TelemetrySpanEnricher = (input) => MaybePromise$2<TelemetrySpanEnrichment | null | undefined>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`TelemetrySpanEnrichmentInput`](#telemetryspanenrichmentinput) |
+
+#### Returns
+
+`MaybePromise$2`\<[`TelemetrySpanEnrichment`](#telemetryspanenrichment) \| `null` \| `undefined`\>
 
 ***
 
@@ -23295,12 +23774,18 @@ const telemetryAttributes: {
   actionName: "cognidesk.action.name";
   agentId: "cognidesk.agent.id";
   conversationId: "cognidesk.conversation.id";
+  customerId: "cognidesk.customer.id";
   errorType: "cognidesk.error.type";
   journeyId: "cognidesk.journey.id";
   knowledgeSourceName: "cognidesk.knowledge.source.name";
+  modelCachedInputTokens: "cognidesk.model.usage.cached_input_tokens";
+  modelInputTokens: "cognidesk.model.usage.input_tokens";
   modelName: "cognidesk.model.name";
+  modelOutputTokens: "cognidesk.model.usage.output_tokens";
   modelProvider: "cognidesk.model.provider";
+  modelReasoningTokens: "cognidesk.model.usage.reasoning_tokens";
   modelRole: "cognidesk.model.role";
+  modelTotalTokens: "cognidesk.model.usage.total_tokens";
   operation: "cognidesk.operation";
   promptTask: "cognidesk.prompt.task";
   stateId: "cognidesk.state.id";
@@ -23316,12 +23801,18 @@ const telemetryAttributes: {
 | <a id="property-actionname"></a> `actionName` | `"cognidesk.action.name"` |
 | <a id="property-agentid"></a> `agentId` | `"cognidesk.agent.id"` |
 | <a id="property-conversationid"></a> `conversationId` | `"cognidesk.conversation.id"` |
+| <a id="property-customerid"></a> `customerId` | `"cognidesk.customer.id"` |
 | <a id="property-errortype"></a> `errorType` | `"cognidesk.error.type"` |
 | <a id="property-journeyid"></a> `journeyId` | `"cognidesk.journey.id"` |
 | <a id="property-knowledgesourcename"></a> `knowledgeSourceName` | `"cognidesk.knowledge.source.name"` |
+| <a id="property-modelcachedinputtokens"></a> `modelCachedInputTokens` | `"cognidesk.model.usage.cached_input_tokens"` |
+| <a id="property-modelinputtokens"></a> `modelInputTokens` | `"cognidesk.model.usage.input_tokens"` |
 | <a id="property-modelname"></a> `modelName` | `"cognidesk.model.name"` |
+| <a id="property-modeloutputtokens"></a> `modelOutputTokens` | `"cognidesk.model.usage.output_tokens"` |
 | <a id="property-modelprovider"></a> `modelProvider` | `"cognidesk.model.provider"` |
+| <a id="property-modelreasoningtokens"></a> `modelReasoningTokens` | `"cognidesk.model.usage.reasoning_tokens"` |
 | <a id="property-modelrole"></a> `modelRole` | `"cognidesk.model.role"` |
+| <a id="property-modeltotaltokens"></a> `modelTotalTokens` | `"cognidesk.model.usage.total_tokens"` |
 | <a id="property-operation"></a> `operation` | `"cognidesk.operation"` |
 | <a id="property-prompttask"></a> `promptTask` | `"cognidesk.prompt.task"` |
 | <a id="property-stateid"></a> `stateId` | `"cognidesk.state.id"` |
@@ -23369,11 +23860,13 @@ const telemetrySpanNames: {
   runtimeCloseConversation: "cognidesk.runtime.close_conversation";
   runtimeCompactConversation: "cognidesk.runtime.compact_conversation";
   runtimeCreateConversation: "cognidesk.runtime.create_conversation";
+  runtimeDeleteConversation: "cognidesk.runtime.delete_conversation";
   runtimeEmitCustomEvent: "cognidesk.runtime.emit_custom_event";
   runtimeEmitEvent: "cognidesk.runtime.emit_event";
   runtimeEmitGeneratedPreamble: "cognidesk.runtime.emit_generated_preamble";
   runtimeEmitIntermediateMessage: "cognidesk.runtime.emit_intermediate_message";
   runtimeEmitJourneyEvent: "cognidesk.runtime.emit_journey_event";
+  runtimeGetConversation: "cognidesk.runtime.get_conversation";
   runtimeGetSnapshot: "cognidesk.runtime.get_snapshot";
   runtimeHandleChannelEvent: "cognidesk.runtime.handle_channel_event";
   runtimeHandleUserMessage: "cognidesk.runtime.handle_user_message";
@@ -23384,6 +23877,7 @@ const telemetrySpanNames: {
   runtimeRequestHandoff: "cognidesk.runtime.request_handoff";
   runtimeResumeConversation: "cognidesk.runtime.resume_conversation";
   runtimeSubmitWidget: "cognidesk.runtime.submit_widget";
+  runtimeUpdateConversationContext: "cognidesk.runtime.update_conversation_context";
   toolExecute: "cognidesk.tool.execute";
 };
 ```
@@ -23399,11 +23893,13 @@ const telemetrySpanNames: {
 | <a id="property-runtimecloseconversation"></a> `runtimeCloseConversation` | `"cognidesk.runtime.close_conversation"` |
 | <a id="property-runtimecompactconversation"></a> `runtimeCompactConversation` | `"cognidesk.runtime.compact_conversation"` |
 | <a id="property-runtimecreateconversation"></a> `runtimeCreateConversation` | `"cognidesk.runtime.create_conversation"` |
+| <a id="property-runtimedeleteconversation"></a> `runtimeDeleteConversation` | `"cognidesk.runtime.delete_conversation"` |
 | <a id="property-runtimeemitcustomevent"></a> `runtimeEmitCustomEvent` | `"cognidesk.runtime.emit_custom_event"` |
 | <a id="property-runtimeemitevent"></a> `runtimeEmitEvent` | `"cognidesk.runtime.emit_event"` |
 | <a id="property-runtimeemitgeneratedpreamble"></a> `runtimeEmitGeneratedPreamble` | `"cognidesk.runtime.emit_generated_preamble"` |
 | <a id="property-runtimeemitintermediatemessage"></a> `runtimeEmitIntermediateMessage` | `"cognidesk.runtime.emit_intermediate_message"` |
 | <a id="property-runtimeemitjourneyevent"></a> `runtimeEmitJourneyEvent` | `"cognidesk.runtime.emit_journey_event"` |
+| <a id="property-runtimegetconversation"></a> `runtimeGetConversation` | `"cognidesk.runtime.get_conversation"` |
 | <a id="property-runtimegetsnapshot"></a> `runtimeGetSnapshot` | `"cognidesk.runtime.get_snapshot"` |
 | <a id="property-runtimehandlechannelevent"></a> `runtimeHandleChannelEvent` | `"cognidesk.runtime.handle_channel_event"` |
 | <a id="property-runtimehandleusermessage"></a> `runtimeHandleUserMessage` | `"cognidesk.runtime.handle_user_message"` |
@@ -23414,6 +23910,7 @@ const telemetrySpanNames: {
 | <a id="property-runtimerequesthandoff"></a> `runtimeRequestHandoff` | `"cognidesk.runtime.request_handoff"` |
 | <a id="property-runtimeresumeconversation"></a> `runtimeResumeConversation` | `"cognidesk.runtime.resume_conversation"` |
 | <a id="property-runtimesubmitwidget"></a> `runtimeSubmitWidget` | `"cognidesk.runtime.submit_widget"` |
+| <a id="property-runtimeupdateconversationcontext"></a> `runtimeUpdateConversationContext` | `"cognidesk.runtime.update_conversation_context"` |
 | <a id="property-toolexecute"></a> `toolExecute` | `"cognidesk.tool.execute"` |
 
 ***
@@ -23523,6 +24020,25 @@ function after(input): ScheduleTrigger;
 #### Returns
 
 [`ScheduleTrigger`](#scheduletrigger)
+
+***
+
+### applyUsageToTelemetrySpan()
+
+```ts
+function applyUsageToTelemetrySpan(span, usage): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `span` | `Span` |
+| `usage` | [`UsageRecord`](#usagerecord) |
+
+#### Returns
+
+`void`
 
 ***
 

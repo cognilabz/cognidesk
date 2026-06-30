@@ -225,7 +225,7 @@ const hubSpotTicketingProviderManifest: {
      };
      implementation: {
         manifestImport: "no-sdk-client-initialization";
-        rawClientEscapeHatch: "HubSpotTicketingClient.rawClient";
+        rawClientEscapeHatch: "HubSpotTicketingClient.rawClient / HubSpotTicketingClient.getRawClient()";
         sdkPackage: "@hubspot/api-client";
         sdkVersionRange: "^13.5.0";
         strategy: "official-sdk";
@@ -311,16 +311,16 @@ const hubSpotTicketingProviderManifest: {
 | `id` | `"ticketing.hubspot"` |
 | `limitations` | readonly \[`"Ticket pipelines, stages, owners, custom properties, association labels, scopes, and portal-specific workflow policy are SDK-user configuration."`, `"This package does not claim full HubSpot API coverage; use rawClient for advanced official SDK methods."`\] |
 | `maintainers` | readonly \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
-| `metadata` | \{ `channelCoverage`: \{ `associations`: `"typed-extension"`; `broaderHubSpotApi`: `"provider-supported-raw-client"`; `comments`: `"typed-note-create"`; `internalNotes`: `"typed-note-create"`; `tickets`: `"typed-create-read-update-search"`; \}; `implementation`: \{ `manifestImport`: `"no-sdk-client-initialization"`; `rawClientEscapeHatch`: `"HubSpotTicketingClient.rawClient"`; `sdkPackage`: `"@hubspot/api-client"`; `sdkVersionRange`: `"^13.5.0"`; `strategy`: `"official-sdk"`; \}; \} |
+| `metadata` | \{ `channelCoverage`: \{ `associations`: `"typed-extension"`; `broaderHubSpotApi`: `"provider-supported-raw-client"`; `comments`: `"typed-note-create"`; `internalNotes`: `"typed-note-create"`; `tickets`: `"typed-create-read-update-search"`; \}; `implementation`: \{ `manifestImport`: `"no-sdk-client-initialization"`; `rawClientEscapeHatch`: `"HubSpotTicketingClient.rawClient / HubSpotTicketingClient.getRawClient()"`; `sdkPackage`: `"@hubspot/api-client"`; `sdkVersionRange`: `"^13.5.0"`; `strategy`: `"official-sdk"`; \}; \} |
 | `metadata.channelCoverage` | \{ `associations`: `"typed-extension"`; `broaderHubSpotApi`: `"provider-supported-raw-client"`; `comments`: `"typed-note-create"`; `internalNotes`: `"typed-note-create"`; `tickets`: `"typed-create-read-update-search"`; \} |
 | `metadata.channelCoverage.associations` | `"typed-extension"` |
 | `metadata.channelCoverage.broaderHubSpotApi` | `"provider-supported-raw-client"` |
 | `metadata.channelCoverage.comments` | `"typed-note-create"` |
 | `metadata.channelCoverage.internalNotes` | `"typed-note-create"` |
 | `metadata.channelCoverage.tickets` | `"typed-create-read-update-search"` |
-| `metadata.implementation` | \{ `manifestImport`: `"no-sdk-client-initialization"`; `rawClientEscapeHatch`: `"HubSpotTicketingClient.rawClient"`; `sdkPackage`: `"@hubspot/api-client"`; `sdkVersionRange`: `"^13.5.0"`; `strategy`: `"official-sdk"`; \} |
+| `metadata.implementation` | \{ `manifestImport`: `"no-sdk-client-initialization"`; `rawClientEscapeHatch`: `"HubSpotTicketingClient.rawClient / HubSpotTicketingClient.getRawClient()"`; `sdkPackage`: `"@hubspot/api-client"`; `sdkVersionRange`: `"^13.5.0"`; `strategy`: `"official-sdk"`; \} |
 | `metadata.implementation.manifestImport` | `"no-sdk-client-initialization"` |
-| `metadata.implementation.rawClientEscapeHatch` | `"HubSpotTicketingClient.rawClient"` |
+| `metadata.implementation.rawClientEscapeHatch` | `"HubSpotTicketingClient.rawClient / HubSpotTicketingClient.getRawClient()"` |
 | `metadata.implementation.sdkPackage` | `"@hubspot/api-client"` |
 | `metadata.implementation.sdkVersionRange` | `"^13.5.0"` |
 | `metadata.implementation.strategy` | `"official-sdk"` |

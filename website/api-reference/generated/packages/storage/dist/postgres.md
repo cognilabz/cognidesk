@@ -150,6 +150,26 @@ createConversation<TConversationContext>(input): Promise<ConversationRecord<TCon
 
 [`StorageAdapter`](../../core/dist.md#storageadapter).[`createConversation`](../../core/dist.md#createconversation-3)
 
+##### deleteConversation()
+
+```ts
+deleteConversation(conversationId): Promise<boolean>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `conversationId` | `string` |
+
+###### Returns
+
+`Promise`\<`boolean`\>
+
+###### Implementation of
+
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`deleteConversation`](../../core/dist.md#deleteconversation-1)
+
 ##### getConversation()
 
 ```ts
@@ -174,7 +194,7 @@ getConversation<TConversationContext>(conversationId): Promise<ConversationRecor
 
 ###### Implementation of
 
-[`StorageAdapter`](../../core/dist.md#storageadapter).[`getConversation`](../../core/dist.md#getconversation)
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`getConversation`](../../core/dist.md#getconversation-1)
 
 ##### getSnapshot()
 
@@ -275,6 +295,33 @@ saveSnapshot(snapshot): Promise<void>;
 ###### Implementation of
 
 [`StorageAdapter`](../../core/dist.md#storageadapter).[`saveSnapshot`](../../core/dist.md#savesnapshot)
+
+##### updateConversationContext()
+
+```ts
+updateConversationContext<TConversationContext>(conversationId, input): Promise<ConversationRecord<TConversationContext>>;
+```
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TConversationContext` | `unknown` |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `conversationId` | `string` |
+| `input` | [`UpdateConversationContextInput`](../../core/dist.md#updateconversationcontextinput)\<`TConversationContext`\> |
+
+###### Returns
+
+`Promise`\<[`ConversationRecord`](../../core/dist.md#conversationrecord)\<`TConversationContext`\>\>
+
+###### Implementation of
+
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`updateConversationContext`](../../core/dist.md#updateconversationcontext-1)
 
 ##### updateConversationLifecycle()
 

@@ -22,7 +22,8 @@
 optional listen?: {
   v1?: {
      media?: {
-        transcribeFile: Promise<unknown>;
+        transcribeFile:   | HttpResponsePromise<MediaTranscribeResponse>
+           | PromiseLike<DeepgramJsonObject>;
      };
   };
 };
@@ -33,7 +34,8 @@ optional listen?: {
 ```ts
 optional v1?: {
   media?: {
-     transcribeFile: Promise<unknown>;
+     transcribeFile:   | HttpResponsePromise<MediaTranscribeResponse>
+        | PromiseLike<DeepgramJsonObject>;
   };
 };
 ```
@@ -42,7 +44,8 @@ optional v1?: {
 
 ```ts
 optional media?: {
-  transcribeFile: Promise<unknown>;
+  transcribeFile:   | HttpResponsePromise<MediaTranscribeResponse>
+     | PromiseLike<DeepgramJsonObject>;
 };
 ```
 
@@ -52,20 +55,23 @@ optional media?: {
 transcribeFile(
    uploadable,
    request,
-requestOptions?): Promise<unknown>;
+   requestOptions?):
+  | HttpResponsePromise<MediaTranscribeResponse>
+| PromiseLike<DeepgramJsonObject>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `uploadable` | `Blob` |
-| `request` | `Record`\<`string`, `unknown`\> |
-| `requestOptions?` | `Record`\<`string`, `unknown`\> |
+| `uploadable` | `Uploadable` |
+| `request` | `MediaTranscribeRequestOctetStream` |
+| `requestOptions?` | `RequestOptions` |
 
 ###### Returns
 
-`Promise`\<`unknown`\>
+  \| `HttpResponsePromise`\<`MediaTranscribeResponse`\>
+  \| `PromiseLike`\<[`DeepgramJsonObject`](#deepgramjsonobject)\>
 
 ##### speak?
 
@@ -73,7 +79,12 @@ requestOptions?): Promise<unknown>;
 optional speak?: {
   v1?: {
      audio?: {
-        generate: Promise<unknown>;
+        generate:   | HttpResponsePromise<BinaryResponse>
+           | PromiseLike<
+           | Response
+           | ArrayBuffer
+           | Uint8Array<ArrayBufferLike>
+           | BinaryResponse>;
      };
   };
 };
@@ -84,7 +95,12 @@ optional speak?: {
 ```ts
 optional v1?: {
   audio?: {
-     generate: Promise<unknown>;
+     generate:   | HttpResponsePromise<BinaryResponse>
+        | PromiseLike<
+        | Response
+        | ArrayBuffer
+        | Uint8Array<ArrayBufferLike>
+        | BinaryResponse>;
   };
 };
 ```
@@ -93,26 +109,42 @@ optional v1?: {
 
 ```ts
 optional audio?: {
-  generate: Promise<unknown>;
+  generate:   | HttpResponsePromise<BinaryResponse>
+     | PromiseLike<
+     | Response
+     | ArrayBuffer
+     | Uint8Array<ArrayBufferLike>
+     | BinaryResponse>;
 };
 ```
 
 ###### v1.audio.generate()
 
 ```ts
-generate(request, requestOptions?): Promise<unknown>;
+generate(request, requestOptions?):
+  | HttpResponsePromise<BinaryResponse>
+  | PromiseLike<
+  | Response
+  | ArrayBuffer
+  | Uint8Array<ArrayBufferLike>
+| BinaryResponse>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `request` | `Record`\<`string`, `unknown`\> |
-| `requestOptions?` | `Record`\<`string`, `unknown`\> |
+| `request` | `SpeakV1Request` |
+| `requestOptions?` | `RequestOptions` |
 
 ###### Returns
 
-`Promise`\<`unknown`\>
+  \| `HttpResponsePromise`\<`BinaryResponse`\>
+  \| `PromiseLike`\<
+  \| `Response`
+  \| `ArrayBuffer`
+  \| `Uint8Array`\<`ArrayBufferLike`\>
+  \| `BinaryResponse`\>
 
 ***
 
@@ -310,6 +342,16 @@ text: string;
 
 ```ts
 getRawClient(): Promise<DeepgramRawClient>;
+```
+
+###### Returns
+
+`Promise`\<[`DeepgramRawClient`](#deepgramrawclient)\>
+
+##### getSdkClient()
+
+```ts
+getSdkClient(): Promise<DeepgramRawClient>;
 ```
 
 ###### Returns
@@ -777,7 +819,7 @@ const deepgramVoiceIntegration: DefinedIntegration<{
      exposesSensitiveData: true;
      label: "Transcribe speech";
      providerObject: "voiceTranscript";
-     providerOperation: "transcribeAudio";
+     providerOperation: "listen.v1.media.transcribeFile";
    }, {
      alias: "voice.speak";
      audiences: readonly ["customer-facing"];
@@ -785,7 +827,7 @@ const deepgramVoiceIntegration: DefinedIntegration<{
      exposesSensitiveData: true;
      label: "Synthesize speech";
      providerObject: "voiceAudio";
-     providerOperation: "synthesizeSpeech";
+     providerOperation: "speak.v1.audio.generate";
      sideEffect: true;
   }];
   packageName: "@cognidesk/integration-voice-deepgram";

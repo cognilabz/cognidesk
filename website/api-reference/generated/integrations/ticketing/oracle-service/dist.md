@@ -1,5 +1,63 @@
 # integrations/ticketing/oracle-service/dist
 
+## Classes
+
+### OracleServiceProviderApiError
+
+#### Extends
+
+- `Error`
+
+#### Constructors
+
+##### Constructor
+
+```ts
+new OracleServiceProviderApiError(input): OracleServiceProviderApiError;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`OracleServiceProviderApiErrorInput`](#oracleserviceproviderapierrorinput) |
+
+###### Returns
+
+[`OracleServiceProviderApiError`](#oracleserviceproviderapierror)
+
+###### Overrides
+
+```ts
+Error.constructor
+```
+
+#### Properties
+
+##### body
+
+```ts
+readonly body: unknown;
+```
+
+##### provider
+
+```ts
+readonly provider: "oracle-service" = "oracle-service";
+```
+
+##### response
+
+```ts
+readonly response: OracleServiceProviderApiErrorResponseMetadata;
+```
+
+##### status
+
+```ts
+readonly status: number;
+```
+
 ## Interfaces
 
 ### OracleServiceCreateMessageInput
@@ -138,6 +196,24 @@ title: string;
 optional accessToken?: string;
 ```
 
+##### apiAccessConfigured?
+
+```ts
+optional apiAccessConfigured?: boolean;
+```
+
+##### authConfigured?
+
+```ts
+optional authConfigured?: boolean;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
 ##### instanceUrl?
 
 ```ts
@@ -148,6 +224,12 @@ optional instanceUrl?: string;
 
 ```ts
 optional password?: string;
+```
+
+##### providerClientConfigured?
+
+```ts
+optional providerClientConfigured?: boolean;
 ```
 
 ##### scopes?
@@ -207,6 +289,26 @@ optional apiVersion?: string;
 
 [`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`apiVersion`](#apiversion-1)
 
+##### auth?
+
+```ts
+optional auth?: OracleServiceAuthOptions;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`auth`](#auth-1)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`baseUrl`](#baseurl-2)
+
 ##### client?
 
 ```ts
@@ -264,10 +366,20 @@ optional fetch?: {
 
 [`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`fetch`](#fetch-1)
 
-##### instanceUrl
+##### headers?
 
 ```ts
-instanceUrl: string;
+optional headers?: Record<string, string>;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`headers`](#headers-2)
+
+##### instanceUrl?
+
+```ts
+optional instanceUrl?: string;
 ```
 
 ###### Inherited from
@@ -284,6 +396,48 @@ optional password?: string;
 
 [`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`password`](#password-2)
 
+##### providerClient?
+
+```ts
+optional providerClient?: OracleServiceTicketingProviderClient;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`providerClient`](#providerclient-2)
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`retry`](#retry-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`signal`](#signal-1)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`timeoutMs`](#timeoutms-1)
+
 ##### username?
 
 ```ts
@@ -293,6 +447,66 @@ optional username?: string;
 ###### Inherited from
 
 [`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`username`](#username-2)
+
+***
+
+### OracleServiceProviderApiErrorInput
+
+#### Properties
+
+##### body
+
+```ts
+body: unknown;
+```
+
+##### message
+
+```ts
+message: string;
+```
+
+##### response
+
+```ts
+response: OracleServiceProviderApiErrorResponseMetadata;
+```
+
+##### status
+
+```ts
+status: number;
+```
+
+***
+
+### OracleServiceProviderApiErrorResponseMetadata
+
+#### Properties
+
+##### headers
+
+```ts
+headers: Record<string, string>;
+```
+
+##### requestId?
+
+```ts
+optional requestId?: string;
+```
+
+##### statusText
+
+```ts
+statusText: string;
+```
+
+##### url
+
+```ts
+url: string;
+```
 
 ***
 
@@ -434,6 +648,464 @@ optional offset?: number;
 
 ### OracleServiceTicketingClient
 
+#### Extends
+
+- [`OracleServiceTicketingProviderClient`](#oracleserviceticketingproviderclient)
+
+#### Properties
+
+##### providerClient
+
+```ts
+providerClient: OracleServiceTicketingProviderClient;
+```
+
+#### Methods
+
+##### createServiceRequest()
+
+```ts
+createServiceRequest(input): Promise<OracleServiceRequestResource>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`OracleServiceCreateRequestInput`](#oracleservicecreaterequestinput) |
+
+###### Returns
+
+`Promise`\<[`OracleServiceRequestResource`](#oracleservicerequestresource)\>
+
+###### Inherited from
+
+[`OracleServiceTicketingProviderClient`](#oracleserviceticketingproviderclient).[`createServiceRequest`](#createservicerequest-1)
+
+##### createServiceRequestMessage()
+
+```ts
+createServiceRequestMessage(input): Promise<OracleServiceProviderResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`OracleServiceCreateMessageInput`](#oracleservicecreatemessageinput) |
+
+###### Returns
+
+`Promise`\<[`OracleServiceProviderResponse`](#oracleserviceproviderresponse)\>
+
+###### Inherited from
+
+[`OracleServiceTicketingProviderClient`](#oracleserviceticketingproviderclient).[`createServiceRequestMessage`](#createservicerequestmessage-1)
+
+##### getServiceRequest()
+
+```ts
+getServiceRequest(srNumber): Promise<OracleServiceRequestResource>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `srNumber` | `string` |
+
+###### Returns
+
+`Promise`\<[`OracleServiceRequestResource`](#oracleservicerequestresource)\>
+
+###### Inherited from
+
+[`OracleServiceTicketingProviderClient`](#oracleserviceticketingproviderclient).[`getServiceRequest`](#getservicerequest-1)
+
+##### readiness()
+
+```ts
+readiness(): Promise<OracleServiceSearchResult<OracleServiceRequestResource>>;
+```
+
+###### Returns
+
+`Promise`\<[`OracleServiceSearchResult`](#oracleservicesearchresult)\<[`OracleServiceRequestResource`](#oracleservicerequestresource)\>\>
+
+###### Inherited from
+
+[`OracleServiceTicketingProviderClient`](#oracleserviceticketingproviderclient).[`readiness`](#readiness-1)
+
+##### searchServiceRequests()
+
+```ts
+searchServiceRequests(input?): Promise<OracleServiceSearchResult<OracleServiceRequestResource>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`OracleServiceSearchInput`](#oracleservicesearchinput) |
+
+###### Returns
+
+`Promise`\<[`OracleServiceSearchResult`](#oracleservicesearchresult)\<[`OracleServiceRequestResource`](#oracleservicerequestresource)\>\>
+
+###### Inherited from
+
+[`OracleServiceTicketingProviderClient`](#oracleserviceticketingproviderclient).[`searchServiceRequests`](#searchservicerequests-1)
+
+##### updateServiceRequest()
+
+```ts
+updateServiceRequest(srNumber, input): Promise<OracleServiceRequestResource>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `srNumber` | `string` |
+| `input` | [`OracleServiceUpdateRequestInput`](#oracleserviceupdaterequestinput) |
+
+###### Returns
+
+`Promise`\<[`OracleServiceRequestResource`](#oracleservicerequestresource)\>
+
+###### Inherited from
+
+[`OracleServiceTicketingProviderClient`](#oracleserviceticketingproviderclient).[`updateServiceRequest`](#updateservicerequest-1)
+
+***
+
+### OracleServiceTicketingClientOptions
+
+#### Extended by
+
+- [`OracleServiceLiveCheckOptions`](#oracleservicelivecheckoptions)
+- [`OracleServiceTicketingIntegrationOptions`](#oracleserviceticketingintegrationoptions)
+
+#### Properties
+
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+##### apiVersion?
+
+```ts
+optional apiVersion?: string;
+```
+
+##### auth?
+
+```ts
+optional auth?: OracleServiceAuthOptions;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+##### headers?
+
+```ts
+optional headers?: Record<string, string>;
+```
+
+##### instanceUrl?
+
+```ts
+optional instanceUrl?: string;
+```
+
+##### password?
+
+```ts
+optional password?: string;
+```
+
+##### providerClient?
+
+```ts
+optional providerClient?: OracleServiceTicketingProviderClient;
+```
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+##### username?
+
+```ts
+optional username?: string;
+```
+
+***
+
+### OracleServiceTicketingIntegrationOptions
+
+#### Extends
+
+- [`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions)
+
+#### Properties
+
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+###### Overrides
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`accessToken`](#accesstoken-2)
+
+##### apiVersion?
+
+```ts
+optional apiVersion?: string;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`apiVersion`](#apiversion-1)
+
+##### auth?
+
+```ts
+optional auth?: OracleServiceAuthOptions;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`auth`](#auth-1)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`baseUrl`](#baseurl-2)
+
+##### client?
+
+```ts
+optional client?: OracleServiceTicketingClient;
+```
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`fetch`](#fetch-1)
+
+##### headers?
+
+```ts
+optional headers?: Record<string, string>;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`headers`](#headers-2)
+
+##### instanceUrl?
+
+```ts
+optional instanceUrl?: string;
+```
+
+###### Overrides
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`instanceUrl`](#instanceurl-2)
+
+##### password?
+
+```ts
+optional password?: string;
+```
+
+###### Overrides
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`password`](#password-2)
+
+##### providerClient?
+
+```ts
+optional providerClient?: OracleServiceTicketingProviderClient;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`providerClient`](#providerclient-2)
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`retry`](#retry-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`signal`](#signal-1)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`timeoutMs`](#timeoutms-1)
+
+##### username?
+
+```ts
+optional username?: string;
+```
+
+###### Overrides
+
+[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`username`](#username-2)
+
+***
+
+### OracleServiceTicketingProviderClient
+
+#### Extended by
+
+- [`OracleServiceTicketingClient`](#oracleserviceticketingclient)
+
 #### Methods
 
 ##### createServiceRequest()
@@ -526,211 +1198,6 @@ updateServiceRequest(srNumber, input): Promise<OracleServiceRequestResource>;
 ###### Returns
 
 `Promise`\<[`OracleServiceRequestResource`](#oracleservicerequestresource)\>
-
-***
-
-### OracleServiceTicketingClientOptions
-
-#### Extended by
-
-- [`OracleServiceLiveCheckOptions`](#oracleservicelivecheckoptions)
-- [`OracleServiceTicketingIntegrationOptions`](#oracleserviceticketingintegrationoptions)
-
-#### Properties
-
-##### accessToken?
-
-```ts
-optional accessToken?: string;
-```
-
-##### apiVersion?
-
-```ts
-optional apiVersion?: string;
-```
-
-##### fetch?
-
-```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
-```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-##### instanceUrl
-
-```ts
-instanceUrl: string;
-```
-
-##### password?
-
-```ts
-optional password?: string;
-```
-
-##### username?
-
-```ts
-optional username?: string;
-```
-
-***
-
-### OracleServiceTicketingIntegrationOptions
-
-#### Extends
-
-- [`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions)
-
-#### Properties
-
-##### accessToken?
-
-```ts
-optional accessToken?: string;
-```
-
-###### Inherited from
-
-[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`accessToken`](#accesstoken-2)
-
-##### apiVersion?
-
-```ts
-optional apiVersion?: string;
-```
-
-###### Inherited from
-
-[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`apiVersion`](#apiversion-1)
-
-##### client?
-
-```ts
-optional client?: OracleServiceTicketingClient;
-```
-
-##### fetch?
-
-```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
-```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Inherited from
-
-[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`fetch`](#fetch-1)
-
-##### instanceUrl
-
-```ts
-instanceUrl: string;
-```
-
-###### Inherited from
-
-[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`instanceUrl`](#instanceurl-2)
-
-##### password?
-
-```ts
-optional password?: string;
-```
-
-###### Inherited from
-
-[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`password`](#password-2)
-
-##### username?
-
-```ts
-optional username?: string;
-```
-
-###### Inherited from
-
-[`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions).[`username`](#username-2)
 
 ***
 
@@ -888,6 +1355,27 @@ optional title?: string;
 
 ## Type Aliases
 
+### OracleServiceAuthOptions
+
+```ts
+type OracleServiceAuthOptions =
+  | {
+  accessToken: string;
+  type: "bearer";
+}
+  | {
+  password: string;
+  type: "basic";
+  username: string;
+}
+  | {
+  headers: Record<string, string>;
+  type: "headers";
+};
+```
+
+***
+
 ### OracleServiceJsonPrimitive
 
 ```ts
@@ -961,10 +1449,10 @@ type OracleServiceRequestResource = OracleServiceProviderPayload & {
 
 ## Functions
 
-### createOracleServiceTicketingClient()
+### createOracleServiceRestProviderClient()
 
 ```ts
-function createOracleServiceTicketingClient(options): OracleServiceTicketingClient;
+function createOracleServiceRestProviderClient(options): OracleServiceTicketingProviderClient;
 ```
 
 #### Parameters
@@ -972,6 +1460,24 @@ function createOracleServiceTicketingClient(options): OracleServiceTicketingClie
 | Parameter | Type |
 | ------ | ------ |
 | `options` | [`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions) |
+
+#### Returns
+
+[`OracleServiceTicketingProviderClient`](#oracleserviceticketingproviderclient)
+
+***
+
+### createOracleServiceTicketingClient()
+
+```ts
+function createOracleServiceTicketingClient(options?): OracleServiceTicketingClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`OracleServiceTicketingClientOptions`](#oracleserviceticketingclientoptions) |
 
 #### Returns
 
@@ -1173,28 +1679,42 @@ function createOracleServiceTicketingIntegration(options): DefinedIntegration<{
         label: "Oracle Fusion Service create service request message";
         url: "https://docs.oracle.com/en/cloud/saas/sales/faaps/op-servicerequests-srnumber-child-messages-post.html";
      }];
-     notes: readonly ["Coverage is typed for Oracle Fusion Service serviceRequests create, read by SrNumber, patch, collection search, child message creation, and readiness checks used by Cognidesk support workflows.", "This is not full Oracle Fusion Service API coverage; service request child resources such as activities, attachments, contacts, message attachment/channel-communication lifecycle, milestones, resources, smart actions, tags, LOV/metadata behavior, workflow rules, queues, privileges, and broader Fusion CX APIs remain outside this adapter."];
+     notes: readonly ["Coverage is typed for Oracle Fusion Service serviceRequests create, read by SrNumber, patch, collection search, child message creation, and readiness checks used by Cognidesk support workflows.", "Runtime provider operations use the built-in Oracle Fusion Service REST adapter when baseUrl/instanceUrl plus access credentials are provided; a host-injected OracleServiceTicketingProviderClient remains available as an override.", "This is not full Oracle Fusion Service API coverage; service request child resources such as activities, attachments, contacts, message attachment/channel-communication lifecycle, milestones, resources, smart actions, tags, LOV/metadata behavior, workflow rules, queues, privileges, and broader Fusion CX APIs remain outside this adapter."];
      scope: "support-workflow-subset";
   };
   credentialRequirements: readonly [{
-     description: "The SDK user's Oracle Fusion Service host, for example https://example.fa.oraclecloud.com.";
+     description: "Optional SDK-user-owned provider client implementing OracleServiceTicketingProviderClient. When omitted, the package uses its built-in Oracle Fusion Service REST adapter.";
+     id: "oracle-service-provider-client";
+     label: "Optional host-provided Oracle Service provider client";
+     metadata: {
+        defaultClientPolicy: "built-in-provider-rest-adapter";
+        importPolicy: "optional-host-override";
+        interface: "OracleServiceTicketingProviderClient";
+     };
+     required: false;
+   }, {
+     description: "The Oracle Fusion Service base URL, for example https://example.fa.oraclecloud.com, used by the built-in REST adapter or supplied by a host provider client override.";
      id: "oracle-service-instance";
      label: "Oracle Fusion Service instance URL";
-     required: true;
+     metadata: {
+        requiredWhen: "built-in-provider-rest-adapter";
+     };
+     required: false;
    }, {
-     description: "Server-side OAuth bearer access or Basic Auth credentials for Oracle Fusion Service REST APIs with service roles and privileges for serviceRequests and child messages.";
+     description: "Server-side Oracle Fusion Service access for serviceRequests and child messages, supplied as accessToken, basic auth, auth headers, or encapsulated in a host provider client.";
      id: "oracle-service-api-access";
-     label: "Oracle Fusion Service REST API access";
+     label: "Oracle Fusion Service API access";
      metadata: {
         privilegeGuidance: "These strings are Cognidesk capability labels, not official Oracle OAuth scope names. Oracle access depends on Fusion Service roles and privileges for service request read/create/update/search and message creation.";
+        requiredWhen: "built-in-provider-rest-adapter";
         scopeKind: "internal-capability-labels";
      };
-     required: true;
+     required: false;
      scopes: readonly ["serviceRequests:read", "serviceRequests:write"];
   }];
   directions: readonly ["bidirectional"];
   id: "ticketing.oracle-service";
-  limitations: readonly ["Oracle Service categories, required fields, queues, assignment rules, milestones, extensions, and privileges are owned by the SDK user's Fusion Service environment.", "SDK users own handoff timing, field mapping, customer identity matching, visibility, consent, notification policy, and retention before calling Oracle APIs."];
+  limitations: readonly ["Oracle Service categories, required fields, queues, assignment rules, milestones, extensions, and privileges are owned by the SDK user's Fusion Service environment.", "SDK users own handoff timing, field mapping, customer identity matching, visibility, consent, notification policy, retry/rate-limit behavior, and retention before calling Oracle APIs.", "The built-in adapter covers selected serviceRequests REST operations only; hosts can still inject an approved Oracle Service provider client for custom authentication, retries, or API-version policy."];
   maintainers: readonly [{
      name: "Cognidesk";
      type: "official";
@@ -1218,45 +1738,108 @@ function createOracleServiceTicketingIntegration(options): DefinedIntegration<{
         verifiedAt: "2026-06-18";
      };
      implementation: {
-        strategy: "direct-http-support-slice";
+        adapterKind: "no-official-sdk-rest-adapter";
+        apiVersion: "11.13.18.05";
+        defaultClient: "built-in-oracle-fusion-service-rest-adapter";
+        providerClientOverride: true;
+        strategy: "provider-rest-adapter";
      };
      implementationStrategy: {
-        checkedAt: "2026-06-21";
-        reason: "No suitable official JavaScript SDK was found for Oracle Fusion Service serviceRequests; oci-fusionapps targets OCI Fusion Apps Service resource management, not this REST surface.";
+        checkedAt: "2026-06-25";
+        exception: "provider-rest-adapter";
+        reason: "No suitable maintained npm runtime SDK was verified for Oracle Fusion Service serviceRequests or Oracle Service Cloud/B2C Service incidents; Oracle documents these ticketing surfaces as REST APIs, while the official OCI TypeScript/JavaScript SDK manages OCI resources including Fusion Apps as a Service rather than service request records.";
         rejectedLibraries: readonly [{
-           integrity: "sha512-L0mF2w4tYeVBM1DXEDVuufuKysTQqhvS65GCN7meubjWzxUNMRDO9P/EM1ouSguyjJio7NeCr4hQWSP5AEe46Q==";
            packageName: "oci-fusionapps";
-           reason: "Official Oracle-maintained OCI SDK package, but not a Fusion Service service request client.";
-           version: "2.135.0";
+           reason: "Oracle-maintained OCI SDK package for Fusion Apps Service administration, not a typed Oracle Fusion Service serviceRequests or B2C Service incident data client.";
+           result: "not-used-as-runtime-ticketing-sdk";
+           source: "npm";
+           version: "2.135.1";
+         }, {
+           packageName: "oci-sdk";
+           reason: "Oracle-maintained OCI SDK aggregate, but it does not expose the Oracle Fusion Service serviceRequests or Oracle B2C Service incident ticketing runtime surface used by this package.";
+           result: "not-used-as-runtime-ticketing-sdk";
+           source: "npm";
+           version: "2.135.1";
+         }, {
+           packageName: "osvc_node";
+           reason: "Unofficial Oracle Service Cloud REST wrapper last published years ago, not a maintained Oracle runtime SDK suitable for Cognidesk provider-client ownership.";
+           result: "rejected-unofficial-stale-wrapper";
+           source: "npm";
+           version: "1.0.0";
         }];
-        strategy: "direct-support-slice";
+        result: "no-suitable-maintained-runtime-provider-sdk";
+        strategy: "no-official-sdk-rest-adapter";
      };
-     supportOperationSlice: {
-        allowlistSha256: "5f3ff8ea4febec8a1f5e4c9d881124c9f215a7b97ebb3ae7a92d7e3f98b370f5";
-        checkedAt: "2026-06-21";
-        operations: readonly [{
+     providerClient: {
+        defaultClientPolicy: "built-in-provider-rest-adapter";
+        importPolicy: "optional-host-override";
+        interface: "OracleServiceTicketingProviderClient";
+        operationTargets: readonly [{
            alias: "ticket.create";
-           method: "POST";
-           path: "/crmRestApi/resources/{apiVersion}/serviceRequests";
+           target: "providerClient.createServiceRequest";
          }, {
            alias: "ticket.read";
-           method: "GET";
-           path: "/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}";
+           target: "providerClient.getServiceRequest";
          }, {
            alias: "ticket.update";
-           method: "PATCH";
-           path: "/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}";
+           target: "providerClient.updateServiceRequest";
          }, {
            alias: "ticket.search";
-           method: "GET";
-           path: "/crmRestApi/resources/{apiVersion}/serviceRequests";
+           target: "providerClient.searchServiceRequests";
          }, {
            alias: "oracle-service.serviceRequestMessage.create";
-           method: "POST";
-           path: "/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}/child/messages";
+           target: "providerClient.createServiceRequestMessage";
         }];
-        sourceKind: "official-docs-reviewed-slice";
+        package: "optional-host-provided";
+     };
+     providerRestAdapterOperationSlice: {
+        adapterKind: "no-official-sdk-rest-adapter";
+        checkedAt: "2026-06-25";
+        operations: readonly [{
+           alias: "ticket.create";
+           target: "providerClient.createServiceRequest";
+         }, {
+           alias: "ticket.read";
+           target: "providerClient.getServiceRequest";
+         }, {
+           alias: "ticket.update";
+           target: "providerClient.updateServiceRequest";
+         }, {
+           alias: "ticket.search";
+           target: "providerClient.searchServiceRequests";
+         }, {
+           alias: "oracle-service.serviceRequestMessage.create";
+           target: "providerClient.createServiceRequestMessage";
+        }];
+        sourceKind: "provider-rest-adapter";
         sourceVersion: "11.13.18.05";
+     };
+     sdkDecision: {
+        acceptedRuntimeProviderSdk: null;
+        checkedAt: "2026-06-25";
+        checkedSources: readonly ["Oracle Fusion Service serviceRequests REST API documentation", "Oracle B2C Service incidents REST API documentation", "npm registry package metadata and search results"];
+        providerRestAdapterException: true;
+        rejectedLibraries: readonly [{
+           packageName: "oci-fusionapps";
+           reason: "Oracle-maintained OCI SDK package for Fusion Apps Service administration, not a typed Oracle Fusion Service serviceRequests or B2C Service incident data client.";
+           result: "not-used-as-runtime-ticketing-sdk";
+           source: "npm";
+           version: "2.135.1";
+         }, {
+           packageName: "oci-sdk";
+           reason: "Oracle-maintained OCI SDK aggregate, but it does not expose the Oracle Fusion Service serviceRequests or Oracle B2C Service incident ticketing runtime surface used by this package.";
+           result: "not-used-as-runtime-ticketing-sdk";
+           source: "npm";
+           version: "2.135.1";
+         }, {
+           packageName: "osvc_node";
+           reason: "Unofficial Oracle Service Cloud REST wrapper last published years ago, not a maintained Oracle runtime SDK suitable for Cognidesk provider-client ownership.";
+           result: "rejected-unofficial-stale-wrapper";
+           source: "npm";
+           version: "1.0.0";
+        }];
+        result: "provider-rest-adapter-exception";
+        viableMaintainedRuntimeProviderSdk: false;
      };
   };
   name: "Oracle Service";
@@ -1307,7 +1890,15 @@ function createOracleServiceTicketingIntegration(options): DefinedIntegration<{
   privacyNotes: readonly ["Oracle service requests can contain customer identity, problem descriptions, service profile data, queue and assignee details, and internal resolution notes.", "Oracle credentials stay server-side and are represented in Studio only as credential readiness and scope status."];
   provider: "oracle-service";
   trustLevel: "official";
-}, OracleServiceTicketingIntegrationOptions, {
+}, {
+  accessToken: string;
+  authConfigured: true;
+  baseUrl: string;
+  basicAuthConfigured: boolean;
+  headersConfigured: boolean;
+  instanceUrl: string;
+  providerClientConfigured: true;
+}, {
   oracle-service.serviceRequestMessage.create: (input) => Promise<OracleServiceProviderResponse>;
   ticket.create: (input) => Promise<OracleServiceRequestResource>;
   ticket.read: (input) => Promise<OracleServiceRequestResource>;
@@ -1515,28 +2106,42 @@ function createOracleServiceTicketingIntegration(options): DefinedIntegration<{
         `label`: `"Oracle Fusion Service create service request message"`;
         `url`: `"https://docs.oracle.com/en/cloud/saas/sales/faaps/op-servicerequests-srnumber-child-messages-post.html"`;
      \}\];
-     `notes`: readonly \[`"Coverage is typed for Oracle Fusion Service serviceRequests create, read by SrNumber, patch, collection search, child message creation, and readiness checks used by Cognidesk support workflows."`, `"This is not full Oracle Fusion Service API coverage; service request child resources such as activities, attachments, contacts, message attachment/channel-communication lifecycle, milestones, resources, smart actions, tags, LOV/metadata behavior, workflow rules, queues, privileges, and broader Fusion CX APIs remain outside this adapter."`\];
+     `notes`: readonly \[`"Coverage is typed for Oracle Fusion Service serviceRequests create, read by SrNumber, patch, collection search, child message creation, and readiness checks used by Cognidesk support workflows."`, `"Runtime provider operations use the built-in Oracle Fusion Service REST adapter when baseUrl/instanceUrl plus access credentials are provided; a host-injected OracleServiceTicketingProviderClient remains available as an override."`, `"This is not full Oracle Fusion Service API coverage; service request child resources such as activities, attachments, contacts, message attachment/channel-communication lifecycle, milestones, resources, smart actions, tags, LOV/metadata behavior, workflow rules, queues, privileges, and broader Fusion CX APIs remain outside this adapter."`\];
      `scope`: `"support-workflow-subset"`;
   \};
   `credentialRequirements`: readonly \[\{
-     `description`: `"The SDK user's Oracle Fusion Service host, for example https://example.fa.oraclecloud.com."`;
+     `description`: `"Optional SDK-user-owned provider client implementing OracleServiceTicketingProviderClient. When omitted, the package uses its built-in Oracle Fusion Service REST adapter."`;
+     `id`: `"oracle-service-provider-client"`;
+     `label`: `"Optional host-provided Oracle Service provider client"`;
+     `metadata`: \{
+        `defaultClientPolicy`: `"built-in-provider-rest-adapter"`;
+        `importPolicy`: `"optional-host-override"`;
+        `interface`: `"OracleServiceTicketingProviderClient"`;
+     \};
+     `required`: `false`;
+   \}, \{
+     `description`: `"The Oracle Fusion Service base URL, for example https://example.fa.oraclecloud.com, used by the built-in REST adapter or supplied by a host provider client override."`;
      `id`: `"oracle-service-instance"`;
      `label`: `"Oracle Fusion Service instance URL"`;
-     `required`: `true`;
+     `metadata`: \{
+        `requiredWhen`: `"built-in-provider-rest-adapter"`;
+     \};
+     `required`: `false`;
    \}, \{
-     `description`: `"Server-side OAuth bearer access or Basic Auth credentials for Oracle Fusion Service REST APIs with service roles and privileges for serviceRequests and child messages."`;
+     `description`: `"Server-side Oracle Fusion Service access for serviceRequests and child messages, supplied as accessToken, basic auth, auth headers, or encapsulated in a host provider client."`;
      `id`: `"oracle-service-api-access"`;
-     `label`: `"Oracle Fusion Service REST API access"`;
+     `label`: `"Oracle Fusion Service API access"`;
      `metadata`: \{
         `privilegeGuidance`: `"These strings are Cognidesk capability labels, not official Oracle OAuth scope names. Oracle access depends on Fusion Service roles and privileges for service request read/create/update/search and message creation."`;
+        `requiredWhen`: `"built-in-provider-rest-adapter"`;
         `scopeKind`: `"internal-capability-labels"`;
      \};
-     `required`: `true`;
+     `required`: `false`;
      `scopes`: readonly \[`"serviceRequests:read"`, `"serviceRequests:write"`\];
   \}\];
   `directions`: readonly \[`"bidirectional"`\];
   `id`: `"ticketing.oracle-service"`;
-  `limitations`: readonly \[`"Oracle Service categories, required fields, queues, assignment rules, milestones, extensions, and privileges are owned by the SDK user's Fusion Service environment."`, `"SDK users own handoff timing, field mapping, customer identity matching, visibility, consent, notification policy, and retention before calling Oracle APIs."`\];
+  `limitations`: readonly \[`"Oracle Service categories, required fields, queues, assignment rules, milestones, extensions, and privileges are owned by the SDK user's Fusion Service environment."`, `"SDK users own handoff timing, field mapping, customer identity matching, visibility, consent, notification policy, retry/rate-limit behavior, and retention before calling Oracle APIs."`, `"The built-in adapter covers selected serviceRequests REST operations only; hosts can still inject an approved Oracle Service provider client for custom authentication, retries, or API-version policy."`\];
   `maintainers`: readonly \[\{
      `name`: `"Cognidesk"`;
      `type`: `"official"`;
@@ -1560,45 +2165,108 @@ function createOracleServiceTicketingIntegration(options): DefinedIntegration<{
         `verifiedAt`: `"2026-06-18"`;
      \};
      `implementation`: \{
-        `strategy`: `"direct-http-support-slice"`;
+        `adapterKind`: `"no-official-sdk-rest-adapter"`;
+        `apiVersion`: `"11.13.18.05"`;
+        `defaultClient`: `"built-in-oracle-fusion-service-rest-adapter"`;
+        `providerClientOverride`: `true`;
+        `strategy`: `"provider-rest-adapter"`;
      \};
      `implementationStrategy`: \{
-        `checkedAt`: `"2026-06-21"`;
-        `reason`: `"No suitable official JavaScript SDK was found for Oracle Fusion Service serviceRequests; oci-fusionapps targets OCI Fusion Apps Service resource management, not this REST surface."`;
+        `checkedAt`: `"2026-06-25"`;
+        `exception`: `"provider-rest-adapter"`;
+        `reason`: `"No suitable maintained npm runtime SDK was verified for Oracle Fusion Service serviceRequests or Oracle Service Cloud/B2C Service incidents; Oracle documents these ticketing surfaces as REST APIs, while the official OCI TypeScript/JavaScript SDK manages OCI resources including Fusion Apps as a Service rather than service request records."`;
         `rejectedLibraries`: readonly \[\{
-           `integrity`: `"sha512-L0mF2w4tYeVBM1DXEDVuufuKysTQqhvS65GCN7meubjWzxUNMRDO9P/EM1ouSguyjJio7NeCr4hQWSP5AEe46Q=="`;
            `packageName`: `"oci-fusionapps"`;
-           `reason`: `"Official Oracle-maintained OCI SDK package, but not a Fusion Service service request client."`;
-           `version`: `"2.135.0"`;
+           `reason`: `"Oracle-maintained OCI SDK package for Fusion Apps Service administration, not a typed Oracle Fusion Service serviceRequests or B2C Service incident data client."`;
+           `result`: `"not-used-as-runtime-ticketing-sdk"`;
+           `source`: `"npm"`;
+           `version`: `"2.135.1"`;
+         \}, \{
+           `packageName`: `"oci-sdk"`;
+           `reason`: `"Oracle-maintained OCI SDK aggregate, but it does not expose the Oracle Fusion Service serviceRequests or Oracle B2C Service incident ticketing runtime surface used by this package."`;
+           `result`: `"not-used-as-runtime-ticketing-sdk"`;
+           `source`: `"npm"`;
+           `version`: `"2.135.1"`;
+         \}, \{
+           `packageName`: `"osvc_node"`;
+           `reason`: `"Unofficial Oracle Service Cloud REST wrapper last published years ago, not a maintained Oracle runtime SDK suitable for Cognidesk provider-client ownership."`;
+           `result`: `"rejected-unofficial-stale-wrapper"`;
+           `source`: `"npm"`;
+           `version`: `"1.0.0"`;
         \}\];
-        `strategy`: `"direct-support-slice"`;
+        `result`: `"no-suitable-maintained-runtime-provider-sdk"`;
+        `strategy`: `"no-official-sdk-rest-adapter"`;
      \};
-     `supportOperationSlice`: \{
-        `allowlistSha256`: `"5f3ff8ea4febec8a1f5e4c9d881124c9f215a7b97ebb3ae7a92d7e3f98b370f5"`;
-        `checkedAt`: `"2026-06-21"`;
-        `operations`: readonly \[\{
+     `providerClient`: \{
+        `defaultClientPolicy`: `"built-in-provider-rest-adapter"`;
+        `importPolicy`: `"optional-host-override"`;
+        `interface`: `"OracleServiceTicketingProviderClient"`;
+        `operationTargets`: readonly \[\{
            `alias`: `"ticket.create"`;
-           `method`: `"POST"`;
-           `path`: `"/crmRestApi/resources/{apiVersion}/serviceRequests"`;
+           `target`: `"providerClient.createServiceRequest"`;
          \}, \{
            `alias`: `"ticket.read"`;
-           `method`: `"GET"`;
-           `path`: `"/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}"`;
+           `target`: `"providerClient.getServiceRequest"`;
          \}, \{
            `alias`: `"ticket.update"`;
-           `method`: `"PATCH"`;
-           `path`: `"/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}"`;
+           `target`: `"providerClient.updateServiceRequest"`;
          \}, \{
            `alias`: `"ticket.search"`;
-           `method`: `"GET"`;
-           `path`: `"/crmRestApi/resources/{apiVersion}/serviceRequests"`;
+           `target`: `"providerClient.searchServiceRequests"`;
          \}, \{
            `alias`: `"oracle-service.serviceRequestMessage.create"`;
-           `method`: `"POST"`;
-           `path`: `"/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}/child/messages"`;
+           `target`: `"providerClient.createServiceRequestMessage"`;
         \}\];
-        `sourceKind`: `"official-docs-reviewed-slice"`;
+        `package`: `"optional-host-provided"`;
+     \};
+     `providerRestAdapterOperationSlice`: \{
+        `adapterKind`: `"no-official-sdk-rest-adapter"`;
+        `checkedAt`: `"2026-06-25"`;
+        `operations`: readonly \[\{
+           `alias`: `"ticket.create"`;
+           `target`: `"providerClient.createServiceRequest"`;
+         \}, \{
+           `alias`: `"ticket.read"`;
+           `target`: `"providerClient.getServiceRequest"`;
+         \}, \{
+           `alias`: `"ticket.update"`;
+           `target`: `"providerClient.updateServiceRequest"`;
+         \}, \{
+           `alias`: `"ticket.search"`;
+           `target`: `"providerClient.searchServiceRequests"`;
+         \}, \{
+           `alias`: `"oracle-service.serviceRequestMessage.create"`;
+           `target`: `"providerClient.createServiceRequestMessage"`;
+        \}\];
+        `sourceKind`: `"provider-rest-adapter"`;
         `sourceVersion`: `"11.13.18.05"`;
+     \};
+     `sdkDecision`: \{
+        `acceptedRuntimeProviderSdk`: `null`;
+        `checkedAt`: `"2026-06-25"`;
+        `checkedSources`: readonly \[`"Oracle Fusion Service serviceRequests REST API documentation"`, `"Oracle B2C Service incidents REST API documentation"`, `"npm registry package metadata and search results"`\];
+        `providerRestAdapterException`: `true`;
+        `rejectedLibraries`: readonly \[\{
+           `packageName`: `"oci-fusionapps"`;
+           `reason`: `"Oracle-maintained OCI SDK package for Fusion Apps Service administration, not a typed Oracle Fusion Service serviceRequests or B2C Service incident data client."`;
+           `result`: `"not-used-as-runtime-ticketing-sdk"`;
+           `source`: `"npm"`;
+           `version`: `"2.135.1"`;
+         \}, \{
+           `packageName`: `"oci-sdk"`;
+           `reason`: `"Oracle-maintained OCI SDK aggregate, but it does not expose the Oracle Fusion Service serviceRequests or Oracle B2C Service incident ticketing runtime surface used by this package."`;
+           `result`: `"not-used-as-runtime-ticketing-sdk"`;
+           `source`: `"npm"`;
+           `version`: `"2.135.1"`;
+         \}, \{
+           `packageName`: `"osvc_node"`;
+           `reason`: `"Unofficial Oracle Service Cloud REST wrapper last published years ago, not a maintained Oracle runtime SDK suitable for Cognidesk provider-client ownership."`;
+           `result`: `"rejected-unofficial-stale-wrapper"`;
+           `source`: `"npm"`;
+           `version`: `"1.0.0"`;
+        \}\];
+        `result`: `"provider-rest-adapter-exception"`;
+        `viableMaintainedRuntimeProviderSdk`: `false`;
      \};
   \};
   `name`: `"Oracle Service"`;
@@ -1649,7 +2317,15 @@ function createOracleServiceTicketingIntegration(options): DefinedIntegration<{
   `privacyNotes`: readonly \[`"Oracle service requests can contain customer identity, problem descriptions, service profile data, queue and assignee details, and internal resolution notes."`, `"Oracle credentials stay server-side and are represented in Studio only as credential readiness and scope status."`\];
   `provider`: `"oracle-service"`;
   `trustLevel`: `"official"`;
-\}, [`OracleServiceTicketingIntegrationOptions`](#oracleserviceticketingintegrationoptions), \{
+\}, \{
+  `accessToken`: `string`;
+  `authConfigured`: `true`;
+  `baseUrl`: `string`;
+  `basicAuthConfigured`: `boolean`;
+  `headersConfigured`: `boolean`;
+  `instanceUrl`: `string`;
+  `providerClientConfigured`: `true`;
+\}, \{
   `oracle-service.serviceRequestMessage.create`: (`input`) => `Promise`\<[`OracleServiceProviderResponse`](#oracleserviceproviderresponse)\>;
   `ticket.create`: (`input`) => `Promise`\<[`OracleServiceRequestResource`](#oracleservicerequestresource)\>;
   `ticket.read`: (`input`) => `Promise`\<[`OracleServiceRequestResource`](#oracleservicerequestresource)\>;
@@ -1737,6 +2413,18 @@ function createOracleServiceTicketingOperationHandlers(client): {
 
 ***
 
+### createUnconfiguredOracleServiceTicketingProviderClient()
+
+```ts
+function createUnconfiguredOracleServiceTicketingProviderClient(): OracleServiceTicketingProviderClient;
+```
+
+#### Returns
+
+[`OracleServiceTicketingProviderClient`](#oracleserviceticketingproviderclient)
+
+***
+
 ### oracleServiceTicketingCredentialStatuses()
 
 ```ts
@@ -1782,6 +2470,12 @@ function oracleServiceTicketingCredentialStatuses(input): {
 \}[]
 
 ## References
+
+### ORACLE\_SERVICE\_DEFAULT\_API\_VERSION
+
+Re-exports [ORACLE_SERVICE_DEFAULT_API_VERSION](dist/manifest.md#oracle_service_default_api_version)
+
+***
 
 ### oracleServiceTicketingProviderManifest
 

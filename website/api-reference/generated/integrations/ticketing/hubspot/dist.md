@@ -15,8 +15,20 @@ integration: DefinedIntegration<ProviderManifestAuthorInput>;
 ##### rawClient
 
 ```ts
-rawClient: any;
+rawClient: Client;
 ```
+
+#### Methods
+
+##### getRawClient()
+
+```ts
+getRawClient(): Client;
+```
+
+###### Returns
+
+`Client`
 
 ***
 
@@ -33,7 +45,7 @@ optional accessToken?: string;
 ##### rawClient?
 
 ```ts
-optional rawClient?: any;
+optional rawClient?: Client;
 ```
 
 ## Type Aliases
@@ -42,6 +54,14 @@ optional rawClient?: any;
 
 ```ts
 type HubSpotTicketingOperationAlias = string;
+```
+
+***
+
+### HubSpotTicketingRawClient
+
+```ts
+type HubSpotTicketingRawClient = Client;
 ```
 
 ## Variables
@@ -82,7 +102,7 @@ function createHubSpotTicketingOperationHandlers(rawClient): IntegrationOperatio
 
 | Parameter | Type |
 | ------ | ------ |
-| `rawClient` | `any` |
+| `rawClient` | `Client` |
 
 #### Returns
 

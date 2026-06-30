@@ -140,12 +140,6 @@ Re-exports [AppStoreRelationshipLinks](../dist.md#appstorerelationshiplinks)
 
 ***
 
-### appStoreRequest
-
-Re-exports [appStoreRequest](../dist.md#appstorerequest)
-
-***
-
 ### AppStoreResourceDocument
 
 Re-exports [AppStoreResourceDocument](../dist.md#appstoreresourcedocument)
@@ -167,6 +161,12 @@ Re-exports [AppStoreReviewFilter](../dist.md#appstorereviewfilter)
 ### AppStoreReviewInclude
 
 Re-exports [AppStoreReviewInclude](../dist.md#appstorereviewinclude)
+
+***
+
+### appStoreReviewOperations
+
+Re-exports [appStoreReviewOperations](../dist.md#appstorereviewoperations)
 
 ***
 
@@ -230,6 +230,12 @@ Re-exports [AppStoreReviewsListResponse](../dist.md#appstorereviewslistresponse)
 
 ***
 
+### AppStoreReviewsProviderClient
+
+Re-exports [AppStoreReviewsProviderClient](../dist.md#appstorereviewsproviderclient)
+
+***
+
 ### AppStoreReviewsProviderExtensionValue
 
 Re-exports [AppStoreReviewsProviderExtensionValue](../dist.md#appstorereviewsproviderextensionvalue)
@@ -266,15 +272,39 @@ Re-exports [createAppStoreConnectJwt](../dist.md#createappstoreconnectjwt)
 
 ***
 
+### createAppStoreConnectRestProviderClient
+
+Re-exports [createAppStoreConnectRestProviderClient](../dist.md#createappstoreconnectrestproviderclient)
+
+***
+
 ### createAppStoreReviewsClient
 
 Re-exports [createAppStoreReviewsClient](../dist.md#createappstorereviewsclient)
 
 ***
 
+### createAppStoreReviewsIntegration
+
+Re-exports [createAppStoreReviewsIntegration](../dist.md#createappstorereviewsintegration)
+
+***
+
 ### createAppStoreReviewsLiveChecks
 
 Re-exports [createAppStoreReviewsLiveChecks](../dist.md#createappstorereviewslivechecks)
+
+***
+
+### createAppStoreReviewsOperationHandlers
+
+Re-exports [createAppStoreReviewsOperationHandlers](../dist.md#createappstorereviewsoperationhandlers)
+
+***
+
+### createUnconfiguredAppStoreProviderClient
+
+Re-exports [createUnconfiguredAppStoreProviderClient](../dist.md#createunconfiguredappstoreproviderclient)
 
 ***
 

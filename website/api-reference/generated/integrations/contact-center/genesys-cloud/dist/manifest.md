@@ -162,7 +162,7 @@ const genesysCloudContactCenterManifest: {
         label: "Genesys Cloud Open Messaging";
         url: "https://help.genesys.cloud/articles/configure-an-open-messaging-integration/";
      }];
-     notes: ["Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.", "The raw Genesys SDK ApiClient is exposed as an escape hatch for provider-specific operations.", "Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary.", "The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."];
+     notes: ["Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.", "The SDK-backed client exposes Genesys Conversations, Routing, Users, and ApiClient instances for host-level extension.", "Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary.", "The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."];
      scope: "support-workflow-subset";
   };
   credentialRequirements: [{
@@ -193,7 +193,7 @@ const genesysCloudContactCenterManifest: {
   }];
   directions: ["inbound-only", "outbound-only", "bidirectional"];
   id: "contact-center.genesys-cloud";
-  limitations: ["Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.", "Raw SDK access is available for escape-hatch use, but raw SDK breadth is not declared as normalized Cognidesk adapter coverage."];
+  limitations: ["Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.", "SDK client injection is available for escape-hatch use, but full SDK breadth is not declared as normalized Cognidesk adapter coverage."];
   maintainers: [{
      name: "Cognidesk";
      type: "official";
@@ -202,11 +202,11 @@ const genesysCloudContactCenterManifest: {
      channelCoverage: {
         callback: "sdk-normalized";
         conversations: "sdk-normalized";
+        genesysCloudSdkClient: "escape-hatch";
         messengerJavascriptSdk: "provider-supported-customer-site-not-typed";
         openMessagingInboundApi: "sdk-normalized";
         openMessagingOutboundWebhookSignature: "typed-verify-only";
         queues: "sdk-normalized";
-        rawGenesysCloudSdkClient: "escape-hatch";
      };
      implementation: {
         sdkPackage: "purecloud-platform-client-v2";
@@ -221,7 +221,7 @@ const genesysCloudContactCenterManifest: {
      changesWorkflow: true;
      exposesSensitiveData: true;
      providerObject: "contactTransfer";
-     providerOperation: "sdk-configured-request";
+     providerOperation: "ConversationsApi.postConversationsCallbacks | ConversationsApi.postConversationsMessageInboundOpenMessage";
      sideEffect: true;
    }, {
      alias: "contact-center.callback.schedule";
@@ -229,19 +229,19 @@ const genesysCloudContactCenterManifest: {
      changesWorkflow: true;
      exposesSensitiveData: true;
      providerObject: "callback";
-     providerOperation: "POST /api/v2/conversations/callbacks";
+     providerOperation: "ConversationsApi.postConversationsCallbacks";
      sideEffect: true;
    }, {
      alias: "contact-center.contact.read";
      capability: "read-provider-object";
      exposesSensitiveData: true;
      providerObject: "contact";
-     providerOperation: "GET /api/v2/conversations/{conversationId}";
+     providerOperation: "ConversationsApi.getConversation";
    }, {
      alias: "contact-center.queue.list";
      capability: "read-provider-object";
      providerObject: "queue";
-     providerOperation: "GET /api/v2/routing/queues";
+     providerOperation: "RoutingApi.getRoutingQueues";
    }, {
      alias: "genesys-cloud.openMessaging.message.create";
      capability: "contact-center.open-messaging-ingress";
@@ -249,7 +249,7 @@ const genesysCloudContactCenterManifest: {
      exposesSensitiveData: true;
      extension: true;
      providerObject: "genesysCloudOpenMessage";
-     providerOperation: "POST /api/v2/conversations/messages/{integrationId}/inbound/open/message";
+     providerOperation: "ConversationsApi.postConversationsMessageInboundOpenMessage";
      sideEffect: true;
   }];
   packageName: "@cognidesk/integration-contact-center-genesys-cloud";
@@ -290,30 +290,30 @@ const genesysCloudContactCenterManifest: {
 | `capabilities` | \[\{ `capability`: `"handoff"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `label`: `"Create Genesys Cloud callback or Open Messaging ingress"`; `providerObjects`: \[\{ `kind`: `"genesysCloudCallback"`; `label`: `"Genesys Cloud Callback"`; \}, \{ `kind`: `"genesysCloudOpenMessage"`; `label`: `"Genesys Cloud Open Messaging inbound message/event/receipt"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `capability`: `"contact-center.open-messaging-ingress"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Deliver Genesys Cloud Open Messaging ingress"`; `providerObjects`: \[\{ `kind`: `"genesysCloudOpenMessage"`; `label`: `"Genesys Cloud Open Messaging inbound message/event/receipt"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `capability`: `"schedule"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `label`: `"Create Genesys Cloud callbacks"`; `providerObjects`: \[\{ `kind`: `"genesysCloudCallback"`; `label`: `"Genesys Cloud Callback"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `capability`: `"read-provider-object"`; `exposesSensitiveData`: `true`; `label`: `"Read Genesys Cloud conversations and queues"`; `providerObjects`: \[\{ `kind`: `"genesysCloudConversation"`; `label`: `"Genesys Cloud Conversation"`; \}, \{ `kind`: `"genesysCloudQueue"`; `label`: `"Genesys Cloud Queue"`; \}\]; `requiresCredential`: `true`; \}\] |
 | `category` | `"contact-center"` |
 | `channelAudiences` | \[`"customer-facing"`, `"internal-support"`, `"mixed"`\] |
-| `coverage` | \{ `evidence`: \[\{ `label`: `"Genesys Cloud JavaScript SDK"`; `url`: `"https://github.com/MyPureCloud/platform-client-sdk-javascript"`; \}, \{ `label`: `"Genesys Cloud Developer Center"`; `url`: `"https://developer.genesys.cloud/"`; \}, \{ `label`: `"Genesys Cloud Open Messaging"`; `url`: `"https://help.genesys.cloud/articles/configure-an-open-messaging-integration/"`; \}\]; `notes`: \[`"Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows."`, `"The raw Genesys SDK ApiClient is exposed as an escape hatch for provider-specific operations."`, `"Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary."`, `"The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."`\]; `scope`: `"support-workflow-subset"`; \} |
+| `coverage` | \{ `evidence`: \[\{ `label`: `"Genesys Cloud JavaScript SDK"`; `url`: `"https://github.com/MyPureCloud/platform-client-sdk-javascript"`; \}, \{ `label`: `"Genesys Cloud Developer Center"`; `url`: `"https://developer.genesys.cloud/"`; \}, \{ `label`: `"Genesys Cloud Open Messaging"`; `url`: `"https://help.genesys.cloud/articles/configure-an-open-messaging-integration/"`; \}\]; `notes`: \[`"Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows."`, `"The SDK-backed client exposes Genesys Conversations, Routing, Users, and ApiClient instances for host-level extension."`, `"Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary."`, `"The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."`\]; `scope`: `"support-workflow-subset"`; \} |
 | `coverage.evidence` | \[\{ `label`: `"Genesys Cloud JavaScript SDK"`; `url`: `"https://github.com/MyPureCloud/platform-client-sdk-javascript"`; \}, \{ `label`: `"Genesys Cloud Developer Center"`; `url`: `"https://developer.genesys.cloud/"`; \}, \{ `label`: `"Genesys Cloud Open Messaging"`; `url`: `"https://help.genesys.cloud/articles/configure-an-open-messaging-integration/"`; \}\] |
-| `coverage.notes` | \[`"Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows."`, `"The raw Genesys SDK ApiClient is exposed as an escape hatch for provider-specific operations."`, `"Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary."`, `"The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."`\] |
+| `coverage.notes` | \[`"Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows."`, `"The SDK-backed client exposes Genesys Conversations, Routing, Users, and ApiClient instances for host-level extension."`, `"Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary."`, `"The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."`\] |
 | `coverage.scope` | `"support-workflow-subset"` |
 | `credentialRequirements` | \[\{ `id`: `"genesys-cloud-region"`; `label`: `"Genesys Cloud API region/base URL"`; `required`: `true`; \}, \{ `id`: `"genesys-cloud-api-access"`; `label`: `"Genesys Cloud OAuth access"`; `metadata`: \{ `privilegeGuidance`: `"Genesys Cloud permissions are configured through OAuth clients and org roles."`; `scopeKind`: `"provider-permission-labels"`; \}; `required`: `true`; `scopes`: \[`"conversation:callback:create"`, `"routing:queue:view"`, `"user:me:view"`\]; \}, \{ `id`: `"genesys-cloud-open-messaging"`; `label`: `"Genesys Cloud Open Messaging integration and webhook secret"`; `metadata`: \{ `scopeKind`: `"provider-permission-labels"`; \}; `required`: `false`; `scopes`: \[`"Messaging > Integration > All"`\]; \}, \{ `id`: `"genesys-cloud-routing"`; `label`: `"Genesys Cloud queue, callback, or digital messaging routing configuration"`; `required`: `false`; \}\] |
 | `directions` | \[`"inbound-only"`, `"outbound-only"`, `"bidirectional"`\] |
 | `id` | `"contact-center.genesys-cloud"` |
-| `limitations` | \[`"Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration."`, `"Raw SDK access is available for escape-hatch use, but raw SDK breadth is not declared as normalized Cognidesk adapter coverage."`\] |
+| `limitations` | \[`"Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration."`, `"SDK client injection is available for escape-hatch use, but full SDK breadth is not declared as normalized Cognidesk adapter coverage."`\] |
 | `maintainers` | \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
-| `metadata` | \{ `channelCoverage`: \{ `callback`: `"sdk-normalized"`; `conversations`: `"sdk-normalized"`; `messengerJavascriptSdk`: `"provider-supported-customer-site-not-typed"`; `openMessagingInboundApi`: `"sdk-normalized"`; `openMessagingOutboundWebhookSignature`: `"typed-verify-only"`; `queues`: `"sdk-normalized"`; `rawGenesysCloudSdkClient`: `"escape-hatch"`; \}; `implementation`: \{ `sdkPackage`: `"purecloud-platform-client-v2"`; `sdkPackages`: readonly \[`"purecloud-platform-client-v2"`\]; `strategy`: `"official-sdk"`; \}; \} |
-| `metadata.channelCoverage` | \{ `callback`: `"sdk-normalized"`; `conversations`: `"sdk-normalized"`; `messengerJavascriptSdk`: `"provider-supported-customer-site-not-typed"`; `openMessagingInboundApi`: `"sdk-normalized"`; `openMessagingOutboundWebhookSignature`: `"typed-verify-only"`; `queues`: `"sdk-normalized"`; `rawGenesysCloudSdkClient`: `"escape-hatch"`; \} |
+| `metadata` | \{ `channelCoverage`: \{ `callback`: `"sdk-normalized"`; `conversations`: `"sdk-normalized"`; `genesysCloudSdkClient`: `"escape-hatch"`; `messengerJavascriptSdk`: `"provider-supported-customer-site-not-typed"`; `openMessagingInboundApi`: `"sdk-normalized"`; `openMessagingOutboundWebhookSignature`: `"typed-verify-only"`; `queues`: `"sdk-normalized"`; \}; `implementation`: \{ `sdkPackage`: `"purecloud-platform-client-v2"`; `sdkPackages`: readonly \[`"purecloud-platform-client-v2"`\]; `strategy`: `"official-sdk"`; \}; \} |
+| `metadata.channelCoverage` | \{ `callback`: `"sdk-normalized"`; `conversations`: `"sdk-normalized"`; `genesysCloudSdkClient`: `"escape-hatch"`; `messengerJavascriptSdk`: `"provider-supported-customer-site-not-typed"`; `openMessagingInboundApi`: `"sdk-normalized"`; `openMessagingOutboundWebhookSignature`: `"typed-verify-only"`; `queues`: `"sdk-normalized"`; \} |
 | `metadata.channelCoverage.callback` | `"sdk-normalized"` |
 | `metadata.channelCoverage.conversations` | `"sdk-normalized"` |
+| `metadata.channelCoverage.genesysCloudSdkClient` | `"escape-hatch"` |
 | `metadata.channelCoverage.messengerJavascriptSdk` | `"provider-supported-customer-site-not-typed"` |
 | `metadata.channelCoverage.openMessagingInboundApi` | `"sdk-normalized"` |
 | `metadata.channelCoverage.openMessagingOutboundWebhookSignature` | `"typed-verify-only"` |
 | `metadata.channelCoverage.queues` | `"sdk-normalized"` |
-| `metadata.channelCoverage.rawGenesysCloudSdkClient` | `"escape-hatch"` |
 | `metadata.implementation` | \{ `sdkPackage`: `"purecloud-platform-client-v2"`; `sdkPackages`: readonly \[`"purecloud-platform-client-v2"`\]; `strategy`: `"official-sdk"`; \} |
 | `metadata.implementation.sdkPackage` | `"purecloud-platform-client-v2"` |
 | `metadata.implementation.sdkPackages` | readonly \[`"purecloud-platform-client-v2"`\] |
 | `metadata.implementation.strategy` | `"official-sdk"` |
 | `name` | `"Genesys Cloud CX"` |
-| `operations` | \[\{ `alias`: `"contact-center.handoff.request"`; `capability`: `"handoff"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `providerObject`: `"contactTransfer"`; `providerOperation`: `"sdk-configured-request"`; `sideEffect`: `true`; \}, \{ `alias`: `"contact-center.callback.schedule"`; `capability`: `"schedule"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `providerObject`: `"callback"`; `providerOperation`: `"POST /api/v2/conversations/callbacks"`; `sideEffect`: `true`; \}, \{ `alias`: `"contact-center.contact.read"`; `capability`: `"read-provider-object"`; `exposesSensitiveData`: `true`; `providerObject`: `"contact"`; `providerOperation`: `"GET /api/v2/conversations/{conversationId}"`; \}, \{ `alias`: `"contact-center.queue.list"`; `capability`: `"read-provider-object"`; `providerObject`: `"queue"`; `providerOperation`: `"GET /api/v2/routing/queues"`; \}, \{ `alias`: `"genesys-cloud.openMessaging.message.create"`; `capability`: `"contact-center.open-messaging-ingress"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `extension`: `true`; `providerObject`: `"genesysCloudOpenMessage"`; `providerOperation`: `"POST /api/v2/conversations/messages/{integrationId}/inbound/open/message"`; `sideEffect`: `true`; \}\] |
+| `operations` | \[\{ `alias`: `"contact-center.handoff.request"`; `capability`: `"handoff"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `providerObject`: `"contactTransfer"`; `providerOperation`: "ConversationsApi.postConversationsCallbacks \| ConversationsApi.postConversationsMessageInboundOpenMessage"; `sideEffect`: `true`; \}, \{ `alias`: `"contact-center.callback.schedule"`; `capability`: `"schedule"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `providerObject`: `"callback"`; `providerOperation`: `"ConversationsApi.postConversationsCallbacks"`; `sideEffect`: `true`; \}, \{ `alias`: `"contact-center.contact.read"`; `capability`: `"read-provider-object"`; `exposesSensitiveData`: `true`; `providerObject`: `"contact"`; `providerOperation`: `"ConversationsApi.getConversation"`; \}, \{ `alias`: `"contact-center.queue.list"`; `capability`: `"read-provider-object"`; `providerObject`: `"queue"`; `providerOperation`: `"RoutingApi.getRoutingQueues"`; \}, \{ `alias`: `"genesys-cloud.openMessaging.message.create"`; `capability`: `"contact-center.open-messaging-ingress"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `extension`: `true`; `providerObject`: `"genesysCloudOpenMessage"`; `providerOperation`: `"ConversationsApi.postConversationsMessageInboundOpenMessage"`; `sideEffect`: `true`; \}\] |
 | `packageName` | `"@cognidesk/integration-contact-center-genesys-cloud"` |
 | `privacyNotes` | \[`"Callbacks and Open Messaging ingress can include customer phone numbers, identity, channel metadata, message content, and routing data."`, `"OAuth tokens stay inside the SDK user's runtime configuration."`\] |
 | `provider` | `"genesys-cloud"` |
@@ -388,7 +388,7 @@ const genesysCloudContactCenterManifestInput: {
         label: "Genesys Cloud Open Messaging";
         url: "https://help.genesys.cloud/articles/configure-an-open-messaging-integration/";
      }];
-     notes: ["Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.", "The raw Genesys SDK ApiClient is exposed as an escape hatch for provider-specific operations.", "Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary.", "The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."];
+     notes: ["Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.", "The SDK-backed client exposes Genesys Conversations, Routing, Users, and ApiClient instances for host-level extension.", "Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary.", "The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."];
      scope: "support-workflow-subset";
   };
   credentialRequirements: [{
@@ -419,7 +419,7 @@ const genesysCloudContactCenterManifestInput: {
   }];
   directions: ["inbound-only", "outbound-only", "bidirectional"];
   id: "contact-center.genesys-cloud";
-  limitations: ["Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.", "Raw SDK access is available for escape-hatch use, but raw SDK breadth is not declared as normalized Cognidesk adapter coverage."];
+  limitations: ["Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.", "SDK client injection is available for escape-hatch use, but full SDK breadth is not declared as normalized Cognidesk adapter coverage."];
   maintainers: [{
      name: "Cognidesk";
      type: "official";
@@ -428,11 +428,11 @@ const genesysCloudContactCenterManifestInput: {
      channelCoverage: {
         callback: "sdk-normalized";
         conversations: "sdk-normalized";
+        genesysCloudSdkClient: "escape-hatch";
         messengerJavascriptSdk: "provider-supported-customer-site-not-typed";
         openMessagingInboundApi: "sdk-normalized";
         openMessagingOutboundWebhookSignature: "typed-verify-only";
         queues: "sdk-normalized";
-        rawGenesysCloudSdkClient: "escape-hatch";
      };
      implementation: {
         sdkPackage: "purecloud-platform-client-v2";
@@ -447,7 +447,7 @@ const genesysCloudContactCenterManifestInput: {
      changesWorkflow: true;
      exposesSensitiveData: true;
      providerObject: "contactTransfer";
-     providerOperation: "sdk-configured-request";
+     providerOperation: "ConversationsApi.postConversationsCallbacks | ConversationsApi.postConversationsMessageInboundOpenMessage";
      sideEffect: true;
    }, {
      alias: "contact-center.callback.schedule";
@@ -455,19 +455,19 @@ const genesysCloudContactCenterManifestInput: {
      changesWorkflow: true;
      exposesSensitiveData: true;
      providerObject: "callback";
-     providerOperation: "POST /api/v2/conversations/callbacks";
+     providerOperation: "ConversationsApi.postConversationsCallbacks";
      sideEffect: true;
    }, {
      alias: "contact-center.contact.read";
      capability: "read-provider-object";
      exposesSensitiveData: true;
      providerObject: "contact";
-     providerOperation: "GET /api/v2/conversations/{conversationId}";
+     providerOperation: "ConversationsApi.getConversation";
    }, {
      alias: "contact-center.queue.list";
      capability: "read-provider-object";
      providerObject: "queue";
-     providerOperation: "GET /api/v2/routing/queues";
+     providerOperation: "RoutingApi.getRoutingQueues";
    }, {
      alias: "genesys-cloud.openMessaging.message.create";
      capability: "contact-center.open-messaging-ingress";
@@ -475,7 +475,7 @@ const genesysCloudContactCenterManifestInput: {
      exposesSensitiveData: true;
      extension: true;
      providerObject: "genesysCloudOpenMessage";
-     providerOperation: "POST /api/v2/conversations/messages/{integrationId}/inbound/open/message";
+     providerOperation: "ConversationsApi.postConversationsMessageInboundOpenMessage";
      sideEffect: true;
   }];
   packageName: "@cognidesk/integration-contact-center-genesys-cloud";
@@ -492,30 +492,30 @@ const genesysCloudContactCenterManifestInput: {
 | <a id="property-capabilities"></a> `capabilities` | \[\{ `capability`: `"handoff"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `label`: `"Create Genesys Cloud callback or Open Messaging ingress"`; `providerObjects`: \[\{ `kind`: `"genesysCloudCallback"`; `label`: `"Genesys Cloud Callback"`; \}, \{ `kind`: `"genesysCloudOpenMessage"`; `label`: `"Genesys Cloud Open Messaging inbound message/event/receipt"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `capability`: `"contact-center.open-messaging-ingress"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Deliver Genesys Cloud Open Messaging ingress"`; `providerObjects`: \[\{ `kind`: `"genesysCloudOpenMessage"`; `label`: `"Genesys Cloud Open Messaging inbound message/event/receipt"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `capability`: `"schedule"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `label`: `"Create Genesys Cloud callbacks"`; `providerObjects`: \[\{ `kind`: `"genesysCloudCallback"`; `label`: `"Genesys Cloud Callback"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `capability`: `"read-provider-object"`; `exposesSensitiveData`: `true`; `label`: `"Read Genesys Cloud conversations and queues"`; `providerObjects`: \[\{ `kind`: `"genesysCloudConversation"`; `label`: `"Genesys Cloud Conversation"`; \}, \{ `kind`: `"genesysCloudQueue"`; `label`: `"Genesys Cloud Queue"`; \}\]; `requiresCredential`: `true`; \}\] |
 | <a id="property-category"></a> `category` | `"contact-center"` |
 | <a id="property-channelaudiences"></a> `channelAudiences` | \[`"customer-facing"`, `"internal-support"`, `"mixed"`\] |
-| <a id="property-coverage"></a> `coverage` | \{ `evidence`: \[\{ `label`: `"Genesys Cloud JavaScript SDK"`; `url`: `"https://github.com/MyPureCloud/platform-client-sdk-javascript"`; \}, \{ `label`: `"Genesys Cloud Developer Center"`; `url`: `"https://developer.genesys.cloud/"`; \}, \{ `label`: `"Genesys Cloud Open Messaging"`; `url`: `"https://help.genesys.cloud/articles/configure-an-open-messaging-integration/"`; \}\]; `notes`: \[`"Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows."`, `"The raw Genesys SDK ApiClient is exposed as an escape hatch for provider-specific operations."`, `"Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary."`, `"The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."`\]; `scope`: `"support-workflow-subset"`; \} |
+| <a id="property-coverage"></a> `coverage` | \{ `evidence`: \[\{ `label`: `"Genesys Cloud JavaScript SDK"`; `url`: `"https://github.com/MyPureCloud/platform-client-sdk-javascript"`; \}, \{ `label`: `"Genesys Cloud Developer Center"`; `url`: `"https://developer.genesys.cloud/"`; \}, \{ `label`: `"Genesys Cloud Open Messaging"`; `url`: `"https://help.genesys.cloud/articles/configure-an-open-messaging-integration/"`; \}\]; `notes`: \[`"Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows."`, `"The SDK-backed client exposes Genesys Conversations, Routing, Users, and ApiClient instances for host-level extension."`, `"Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary."`, `"The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."`\]; `scope`: `"support-workflow-subset"`; \} |
 | `coverage.evidence` | \[\{ `label`: `"Genesys Cloud JavaScript SDK"`; `url`: `"https://github.com/MyPureCloud/platform-client-sdk-javascript"`; \}, \{ `label`: `"Genesys Cloud Developer Center"`; `url`: `"https://developer.genesys.cloud/"`; \}, \{ `label`: `"Genesys Cloud Open Messaging"`; `url`: `"https://help.genesys.cloud/articles/configure-an-open-messaging-integration/"`; \}\] |
-| `coverage.notes` | \[`"Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows."`, `"The raw Genesys SDK ApiClient is exposed as an escape hatch for provider-specific operations."`, `"Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary."`, `"The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."`\] |
+| `coverage.notes` | \[`"Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows."`, `"The SDK-backed client exposes Genesys Conversations, Routing, Users, and ApiClient instances for host-level extension."`, `"Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary."`, `"The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."`\] |
 | `coverage.scope` | `"support-workflow-subset"` |
 | <a id="property-credentialrequirements"></a> `credentialRequirements` | \[\{ `id`: `"genesys-cloud-region"`; `label`: `"Genesys Cloud API region/base URL"`; `required`: `true`; \}, \{ `id`: `"genesys-cloud-api-access"`; `label`: `"Genesys Cloud OAuth access"`; `metadata`: \{ `privilegeGuidance`: `"Genesys Cloud permissions are configured through OAuth clients and org roles."`; `scopeKind`: `"provider-permission-labels"`; \}; `required`: `true`; `scopes`: \[`"conversation:callback:create"`, `"routing:queue:view"`, `"user:me:view"`\]; \}, \{ `id`: `"genesys-cloud-open-messaging"`; `label`: `"Genesys Cloud Open Messaging integration and webhook secret"`; `metadata`: \{ `scopeKind`: `"provider-permission-labels"`; \}; `required`: `false`; `scopes`: \[`"Messaging > Integration > All"`\]; \}, \{ `id`: `"genesys-cloud-routing"`; `label`: `"Genesys Cloud queue, callback, or digital messaging routing configuration"`; `required`: `false`; \}\] |
 | <a id="property-directions"></a> `directions` | \[`"inbound-only"`, `"outbound-only"`, `"bidirectional"`\] |
 | <a id="property-id"></a> `id` | `"contact-center.genesys-cloud"` |
-| <a id="property-limitations"></a> `limitations` | \[`"Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration."`, `"Raw SDK access is available for escape-hatch use, but raw SDK breadth is not declared as normalized Cognidesk adapter coverage."`\] |
+| <a id="property-limitations"></a> `limitations` | \[`"Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration."`, `"SDK client injection is available for escape-hatch use, but full SDK breadth is not declared as normalized Cognidesk adapter coverage."`\] |
 | <a id="property-maintainers"></a> `maintainers` | \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
-| <a id="property-metadata"></a> `metadata` | \{ `channelCoverage`: \{ `callback`: `"sdk-normalized"`; `conversations`: `"sdk-normalized"`; `messengerJavascriptSdk`: `"provider-supported-customer-site-not-typed"`; `openMessagingInboundApi`: `"sdk-normalized"`; `openMessagingOutboundWebhookSignature`: `"typed-verify-only"`; `queues`: `"sdk-normalized"`; `rawGenesysCloudSdkClient`: `"escape-hatch"`; \}; `implementation`: \{ `sdkPackage`: `"purecloud-platform-client-v2"`; `sdkPackages`: readonly \[`"purecloud-platform-client-v2"`\]; `strategy`: `"official-sdk"`; \}; \} |
-| `metadata.channelCoverage` | \{ `callback`: `"sdk-normalized"`; `conversations`: `"sdk-normalized"`; `messengerJavascriptSdk`: `"provider-supported-customer-site-not-typed"`; `openMessagingInboundApi`: `"sdk-normalized"`; `openMessagingOutboundWebhookSignature`: `"typed-verify-only"`; `queues`: `"sdk-normalized"`; `rawGenesysCloudSdkClient`: `"escape-hatch"`; \} |
+| <a id="property-metadata"></a> `metadata` | \{ `channelCoverage`: \{ `callback`: `"sdk-normalized"`; `conversations`: `"sdk-normalized"`; `genesysCloudSdkClient`: `"escape-hatch"`; `messengerJavascriptSdk`: `"provider-supported-customer-site-not-typed"`; `openMessagingInboundApi`: `"sdk-normalized"`; `openMessagingOutboundWebhookSignature`: `"typed-verify-only"`; `queues`: `"sdk-normalized"`; \}; `implementation`: \{ `sdkPackage`: `"purecloud-platform-client-v2"`; `sdkPackages`: readonly \[`"purecloud-platform-client-v2"`\]; `strategy`: `"official-sdk"`; \}; \} |
+| `metadata.channelCoverage` | \{ `callback`: `"sdk-normalized"`; `conversations`: `"sdk-normalized"`; `genesysCloudSdkClient`: `"escape-hatch"`; `messengerJavascriptSdk`: `"provider-supported-customer-site-not-typed"`; `openMessagingInboundApi`: `"sdk-normalized"`; `openMessagingOutboundWebhookSignature`: `"typed-verify-only"`; `queues`: `"sdk-normalized"`; \} |
 | `metadata.channelCoverage.callback` | `"sdk-normalized"` |
 | `metadata.channelCoverage.conversations` | `"sdk-normalized"` |
+| `metadata.channelCoverage.genesysCloudSdkClient` | `"escape-hatch"` |
 | `metadata.channelCoverage.messengerJavascriptSdk` | `"provider-supported-customer-site-not-typed"` |
 | `metadata.channelCoverage.openMessagingInboundApi` | `"sdk-normalized"` |
 | `metadata.channelCoverage.openMessagingOutboundWebhookSignature` | `"typed-verify-only"` |
 | `metadata.channelCoverage.queues` | `"sdk-normalized"` |
-| `metadata.channelCoverage.rawGenesysCloudSdkClient` | `"escape-hatch"` |
 | `metadata.implementation` | \{ `sdkPackage`: `"purecloud-platform-client-v2"`; `sdkPackages`: readonly \[`"purecloud-platform-client-v2"`\]; `strategy`: `"official-sdk"`; \} |
 | `metadata.implementation.sdkPackage` | `"purecloud-platform-client-v2"` |
 | `metadata.implementation.sdkPackages` | readonly \[`"purecloud-platform-client-v2"`\] |
 | `metadata.implementation.strategy` | `"official-sdk"` |
 | <a id="property-name"></a> `name` | `"Genesys Cloud CX"` |
-| <a id="property-operations"></a> `operations` | \[\{ `alias`: `"contact-center.handoff.request"`; `capability`: `"handoff"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `providerObject`: `"contactTransfer"`; `providerOperation`: `"sdk-configured-request"`; `sideEffect`: `true`; \}, \{ `alias`: `"contact-center.callback.schedule"`; `capability`: `"schedule"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `providerObject`: `"callback"`; `providerOperation`: `"POST /api/v2/conversations/callbacks"`; `sideEffect`: `true`; \}, \{ `alias`: `"contact-center.contact.read"`; `capability`: `"read-provider-object"`; `exposesSensitiveData`: `true`; `providerObject`: `"contact"`; `providerOperation`: `"GET /api/v2/conversations/{conversationId}"`; \}, \{ `alias`: `"contact-center.queue.list"`; `capability`: `"read-provider-object"`; `providerObject`: `"queue"`; `providerOperation`: `"GET /api/v2/routing/queues"`; \}, \{ `alias`: `"genesys-cloud.openMessaging.message.create"`; `capability`: `"contact-center.open-messaging-ingress"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `extension`: `true`; `providerObject`: `"genesysCloudOpenMessage"`; `providerOperation`: `"POST /api/v2/conversations/messages/{integrationId}/inbound/open/message"`; `sideEffect`: `true`; \}\] |
+| <a id="property-operations"></a> `operations` | \[\{ `alias`: `"contact-center.handoff.request"`; `capability`: `"handoff"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `providerObject`: `"contactTransfer"`; `providerOperation`: "ConversationsApi.postConversationsCallbacks \| ConversationsApi.postConversationsMessageInboundOpenMessage"; `sideEffect`: `true`; \}, \{ `alias`: `"contact-center.callback.schedule"`; `capability`: `"schedule"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `providerObject`: `"callback"`; `providerOperation`: `"ConversationsApi.postConversationsCallbacks"`; `sideEffect`: `true`; \}, \{ `alias`: `"contact-center.contact.read"`; `capability`: `"read-provider-object"`; `exposesSensitiveData`: `true`; `providerObject`: `"contact"`; `providerOperation`: `"ConversationsApi.getConversation"`; \}, \{ `alias`: `"contact-center.queue.list"`; `capability`: `"read-provider-object"`; `providerObject`: `"queue"`; `providerOperation`: `"RoutingApi.getRoutingQueues"`; \}, \{ `alias`: `"genesys-cloud.openMessaging.message.create"`; `capability`: `"contact-center.open-messaging-ingress"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `extension`: `true`; `providerObject`: `"genesysCloudOpenMessage"`; `providerOperation`: `"ConversationsApi.postConversationsMessageInboundOpenMessage"`; `sideEffect`: `true`; \}\] |
 | <a id="property-packagename"></a> `packageName` | `"@cognidesk/integration-contact-center-genesys-cloud"` |
 | <a id="property-privacynotes"></a> `privacyNotes` | \[`"Callbacks and Open Messaging ingress can include customer phone numbers, identity, channel metadata, message content, and routing data."`, `"OAuth tokens stay inside the SDK user's runtime configuration."`\] |
 | <a id="property-provider"></a> `provider` | `"genesys-cloud"` |

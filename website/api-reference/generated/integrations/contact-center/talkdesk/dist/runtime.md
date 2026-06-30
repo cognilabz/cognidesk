@@ -20,15 +20,21 @@ Re-exports [createTalkdeskIntegration](../dist.md#createtalkdeskintegration)
 
 ***
 
-### ProviderExtensionRequestInput
+### createTalkdeskIntegrationOperationHandlers
 
-Re-exports [ProviderExtensionRequestInput](../dist.md#providerextensionrequestinput)
+Re-exports [createTalkdeskIntegrationOperationHandlers](../dist.md#createtalkdeskintegrationoperationhandlers)
 
 ***
 
 ### ProviderJsonObject
 
 Re-exports [ProviderJsonObject](../dist.md#providerjsonobject)
+
+***
+
+### ProviderRestRetryOptions
+
+Re-exports [ProviderRestRetryOptions](../dist.md#providerrestretryoptions)
 
 ***
 
@@ -44,9 +50,27 @@ Re-exports [TalkdeskClientOptions](../dist.md#talkdeskclientoptions)
 
 ***
 
+### TalkdeskIntegrationOptions
+
+Re-exports [TalkdeskIntegrationOptions](../dist.md#talkdeskintegrationoptions)
+
+***
+
+### TalkdeskJsonValue
+
+Re-exports [TalkdeskJsonValue](../dist.md#talkdeskjsonvalue)
+
+***
+
 ### TalkdeskOperationInput
 
 Re-exports [TalkdeskOperationInput](../dist.md#talkdeskoperationinput)
+
+***
+
+### TalkdeskProviderClient
+
+Re-exports [TalkdeskProviderClient](../dist.md#talkdeskproviderclient)
 
 ***
 
@@ -59,6 +83,18 @@ Re-exports [talkdeskProviderManifest](manifest.md#talkdeskprovidermanifest)
 ### talkdeskProviderManifestInput
 
 Re-exports [talkdeskProviderManifestInput](manifest.md#talkdeskprovidermanifestinput)
+
+***
+
+### TalkdeskReviewedOperationId
+
+Re-exports [TalkdeskReviewedOperationId](../dist.md#talkdeskreviewedoperationid)
+
+***
+
+### TalkdeskReviewedOperationInput
+
+Re-exports [TalkdeskReviewedOperationInput](../dist.md#talkdeskreviewedoperationinput)
 
 ***
 

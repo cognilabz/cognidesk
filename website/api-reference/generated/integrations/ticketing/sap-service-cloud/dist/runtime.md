@@ -2,6 +2,12 @@
 
 ## References
 
+### createSapServiceCloudODataProviderClient
+
+Re-exports [createSapServiceCloudODataProviderClient](../dist.md#createsapservicecloudodataproviderclient)
+
+***
+
 ### createSapServiceCloudTicketingClient
 
 Re-exports [createSapServiceCloudTicketingClient](../dist.md#createsapservicecloudticketingclient)
@@ -26,9 +32,21 @@ Re-exports [createSapServiceCloudTicketingOperationHandlers](../dist.md#createsa
 
 ***
 
+### createUnconfiguredSapServiceCloudProviderClient
+
+Re-exports [createUnconfiguredSapServiceCloudProviderClient](../dist.md#createunconfiguredsapservicecloudproviderclient)
+
+***
+
 ### SapReadServiceRequestOperationInput
 
 Re-exports [SapReadServiceRequestOperationInput](../dist.md#sapreadservicerequestoperationinput)
+
+***
+
+### SapServiceCloudAuthOptions
+
+Re-exports [SapServiceCloudAuthOptions](../dist.md#sapservicecloudauthoptions)
 
 ***
 
@@ -62,6 +80,24 @@ Re-exports [SapServiceCloudLiveCheckOptions](../dist.md#sapservicecloudlivecheck
 
 ***
 
+### SapServiceCloudProviderApiError
+
+Re-exports [SapServiceCloudProviderApiError](../dist.md#sapservicecloudproviderapierror)
+
+***
+
+### SapServiceCloudProviderApiErrorInput
+
+Re-exports [SapServiceCloudProviderApiErrorInput](../dist.md#sapservicecloudproviderapierrorinput)
+
+***
+
+### SapServiceCloudProviderApiErrorResponseMetadata
+
+Re-exports [SapServiceCloudProviderApiErrorResponseMetadata](../dist.md#sapservicecloudproviderapierrorresponsemetadata)
+
+***
+
 ### SapServiceCloudProviderExtensionFields
 
 Re-exports [SapServiceCloudProviderExtensionFields](../dist.md#sapservicecloudproviderextensionfields)
@@ -92,6 +128,12 @@ Re-exports [SapServiceCloudProviderResponse](../dist.md#sapservicecloudproviderr
 
 ***
 
+### SapServiceCloudSdkHttpDestination
+
+Re-exports [SapServiceCloudSdkHttpDestination](../dist.md#sapservicecloudsdkhttpdestination)
+
+***
+
 ### SapServiceCloudTicketingClient
 
 Re-exports [SapServiceCloudTicketingClient](../dist.md#sapservicecloudticketingclient)
@@ -113,6 +155,12 @@ Re-exports [sapServiceCloudTicketingCredentialStatuses](../dist.md#sapserviceclo
 ### SapServiceCloudTicketingIntegrationOptions
 
 Re-exports [SapServiceCloudTicketingIntegrationOptions](../dist.md#sapservicecloudticketingintegrationoptions)
+
+***
+
+### SapServiceCloudTicketingProviderClient
+
+Re-exports [SapServiceCloudTicketingProviderClient](../dist.md#sapservicecloudticketingproviderclient)
 
 ***
 

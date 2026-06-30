@@ -14,6 +14,18 @@ Re-exports [createEbayMarketplaceClient](../dist.md#createebaymarketplaceclient)
 
 ***
 
+### createEbayMarketplaceIntegration
+
+Re-exports [createEbayMarketplaceIntegration](../dist.md#createebaymarketplaceintegration)
+
+***
+
+### createEbayMarketplaceIntegrationOperationHandlers
+
+Re-exports [createEbayMarketplaceIntegrationOperationHandlers](../dist.md#createebaymarketplaceintegrationoperationhandlers)
+
+***
+
 ### createEbayMarketplaceLiveChecks
 
 Re-exports [createEbayMarketplaceLiveChecks](../dist.md#createebaymarketplacelivechecks)
@@ -23,6 +35,18 @@ Re-exports [createEbayMarketplaceLiveChecks](../dist.md#createebaymarketplaceliv
 ### createEbayNotificationChallengeResponse
 
 Re-exports [createEbayNotificationChallengeResponse](../dist.md#createebaynotificationchallengeresponse)
+
+***
+
+### createEbayRestMarketplaceProviderClient
+
+Re-exports [createEbayRestMarketplaceProviderClient](../dist.md#createebayrestmarketplaceproviderclient)
+
+***
+
+### createUnconfiguredEbayMarketplaceProviderClient
+
+Re-exports [createUnconfiguredEbayMarketplaceProviderClient](../dist.md#createunconfiguredebaymarketplaceproviderclient)
 
 ***
 
@@ -134,6 +158,12 @@ Re-exports [ebayMarketplaceIntegration](../dist.md#ebaymarketplaceintegration)
 
 ***
 
+### EbayMarketplaceIntegrationOptions
+
+Re-exports [EbayMarketplaceIntegrationOptions](../dist.md#ebaymarketplaceintegrationoptions)
+
+***
+
 ### EbayMarketplaceJsonObject
 
 Re-exports [EbayMarketplaceJsonObject](../dist.md#ebaymarketplacejsonobject)
@@ -161,6 +191,12 @@ Re-exports [ebayMarketplaceOperationAlias](../dist.md#ebaymarketplaceoperational
 ### EbayMarketplaceOperationInput
 
 Re-exports [EbayMarketplaceOperationInput](../dist.md#ebaymarketplaceoperationinput)
+
+***
+
+### EbayMarketplaceProviderClient
+
+Re-exports [EbayMarketplaceProviderClient](../dist.md#ebaymarketplaceproviderclient)
 
 ***
 

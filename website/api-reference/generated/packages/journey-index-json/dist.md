@@ -45,7 +45,7 @@ optional generatedAt?: string;
 ##### mode?
 
 ```ts
-optional mode?: "development" | "production";
+optional mode?: "production" | "development";
 ```
 
 ##### signal?

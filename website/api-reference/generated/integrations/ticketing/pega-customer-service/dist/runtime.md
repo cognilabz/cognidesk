@@ -2,6 +2,12 @@
 
 ## References
 
+### createPegaCustomerServiceRestProviderClient
+
+Re-exports [createPegaCustomerServiceRestProviderClient](../dist.md#createpegacustomerservicerestproviderclient)
+
+***
+
 ### createPegaCustomerServiceTicketingClient
 
 Re-exports [createPegaCustomerServiceTicketingClient](../dist.md#createpegacustomerserviceticketingclient)
@@ -56,6 +62,12 @@ Re-exports [PegaCreateCaseInput](../dist.md#pegacreatecaseinput)
 
 ***
 
+### PegaCustomerServiceAuthOptions
+
+Re-exports [PegaCustomerServiceAuthOptions](../dist.md#pegacustomerserviceauthoptions)
+
+***
+
 ### PegaCustomerServiceCredentialStatusInput
 
 Re-exports [PegaCustomerServiceCredentialStatusInput](../dist.md#pegacustomerservicecredentialstatusinput)
@@ -83,6 +95,30 @@ Re-exports [PegaCustomerServiceJsonValue](../dist.md#pegacustomerservicejsonvalu
 ### PegaCustomerServiceLiveCheckOptions
 
 Re-exports [PegaCustomerServiceLiveCheckOptions](../dist.md#pegacustomerservicelivecheckoptions)
+
+***
+
+### PegaCustomerServiceProviderApiError
+
+Re-exports [PegaCustomerServiceProviderApiError](../dist.md#pegacustomerserviceproviderapierror)
+
+***
+
+### PegaCustomerServiceProviderApiErrorInput
+
+Re-exports [PegaCustomerServiceProviderApiErrorInput](../dist.md#pegacustomerserviceproviderapierrorinput)
+
+***
+
+### PegaCustomerServiceProviderApiErrorResponseMetadata
+
+Re-exports [PegaCustomerServiceProviderApiErrorResponseMetadata](../dist.md#pegacustomerserviceproviderapierrorresponsemetadata)
+
+***
+
+### PegaCustomerServiceProviderClient
+
+Re-exports [PegaCustomerServiceProviderClient](../dist.md#pegacustomerserviceproviderclient)
 
 ***
 
@@ -143,6 +179,12 @@ Re-exports [PegaCustomerServiceTicketingIntegrationOptions](../dist.md#pegacusto
 ### pegaCustomerServiceTicketingProviderManifest
 
 Re-exports [pegaCustomerServiceTicketingProviderManifest](manifest.md#pegacustomerserviceticketingprovidermanifest)
+
+***
+
+### pegaCustomerServiceTicketingProviderManifestInput
+
+Re-exports [pegaCustomerServiceTicketingProviderManifestInput](manifest.md#pegacustomerserviceticketingprovidermanifestinput)
 
 ***
 

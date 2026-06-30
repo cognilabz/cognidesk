@@ -36,7 +36,56 @@ write(buffer): void;
 
 ### AzureSpeechClient
 
+#### Properties
+
+##### createSpeechConfig
+
+```ts
+createSpeechConfig: AzureSpeechConfigFactory;
+```
+
+##### handlers
+
+```ts
+handlers: AzureSpeechOperationHandlers;
+```
+
+##### rawHandles
+
+```ts
+rawHandles: AzureSpeechRawConfigHandles;
+```
+
+##### rawSdk
+
+```ts
+rawSdk: AzureSpeechSdk;
+```
+
 #### Methods
+
+##### execute()
+
+```ts
+execute<K>(alias, input): Promise<AzureSpeechOperationOutputMap[K]>;
+```
+
+###### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `K` *extends* [`AzureSpeechOperationAlias`](#azurespeechoperationalias) |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `alias` | `K` |
+| `input` | [`AzureSpeechOperationInputMap`](#azurespeechoperationinputmap)\[`K`\] |
+
+###### Returns
+
+`Promise`\<[`AzureSpeechOperationOutputMap`](#azurespeechoperationoutputmap)\[`K`\]\>
 
 ##### synthesizeSpeech()
 
@@ -75,6 +124,12 @@ transcribeSpeech(input): Promise<AzureSpeechToTextResult>;
 ### AzureSpeechClientOptions
 
 #### Properties
+
+##### createSpeechConfig?
+
+```ts
+optional createSpeechConfig?: AzureSpeechConfigFactory;
+```
 
 ##### region
 
@@ -115,7 +170,7 @@ optional speechSynthesisLanguage?: string;
 ##### speechSynthesisOutputFormat?
 
 ```ts
-optional speechSynthesisOutputFormat?: unknown;
+optional speechSynthesisOutputFormat?: AzureSpeechSynthesisOutputFormat;
 ```
 
 ##### speechSynthesisVoiceName?
@@ -123,24 +178,6 @@ optional speechSynthesisOutputFormat?: unknown;
 ```ts
 optional speechSynthesisVoiceName?: string;
 ```
-
-#### Methods
-
-##### setSpeechSynthesisOutputFormat()?
-
-```ts
-optional setSpeechSynthesisOutputFormat(format): void;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `format` | `unknown` |
-
-###### Returns
-
-`void`
 
 ***
 
@@ -162,39 +199,133 @@ optional speechKey?: string;
 
 ***
 
-### AzureSpeechRecognitionResult
+### AzureSpeechIntegrationOptions
+
+#### Extends
+
+- `Partial`\<[`AzureSpeechClientOptions`](#azurespeechclientoptions)\>
 
 #### Properties
 
-##### duration?
+##### client?
 
 ```ts
-optional duration?: number;
+optional client?: AzureSpeechClient;
 ```
 
-##### errorDetails?
+##### createSpeechConfig?
 
 ```ts
-optional errorDetails?: string;
+optional createSpeechConfig?: AzureSpeechConfigFactory;
 ```
 
-##### offset?
+###### Inherited from
+
+[`AzureSpeechClientOptions`](#azurespeechclientoptions).[`createSpeechConfig`](#createspeechconfig-1)
+
+##### region?
 
 ```ts
-optional offset?: number;
+optional region?: string;
 ```
 
-##### reason?
+###### Inherited from
+
+[`AzureSpeechClientOptions`](#azurespeechclientoptions).[`region`](#region)
+
+##### sdk?
 
 ```ts
-optional reason?: unknown;
+optional sdk?: AzureSpeechSdk;
 ```
 
-##### text?
+###### Inherited from
+
+[`AzureSpeechClientOptions`](#azurespeechclientoptions).[`sdk`](#sdk)
+
+##### speechKey?
 
 ```ts
-optional text?: string;
+optional speechKey?: string;
 ```
+
+###### Inherited from
+
+[`AzureSpeechClientOptions`](#azurespeechclientoptions).[`speechKey`](#speechkey)
+
+***
+
+### AzureSpeechOperationInputMap
+
+#### Properties
+
+##### voice.session.start
+
+```ts
+voice.session.start: AzureSpeechToTextInput;
+```
+
+##### voice.speak
+
+```ts
+voice.speak: AzureTextToSpeechInput;
+```
+
+##### voice.turn.finalize
+
+```ts
+voice.turn.finalize: AzureSpeechToTextInput;
+```
+
+***
+
+### AzureSpeechOperationOutputMap
+
+#### Properties
+
+##### voice.session.start
+
+```ts
+voice.session.start: AzureSpeechToTextResult;
+```
+
+##### voice.speak
+
+```ts
+voice.speak: ArrayBuffer;
+```
+
+##### voice.turn.finalize
+
+```ts
+voice.turn.finalize: AzureSpeechToTextResult;
+```
+
+***
+
+### AzureSpeechRawConfigHandles
+
+#### Properties
+
+##### createSpeechConfig
+
+```ts
+createSpeechConfig: AzureSpeechConfigFactory;
+```
+
+##### sdk
+
+```ts
+sdk: AzureSpeechSdk;
+```
+
+***
+
+### AzureSpeechRecognitionResult
+
+#### Extends
+
+- `Partial`\<`Pick`\<`MicrosoftSpeechSdk.SpeechRecognitionResult`, `"text"` \| `"reason"` \| `"duration"` \| `"offset"` \| `"errorDetails"`\>\>
 
 ***
 
@@ -205,8 +336,15 @@ optional text?: string;
 ##### close()?
 
 ```ts
-optional close(): void;
+optional close(success?, error?): void;
 ```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `success?` | () => `void` |
+| `error?` | (`error`) => `void` |
 
 ###### Returns
 
@@ -239,25 +377,25 @@ recognizeOnceAsync(success, error): void;
 
 ```ts
 AudioConfig: {
-  fromStreamInput: unknown;
+  fromStreamInput: AzureAudioConfig;
 };
 ```
 
 ###### fromStreamInput()
 
 ```ts
-fromStreamInput(stream): unknown;
+fromStreamInput(stream): AzureAudioConfig;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `stream` | `unknown` |
+| `stream` | [`AzurePushAudioInputStream`](#azurepushaudioinputstream) |
 
 ###### Returns
 
-`unknown`
+[`AzureAudioConfig`](#azureaudioconfig)
 
 ##### AudioInputStream
 
@@ -315,7 +453,7 @@ getWaveFormatPCM(
 ##### ResultReason?
 
 ```ts
-optional ResultReason?: Record<string, number | string>;
+optional ResultReason?: Record<string, number | string | undefined>;
 ```
 
 ##### SpeechConfig
@@ -346,7 +484,7 @@ fromSubscription(speechKey, region): AzureSpeechConfig;
 ##### SpeechRecognizer
 
 ```ts
-SpeechRecognizer: (speechConfig, audioConfig) => AzureSpeechRecognizer;
+SpeechRecognizer: (speechConfig, audioConfig?) => AzureSpeechRecognizer;
 ```
 
 ###### Parameters
@@ -354,16 +492,55 @@ SpeechRecognizer: (speechConfig, audioConfig) => AzureSpeechRecognizer;
 | Parameter | Type |
 | ------ | ------ |
 | `speechConfig` | [`AzureSpeechConfig`](#azurespeechconfig) |
-| `audioConfig` | `unknown` |
+| `audioConfig?` | [`AzureAudioConfig`](#azureaudioconfig) |
 
 ###### Returns
 
 [`AzureSpeechRecognizer`](#azurespeechrecognizer)
 
-##### SpeechSynthesisOutputFormat?
+##### SpeechSynthesisOutputFormat
 
 ```ts
-optional SpeechSynthesisOutputFormat?: Record<string, number | string>;
+SpeechSynthesisOutputFormat: Partial<Record<
+  | "Raw8Khz8BitMonoMULaw"
+  | "Riff16Khz16KbpsMonoSiren"
+  | "Audio16Khz16KbpsMonoSiren"
+  | "Audio16Khz32KBitRateMonoMp3"
+  | "Audio16Khz128KBitRateMonoMp3"
+  | "Audio16Khz64KBitRateMonoMp3"
+  | "Audio24Khz48KBitRateMonoMp3"
+  | "Audio24Khz96KBitRateMonoMp3"
+  | "Audio24Khz160KBitRateMonoMp3"
+  | "Raw16Khz16BitMonoTrueSilk"
+  | "Riff16Khz16BitMonoPcm"
+  | "Riff8Khz16BitMonoPcm"
+  | "Riff24Khz16BitMonoPcm"
+  | "Riff8Khz8BitMonoMULaw"
+  | "Raw16Khz16BitMonoPcm"
+  | "Raw24Khz16BitMonoPcm"
+  | "Raw8Khz16BitMonoPcm"
+  | "Ogg16Khz16BitMonoOpus"
+  | "Ogg24Khz16BitMonoOpus"
+  | "Raw48Khz16BitMonoPcm"
+  | "Riff48Khz16BitMonoPcm"
+  | "Audio48Khz96KBitRateMonoMp3"
+  | "Audio48Khz192KBitRateMonoMp3"
+  | "Ogg48Khz16BitMonoOpus"
+  | "Webm16Khz16BitMonoOpus"
+  | "Webm24Khz16BitMonoOpus"
+  | "Raw24Khz16BitMonoTrueSilk"
+  | "Raw8Khz8BitMonoALaw"
+  | "Riff8Khz8BitMonoALaw"
+  | "Webm24Khz16Bit24KbpsMonoOpus"
+  | "Audio16Khz16Bit32KbpsMonoOpus"
+  | "Audio24Khz16Bit48KbpsMonoOpus"
+  | "Audio24Khz16Bit24KbpsMonoOpus"
+  | "Raw22050Hz16BitMonoPcm"
+  | "Riff22050Hz16BitMonoPcm"
+  | "Raw44100Hz16BitMonoPcm"
+  | "Riff44100Hz16BitMonoPcm"
+  | "AmrWb16000Hz"
+| "G72216Khz64Kbps", SpeechSynthesisOutputFormat>> & Record<string, string | number>;
 ```
 
 ##### SpeechSynthesizer
@@ -377,7 +554,7 @@ SpeechSynthesizer: (speechConfig, audioConfig?) => AzureSpeechSynthesizer;
 | Parameter | Type |
 | ------ | ------ |
 | `speechConfig` | [`AzureSpeechConfig`](#azurespeechconfig) |
-| `audioConfig?` | `unknown` |
+| `audioConfig?` | [`AzureAudioConfig`](#azureaudioconfig) |
 
 ###### Returns
 
@@ -387,25 +564,9 @@ SpeechSynthesizer: (speechConfig, audioConfig?) => AzureSpeechSynthesizer;
 
 ### AzureSpeechSynthesisResult
 
-#### Properties
+#### Extends
 
-##### audioData?
-
-```ts
-optional audioData?: ArrayBuffer;
-```
-
-##### errorDetails?
-
-```ts
-optional errorDetails?: string;
-```
-
-##### reason?
-
-```ts
-optional reason?: unknown;
-```
+- `Partial`\<`Pick`\<`MicrosoftSpeechSdk.SpeechSynthesisResult`, `"audioData"` \| `"reason"` \| `"errorDetails"`\>\>
 
 ***
 
@@ -416,8 +577,15 @@ optional reason?: unknown;
 ##### close()?
 
 ```ts
-optional close(): void;
+optional close(success?, error?): void;
 ```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `success?` | () => `void` |
+| `error?` | (`error`) => `void` |
 
 ###### Returns
 
@@ -595,7 +763,7 @@ Omit.model
 ##### outputFormat?
 
 ```ts
-optional outputFormat?: string;
+optional outputFormat?: AzureSpeechSynthesisOutputFormat;
 ```
 
 ##### region?
@@ -661,7 +829,7 @@ optional language?: string;
 ##### outputFormat?
 
 ```ts
-optional outputFormat?: string;
+optional outputFormat?: AzureSpeechSynthesisOutputFormat;
 ```
 
 ##### signal?
@@ -682,7 +850,461 @@ text: string;
 voiceName: string;
 ```
 
+## Type Aliases
+
+### AzureAudioConfig
+
+```ts
+type AzureAudioConfig = MicrosoftSpeechSdk.AudioConfig | Record<string, unknown>;
+```
+
+***
+
+### AzureSpeechConfigFactory
+
+```ts
+type AzureSpeechConfigFactory = () => AzureSpeechConfig;
+```
+
+#### Returns
+
+[`AzureSpeechConfig`](#azurespeechconfig)
+
+***
+
+### AzureSpeechOperationAlias
+
+```ts
+type AzureSpeechOperationAlias = "voice.session.start" | "voice.turn.finalize" | "voice.speak";
+```
+
+***
+
+### AzureSpeechOperationHandler
+
+```ts
+type AzureSpeechOperationHandler<K> = (input) => Promise<AzureSpeechOperationOutputMap[K]>;
+```
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `K` *extends* [`AzureSpeechOperationAlias`](#azurespeechoperationalias) |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`AzureSpeechOperationInputMap`](#azurespeechoperationinputmap)\[`K`\] |
+
+#### Returns
+
+`Promise`\<[`AzureSpeechOperationOutputMap`](#azurespeechoperationoutputmap)\[`K`\]\>
+
+***
+
+### AzureSpeechOperationHandlers
+
+```ts
+type AzureSpeechOperationHandlers = { [K in AzureSpeechOperationAlias]: AzureSpeechOperationHandler<K> };
+```
+
+***
+
+### AzureSpeechSynthesisOutputFormat
+
+```ts
+type AzureSpeechSynthesisOutputFormat =
+  | AzureSpeechSynthesisOutputFormatName
+  | MicrosoftSpeechSdk.SpeechSynthesisOutputFormat;
+```
+
+***
+
+### AzureSpeechSynthesisOutputFormatName
+
+```ts
+type AzureSpeechSynthesisOutputFormatName = keyof typeof MicrosoftSpeechSdk.SpeechSynthesisOutputFormat;
+```
+
 ## Variables
+
+### azureSpeechIntegration
+
+```ts
+const azureSpeechIntegration: DefinedIntegration<{
+  capabilities: (
+     | {
+     audiences: "customer-facing"[];
+     capability: string;
+     description: string;
+     exposesSensitiveData: true;
+     label: string;
+     providerObjects: {
+        kind: string;
+        label: string;
+     }[];
+     requiresCredential: true;
+     sideEffect: true;
+   }
+     | {
+     audiences: ("customer-facing" | "internal-support")[];
+     capability: string;
+     description: string;
+     exposesSensitiveData: true;
+     label: string;
+     providerObjects: {
+        kind: string;
+        label: string;
+     }[];
+     requiresCredential: true;
+     sideEffect?: never;
+  })[];
+  category: string;
+  channelAudiences: ("customer-facing" | "mixed")[];
+  coverage: {
+     evidence: {
+        label: string;
+        url: string;
+     }[];
+     notes: string[];
+     scope: "provider-api-subset";
+  };
+  credentialRequirements: {
+     description: string;
+     id: string;
+     label: string;
+     required: true;
+  }[];
+  directions: ("receive-only" | "send-only" | "bidirectional")[];
+  id: string;
+  limitations: string[];
+  maintainers: {
+     name: string;
+     type: "official";
+  }[];
+  metadata: {
+     channelCoverage: {
+        backgroundModelProvider: string;
+        browserVoiceProtocol: string;
+        fullAzureSpeechSdk: string;
+        speechToText: string;
+        telephony: string;
+        textToSpeech: string;
+     };
+     implementation: {
+        adapterCoverage: string[];
+        rawClientEscapeHatch: boolean;
+        sdkPackages: string[];
+        strategy: string;
+     };
+     integrationEntryPoints: {
+        manifest: string;
+        runtime: string;
+     };
+     integrationName: string;
+     integrationPackageName: string;
+  };
+  name: string;
+  operations: (
+     | {
+     alias: string;
+     capability: string;
+     exposesSensitiveData: true;
+     externallyVisible?: never;
+     providerObject: string;
+     providerOperation: string;
+     requiresCredential: true;
+     sideEffect?: never;
+   }
+     | {
+     alias: string;
+     capability: string;
+     exposesSensitiveData?: never;
+     externallyVisible: true;
+     providerObject: string;
+     providerOperation: string;
+     requiresCredential: true;
+     sideEffect: true;
+  })[];
+  packageName: string;
+  privacyNotes: string[];
+  provider: string;
+  trustLevel: "official";
+}, unknown, {
+  voice.session.start: (input, context) => Promise<AzureSpeechToTextResult>;
+  voice.speak: (input, context) => Promise<ArrayBuffer>;
+  voice.turn.finalize: (input, context) => Promise<AzureSpeechToTextResult>;
+}>;
+```
+
+***
+
+### azureSpeechProviderManifest
+
+```ts
+const azureSpeechProviderManifest: {
+  capabilities: {
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+     capability: string;
+     changesWorkflow?: boolean;
+     description?: string;
+     exposesSensitiveData?: boolean;
+     extension?: boolean;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        schemaName?: string;
+     }[];
+     requiresCredential?: boolean;
+     sideEffect?: boolean;
+  }[];
+  category: string;
+  channelAudiences: ("customer-facing" | "internal-support" | "mixed")[];
+  coverage: {
+     evidence: {
+        label: string;
+        url?: string;
+     }[];
+     notes: string[];
+     scope:   | "support-workflow-subset"
+        | "provider-api-subset"
+        | "connector-required"
+        | "local-protocol"
+        | "full-provider-api";
+  };
+  credentialRequirements: {
+     description?: string;
+     id: string;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     required: boolean;
+     scopes: string[];
+  }[];
+  directions: (
+     | "receive-only"
+     | "send-only"
+     | "inbound-only"
+     | "outbound-only"
+    | "bidirectional")[];
+  id: string;
+  limitations: string[];
+  maintainers: {
+     name: string;
+     type: "community" | "official" | "unknown" | "partner";
+     url?: string;
+  }[];
+  metadata?: Record<string, unknown>;
+  name: string;
+  operations: {
+     alias: string;
+     audience?: "customer-facing" | "internal-support" | "mixed";
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+     capability: string;
+     changesWorkflow?: boolean;
+     description?: string;
+     exposesSensitiveData?: boolean;
+     extension: boolean;
+     externallyVisible?: boolean;
+     inputSchema?: unknown;
+     inputSchemaName?: string;
+     inputSchemaRef?: string;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     outputSchema?: unknown;
+     outputSchemaName?: string;
+     outputSchemaRef?: string;
+     providerObject?: string;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        schemaName?: string;
+     }[];
+     providerOperation?: string;
+     requiredPolicyIds?: string[];
+     requiresApproval?: boolean;
+     requiresCredential?: boolean;
+     sideEffect?: boolean;
+  }[];
+  packageName: string;
+  privacyNotes: string[];
+  provider: string;
+  trustLevel: "community" | "official" | "verified" | "experimental";
+} & {
+  capabilities: (
+     | {
+     audiences: "customer-facing"[];
+     capability: string;
+     description: string;
+     exposesSensitiveData: true;
+     label: string;
+     providerObjects: {
+        kind: string;
+        label: string;
+     }[];
+     requiresCredential: true;
+     sideEffect: true;
+   }
+     | {
+     audiences: ("customer-facing" | "internal-support")[];
+     capability: string;
+     description: string;
+     exposesSensitiveData: true;
+     label: string;
+     providerObjects: {
+        kind: string;
+        label: string;
+     }[];
+     requiresCredential: true;
+     sideEffect?: never;
+  })[];
+  category: string;
+  channelAudiences: ("customer-facing" | "mixed")[];
+  coverage: {
+     evidence: {
+        label: string;
+        url: string;
+     }[];
+     notes: string[];
+     scope: "provider-api-subset";
+  };
+  credentialRequirements: {
+     description: string;
+     id: string;
+     label: string;
+     required: true;
+  }[];
+  directions: ("receive-only" | "send-only" | "bidirectional")[];
+  id: string;
+  limitations: string[];
+  maintainers: {
+     name: string;
+     type: "official";
+  }[];
+  metadata: {
+     channelCoverage: {
+        backgroundModelProvider: string;
+        browserVoiceProtocol: string;
+        fullAzureSpeechSdk: string;
+        speechToText: string;
+        telephony: string;
+        textToSpeech: string;
+     };
+     implementation: {
+        adapterCoverage: string[];
+        rawClientEscapeHatch: boolean;
+        sdkPackages: string[];
+        strategy: string;
+     };
+     integrationEntryPoints: {
+        manifest: string;
+        runtime: string;
+     };
+     integrationName: string;
+     integrationPackageName: string;
+  };
+  name: string;
+  operations: (
+     | {
+     alias: string;
+     capability: string;
+     exposesSensitiveData: true;
+     externallyVisible?: never;
+     providerObject: string;
+     providerOperation: string;
+     requiresCredential: true;
+     sideEffect?: never;
+   }
+     | {
+     alias: string;
+     capability: string;
+     exposesSensitiveData?: never;
+     externallyVisible: true;
+     providerObject: string;
+     providerOperation: string;
+     requiresCredential: true;
+     sideEffect: true;
+  })[];
+  packageName: string;
+  privacyNotes: string[];
+  provider: string;
+  trustLevel: "official";
+};
+```
+
+#### Type Declaration
+
+| Name | Type |
+| ------ | ------ |
+| `capabilities` | \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| `category` | `string` |
+| `channelAudiences` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
+| `coverage` | \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \} |
+| `coverage.evidence` | \{ `label`: `string`; `url?`: `string`; \}[] |
+| `coverage.notes` | `string`[] |
+| `coverage.scope` | \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"` |
+| `credentialRequirements` | \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[] |
+| `directions` | ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[] |
+| `id` | `string` |
+| `limitations` | `string`[] |
+| `maintainers` | \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
+| `metadata?` | `Record`\<`string`, `unknown`\> |
+| `name` | `string` |
+| `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| `packageName` | `string` |
+| `privacyNotes` | `string`[] |
+| `provider` | `string` |
+| `trustLevel` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+
+#### Type Declaration
+
+| Name | Type |
+| ------ | ------ |
+| `capabilities` | ( \| \{ `audiences`: `"customer-facing"`[]; `capability`: `string`; `description`: `string`; `exposesSensitiveData`: `true`; `label`: `string`; `providerObjects`: \{ `kind`: `string`; `label`: `string`; \}[]; `requiresCredential`: `true`; `sideEffect`: `true`; \} \| \{ `audiences`: (`"customer-facing"` \| `"internal-support"`)[]; `capability`: `string`; `description`: `string`; `exposesSensitiveData`: `true`; `label`: `string`; `providerObjects`: \{ `kind`: `string`; `label`: `string`; \}[]; `requiresCredential`: `true`; `sideEffect?`: `never`; \})[] |
+| `category` | `string` |
+| `channelAudiences` | (`"customer-facing"` \| `"mixed"`)[] |
+| `coverage` | \{ `evidence`: \{ `label`: `string`; `url`: `string`; \}[]; `notes`: `string`[]; `scope`: `"provider-api-subset"`; \} |
+| `coverage.evidence` | \{ `label`: `string`; `url`: `string`; \}[] |
+| `coverage.notes` | `string`[] |
+| `coverage.scope` | `"provider-api-subset"` |
+| `credentialRequirements` | \{ `description`: `string`; `id`: `string`; `label`: `string`; `required`: `true`; \}[] |
+| `directions` | (`"receive-only"` \| `"send-only"` \| `"bidirectional"`)[] |
+| `id` | `string` |
+| `limitations` | `string`[] |
+| `maintainers` | \{ `name`: `string`; `type`: `"official"`; \}[] |
+| `metadata` | \{ `channelCoverage`: \{ `backgroundModelProvider`: `string`; `browserVoiceProtocol`: `string`; `fullAzureSpeechSdk`: `string`; `speechToText`: `string`; `telephony`: `string`; `textToSpeech`: `string`; \}; `implementation`: \{ `adapterCoverage`: `string`[]; `rawClientEscapeHatch`: `boolean`; `sdkPackages`: `string`[]; `strategy`: `string`; \}; `integrationEntryPoints`: \{ `manifest`: `string`; `runtime`: `string`; \}; `integrationName`: `string`; `integrationPackageName`: `string`; \} |
+| `metadata.channelCoverage` | \{ `backgroundModelProvider`: `string`; `browserVoiceProtocol`: `string`; `fullAzureSpeechSdk`: `string`; `speechToText`: `string`; `telephony`: `string`; `textToSpeech`: `string`; \} |
+| `metadata.channelCoverage.backgroundModelProvider` | `string` |
+| `metadata.channelCoverage.browserVoiceProtocol` | `string` |
+| `metadata.channelCoverage.fullAzureSpeechSdk` | `string` |
+| `metadata.channelCoverage.speechToText` | `string` |
+| `metadata.channelCoverage.telephony` | `string` |
+| `metadata.channelCoverage.textToSpeech` | `string` |
+| `metadata.implementation` | \{ `adapterCoverage`: `string`[]; `rawClientEscapeHatch`: `boolean`; `sdkPackages`: `string`[]; `strategy`: `string`; \} |
+| `metadata.implementation.adapterCoverage` | `string`[] |
+| `metadata.implementation.rawClientEscapeHatch` | `boolean` |
+| `metadata.implementation.sdkPackages` | `string`[] |
+| `metadata.implementation.strategy` | `string` |
+| `metadata.integrationEntryPoints` | \{ `manifest`: `string`; `runtime`: `string`; \} |
+| `metadata.integrationEntryPoints.manifest` | `string` |
+| `metadata.integrationEntryPoints.runtime` | `string` |
+| `metadata.integrationName` | `string` |
+| `metadata.integrationPackageName` | `string` |
+| `name` | `string` |
+| `operations` | ( \| \{ `alias`: `string`; `capability`: `string`; `exposesSensitiveData`: `true`; `externallyVisible?`: `never`; `providerObject`: `string`; `providerOperation`: `string`; `requiresCredential`: `true`; `sideEffect?`: `never`; \} \| \{ `alias`: `string`; `capability`: `string`; `exposesSensitiveData?`: `never`; `externallyVisible`: `true`; `providerObject`: `string`; `providerOperation`: `string`; `requiresCredential`: `true`; `sideEffect`: `true`; \})[] |
+| `packageName` | `string` |
+| `privacyNotes` | `string`[] |
+| `provider` | `string` |
+| `trustLevel` | `"official"` |
+
+***
 
 ### createAzureSpeechVoiceAdapter
 
@@ -756,6 +1378,258 @@ function createAzureSpeechClient(options): AzureSpeechClient;
 
 ***
 
+### createAzureSpeechIntegration()
+
+```ts
+function createAzureSpeechIntegration(options): DefinedIntegration<{
+  capabilities: (
+     | {
+     audiences: "customer-facing"[];
+     capability: string;
+     description: string;
+     exposesSensitiveData: true;
+     label: string;
+     providerObjects: {
+        kind: string;
+        label: string;
+     }[];
+     requiresCredential: true;
+     sideEffect: true;
+   }
+     | {
+     audiences: ("customer-facing" | "internal-support")[];
+     capability: string;
+     description: string;
+     exposesSensitiveData: true;
+     label: string;
+     providerObjects: {
+        kind: string;
+        label: string;
+     }[];
+     requiresCredential: true;
+     sideEffect?: never;
+  })[];
+  category: string;
+  channelAudiences: ("customer-facing" | "mixed")[];
+  coverage: {
+     evidence: {
+        label: string;
+        url: string;
+     }[];
+     notes: string[];
+     scope: "provider-api-subset";
+  };
+  credentialRequirements: {
+     description: string;
+     id: string;
+     label: string;
+     required: true;
+  }[];
+  directions: ("receive-only" | "send-only" | "bidirectional")[];
+  id: string;
+  limitations: string[];
+  maintainers: {
+     name: string;
+     type: "official";
+  }[];
+  metadata: {
+     channelCoverage: {
+        backgroundModelProvider: string;
+        browserVoiceProtocol: string;
+        fullAzureSpeechSdk: string;
+        speechToText: string;
+        telephony: string;
+        textToSpeech: string;
+     };
+     implementation: {
+        adapterCoverage: string[];
+        rawClientEscapeHatch: boolean;
+        sdkPackages: string[];
+        strategy: string;
+     };
+     integrationEntryPoints: {
+        manifest: string;
+        runtime: string;
+     };
+     integrationName: string;
+     integrationPackageName: string;
+  };
+  name: string;
+  operations: (
+     | {
+     alias: string;
+     capability: string;
+     exposesSensitiveData: true;
+     externallyVisible?: never;
+     providerObject: string;
+     providerOperation: string;
+     requiresCredential: true;
+     sideEffect?: never;
+   }
+     | {
+     alias: string;
+     capability: string;
+     exposesSensitiveData?: never;
+     externallyVisible: true;
+     providerObject: string;
+     providerOperation: string;
+     requiresCredential: true;
+     sideEffect: true;
+  })[];
+  packageName: string;
+  privacyNotes: string[];
+  provider: string;
+  trustLevel: "official";
+}, unknown, IntegrationOperationHandlers>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`AzureSpeechIntegrationOptions`](#azurespeechintegrationoptions) |
+
+#### Returns
+
+[`DefinedIntegration`](../../../packages/integration-kit/dist.md#definedintegration)\<\{
+  `capabilities`: (
+     \| \{
+     `audiences`: `"customer-facing"`[];
+     `capability`: `string`;
+     `description`: `string`;
+     `exposesSensitiveData`: `true`;
+     `label`: `string`;
+     `providerObjects`: \{
+        `kind`: `string`;
+        `label`: `string`;
+     \}[];
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+   \}
+     \| \{
+     `audiences`: (`"customer-facing"` \| `"internal-support"`)[];
+     `capability`: `string`;
+     `description`: `string`;
+     `exposesSensitiveData`: `true`;
+     `label`: `string`;
+     `providerObjects`: \{
+        `kind`: `string`;
+        `label`: `string`;
+     \}[];
+     `requiresCredential`: `true`;
+     `sideEffect?`: `never`;
+  \})[];
+  `category`: `string`;
+  `channelAudiences`: (`"customer-facing"` \| `"mixed"`)[];
+  `coverage`: \{
+     `evidence`: \{
+        `label`: `string`;
+        `url`: `string`;
+     \}[];
+     `notes`: `string`[];
+     `scope`: `"provider-api-subset"`;
+  \};
+  `credentialRequirements`: \{
+     `description`: `string`;
+     `id`: `string`;
+     `label`: `string`;
+     `required`: `true`;
+  \}[];
+  `directions`: (`"receive-only"` \| `"send-only"` \| `"bidirectional"`)[];
+  `id`: `string`;
+  `limitations`: `string`[];
+  `maintainers`: \{
+     `name`: `string`;
+     `type`: `"official"`;
+  \}[];
+  `metadata`: \{
+     `channelCoverage`: \{
+        `backgroundModelProvider`: `string`;
+        `browserVoiceProtocol`: `string`;
+        `fullAzureSpeechSdk`: `string`;
+        `speechToText`: `string`;
+        `telephony`: `string`;
+        `textToSpeech`: `string`;
+     \};
+     `implementation`: \{
+        `adapterCoverage`: `string`[];
+        `rawClientEscapeHatch`: `boolean`;
+        `sdkPackages`: `string`[];
+        `strategy`: `string`;
+     \};
+     `integrationEntryPoints`: \{
+        `manifest`: `string`;
+        `runtime`: `string`;
+     \};
+     `integrationName`: `string`;
+     `integrationPackageName`: `string`;
+  \};
+  `name`: `string`;
+  `operations`: (
+     \| \{
+     `alias`: `string`;
+     `capability`: `string`;
+     `exposesSensitiveData`: `true`;
+     `externallyVisible?`: `never`;
+     `providerObject`: `string`;
+     `providerOperation`: `string`;
+     `requiresCredential`: `true`;
+     `sideEffect?`: `never`;
+   \}
+     \| \{
+     `alias`: `string`;
+     `capability`: `string`;
+     `exposesSensitiveData?`: `never`;
+     `externallyVisible`: `true`;
+     `providerObject`: `string`;
+     `providerOperation`: `string`;
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+  \})[];
+  `packageName`: `string`;
+  `privacyNotes`: `string`[];
+  `provider`: `string`;
+  `trustLevel`: `"official"`;
+\}, `unknown`, [`IntegrationOperationHandlers`](../../../packages/integration-kit/dist.md#integrationoperationhandlers)\>
+
+***
+
+### createAzureSpeechOperationHandlers()
+
+```ts
+function createAzureSpeechOperationHandlers(options): AzureSpeechOperationHandlers;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`AzureSpeechIntegrationOptions`](#azurespeechintegrationoptions) |
+
+#### Returns
+
+[`AzureSpeechOperationHandlers`](#azurespeechoperationhandlers)
+
+***
+
+### createAzureSpeechRawConfigHandles()
+
+```ts
+function createAzureSpeechRawConfigHandles(options): AzureSpeechRawConfigHandles;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`AzureSpeechClientOptions`](#azurespeechclientoptions) |
+
+#### Returns
+
+[`AzureSpeechRawConfigHandles`](#azurespeechrawconfighandles)
+
+***
+
 ### createAzureSpeechVoiceProvider()
 
 ```ts
@@ -771,15 +1645,3 @@ function createAzureSpeechVoiceProvider(options): VoiceProvider;
 #### Returns
 
 [`VoiceProvider`](../../../packages/voice-websocket/dist.md#voiceprovider)
-
-## References
-
-### azureSpeechIntegration
-
-Re-exports [azureSpeechIntegration](dist/manifest.md#azurespeechintegration)
-
-***
-
-### azureSpeechProviderManifest
-
-Re-exports [azureSpeechProviderManifest](dist/manifest.md#azurespeechprovidermanifest)

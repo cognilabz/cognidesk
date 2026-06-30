@@ -780,7 +780,8 @@ createSession(input): Promise<{
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | \{ `now?`: `Date`; `result`: [`StartVoiceResult`](../core/dist.md#startvoiceresult); `tokenTtlMs`: `number`; \} |
+| `input` | \{ `initialGreeting?`: `string`; `now?`: `Date`; `result`: [`StartVoiceResult`](../core/dist.md#startvoiceresult); `tokenTtlMs`: `number`; \} |
+| `input.initialGreeting?` | `string` |
 | `input.now?` | `Date` |
 | `input.result` | [`StartVoiceResult`](../core/dist.md#startvoiceresult) |
 | `input.tokenTtlMs` | `number` |
@@ -1044,6 +1045,12 @@ events: RuntimeEvent[];
 
 ```ts
 id: string;
+```
+
+##### initialGreeting?
+
+```ts
+optional initialGreeting?: string;
 ```
 
 ##### lastAckSequence

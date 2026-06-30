@@ -2,84 +2,6 @@
 
 ## Interfaces
 
-### AwsPollySynthesizeCommandInput
-
-#### Properties
-
-##### Engine?
-
-```ts
-optional Engine?: AwsPollyEngine;
-```
-
-##### LanguageCode?
-
-```ts
-optional LanguageCode?: string;
-```
-
-##### LexiconNames?
-
-```ts
-optional LexiconNames?: string[];
-```
-
-##### OutputFormat
-
-```ts
-OutputFormat: AwsPollyOutputFormat;
-```
-
-##### SampleRate?
-
-```ts
-optional SampleRate?: string;
-```
-
-##### Text
-
-```ts
-Text: string;
-```
-
-##### TextType?
-
-```ts
-optional TextType?: AwsPollyTextType;
-```
-
-##### VoiceId
-
-```ts
-VoiceId: string;
-```
-
-***
-
-### AwsPollySynthesizeCommandOutput
-
-#### Properties
-
-##### AudioStream?
-
-```ts
-optional AudioStream?: unknown;
-```
-
-##### ContentType?
-
-```ts
-optional ContentType?: string;
-```
-
-##### RequestCharacters?
-
-```ts
-optional RequestCharacters?: number;
-```
-
-***
-
 ### AwsPollySynthesizeSpeechInput
 
 #### Properties
@@ -93,7 +15,7 @@ optional engine?: AwsPollyEngine;
 ##### languageCode?
 
 ```ts
-optional languageCode?: string;
+optional languageCode?: AwsPollyLanguageCode;
 ```
 
 ##### lexiconNames?
@@ -120,6 +42,12 @@ optional sampleRate?: string;
 optional signal?: AbortSignal;
 ```
 
+##### speechMarkTypes?
+
+```ts
+optional speechMarkTypes?: SpeechMarkType[];
+```
+
 ##### text
 
 ```ts
@@ -135,7 +63,7 @@ optional textType?: AwsPollyTextType;
 ##### voiceId
 
 ```ts
-voiceId: string;
+voiceId: AwsPollyVoiceId;
 ```
 
 ***
@@ -238,32 +166,56 @@ new AwsSdkCommandConstructor(input): unknown;
 ##### pollyClient
 
 ```ts
-pollyClient: AwsSdkCommandClient<AwsPollySynthesizeCommandOutput>;
+pollyClient: AwsSdkCommandClient<SynthesizeSpeechCommandOutput>;
 ```
 
 ##### StartStreamTranscriptionCommand
 
 ```ts
-StartStreamTranscriptionCommand: AwsSdkCommandConstructor<AwsTranscribeStreamingCommandInput>;
+StartStreamTranscriptionCommand: AwsSdkCommandConstructor<StartStreamTranscriptionCommandInput>;
 ```
 
 ##### SynthesizeSpeechCommand
 
 ```ts
-SynthesizeSpeechCommand: AwsSdkCommandConstructor<AwsPollySynthesizeCommandInput>;
+SynthesizeSpeechCommand: AwsSdkCommandConstructor<SynthesizeSpeechCommandInput>;
 ```
 
 ##### transcribeStreamingClient
 
 ```ts
-transcribeStreamingClient: AwsSdkCommandClient<AwsTranscribeStreamingCommandOutput>;
+transcribeStreamingClient: AwsSdkCommandClient<StartStreamTranscriptionCommandOutput>;
 ```
 
 ***
 
 ### AwsSpeechClient
 
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `RawClients` *extends* [`AwsSpeechCommandClients`](#awsspeechcommandclients) | [`AwsSpeechCommandClients`](#awsspeechcommandclients) |
+
+#### Properties
+
+##### rawClients
+
+```ts
+rawClients: RawClients;
+```
+
 #### Methods
+
+##### getRawClient()
+
+```ts
+getRawClient(): RawClients;
+```
+
+###### Returns
+
+`RawClients`
 
 ##### synthesizeSpeech()
 
@@ -369,6 +321,28 @@ optional transcribeStreamingClient?: TranscribeStreamingClient;
 
 ```ts
 optional transcribeStreamingClientConfig?: TranscribeStreamingClientConfig;
+```
+
+***
+
+### AwsSpeechCommandClients
+
+#### Extended by
+
+- [`AwsSpeechRawClients`](#awsspeechrawclients)
+
+#### Properties
+
+##### pollyClient
+
+```ts
+pollyClient: AwsSdkCommandClient<SynthesizeSpeechCommandOutput>;
+```
+
+##### transcribeStreamingClient
+
+```ts
+transcribeStreamingClient: AwsSdkCommandClient<StartStreamTranscriptionCommandOutput>;
 ```
 
 ***
@@ -492,6 +466,36 @@ optional responseType?: "response" | "json" | "arrayBuffer" | "stream";
 
 ***
 
+### AwsSpeechRawClients
+
+#### Extends
+
+- [`AwsSpeechCommandClients`](#awsspeechcommandclients)
+
+#### Properties
+
+##### pollyClient
+
+```ts
+pollyClient: PollyClient;
+```
+
+###### Overrides
+
+[`AwsSpeechCommandClients`](#awsspeechcommandclients).[`pollyClient`](#pollyclient-2)
+
+##### transcribeStreamingClient
+
+```ts
+transcribeStreamingClient: TranscribeStreamingClient;
+```
+
+###### Overrides
+
+[`AwsSpeechCommandClients`](#awsspeechcommandclients).[`transcribeStreamingClient`](#transcribestreamingclient-2)
+
+***
+
 ### AwsSpeechVoiceProviderOptions
 
 #### Extends
@@ -510,6 +514,24 @@ optional accessKeyId?: string;
 
 ```ts
 optional client?: AwsSpeechClient;
+```
+
+##### contentIdentificationType?
+
+```ts
+optional contentIdentificationType?: "PII";
+```
+
+##### contentRedactionType?
+
+```ts
+optional contentRedactionType?: "PII";
+```
+
+##### enableChannelIdentification?
+
+```ts
+optional enableChannelIdentification?: boolean;
 ```
 
 ##### enablePartialResultsStabilization?
@@ -563,7 +585,13 @@ optional identifyMultipleLanguages?: boolean;
 ##### languageCode?
 
 ```ts
-optional languageCode?: string;
+optional languageCode?: AwsTranscribeLanguageCode;
+```
+
+##### languageModelName?
+
+```ts
+optional languageModelName?: string;
 ```
 
 ##### languageOptions?
@@ -620,6 +648,12 @@ optional model?: string;
 Omit.model
 ```
 
+##### numberOfChannels?
+
+```ts
+optional numberOfChannels?: number;
+```
+
 ##### outputFormat?
 
 ```ts
@@ -632,10 +666,16 @@ optional outputFormat?: AwsPollyOutputFormat;
 optional partialResultsStability?: AwsTranscribePartialResultsStability;
 ```
 
+##### piiEntityTypes?
+
+```ts
+optional piiEntityTypes?: string[];
+```
+
 ##### pollyClient?
 
 ```ts
-optional pollyClient?: AwsSdkCommandClient<AwsPollySynthesizeCommandOutput>;
+optional pollyClient?: AwsSdkCommandClient<SynthesizeSpeechCommandOutput>;
 ```
 
 ##### pollyClientConfig?
@@ -647,7 +687,7 @@ optional pollyClientConfig?: PollyClientConfig;
 ##### pollyLanguageCode?
 
 ```ts
-optional pollyLanguageCode?: string;
+optional pollyLanguageCode?: AwsPollyLanguageCode;
 ```
 
 ##### pollySampleRate?
@@ -659,7 +699,7 @@ optional pollySampleRate?: string;
 ##### preferredLanguage?
 
 ```ts
-optional preferredLanguage?: string;
+optional preferredLanguage?: AwsTranscribeLanguageCode;
 ```
 
 ##### region?
@@ -686,10 +726,22 @@ Omit.sampleRate
 optional secretAccessKey?: string;
 ```
 
+##### sessionResumeWindow?
+
+```ts
+optional sessionResumeWindow?: number;
+```
+
 ##### sessionToken?
 
 ```ts
 optional sessionToken?: string;
+```
+
+##### showSpeakerLabel?
+
+```ts
+optional showSpeakerLabel?: boolean;
 ```
 
 ##### silenceThreshold?
@@ -704,16 +756,22 @@ optional silenceThreshold?: number;
 Omit.silenceThreshold
 ```
 
+##### speechMarkTypes?
+
+```ts
+optional speechMarkTypes?: SpeechMarkType[];
+```
+
 ##### StartStreamTranscriptionCommand?
 
 ```ts
-optional StartStreamTranscriptionCommand?: AwsSdkCommandConstructor<AwsTranscribeStreamingCommandInput>;
+optional StartStreamTranscriptionCommand?: AwsSdkCommandConstructor<StartStreamTranscriptionCommandInput>;
 ```
 
 ##### SynthesizeSpeechCommand?
 
 ```ts
-optional SynthesizeSpeechCommand?: AwsSdkCommandConstructor<AwsPollySynthesizeCommandInput>;
+optional SynthesizeSpeechCommand?: AwsSdkCommandConstructor<SynthesizeSpeechCommandInput>;
 ```
 
 ##### textType?
@@ -725,7 +783,7 @@ optional textType?: AwsPollyTextType;
 ##### transcribeStreamingClient?
 
 ```ts
-optional transcribeStreamingClient?: AwsSdkCommandClient<AwsTranscribeStreamingCommandOutput>;
+optional transcribeStreamingClient?: AwsSdkCommandClient<StartStreamTranscriptionCommandOutput>;
 ```
 
 ##### transcribeStreamingClientConfig?
@@ -746,16 +804,28 @@ optional vocabularyFilterMethod?: AwsTranscribeVocabularyFilterMethod;
 optional vocabularyFilterName?: string;
 ```
 
+##### vocabularyFilterNames?
+
+```ts
+optional vocabularyFilterNames?: string[];
+```
+
 ##### vocabularyName?
 
 ```ts
 optional vocabularyName?: string;
 ```
 
+##### vocabularyNames?
+
+```ts
+optional vocabularyNames?: string[];
+```
+
 ##### voiceId
 
 ```ts
-voiceId: string;
+voiceId: AwsPollyVoiceId;
 ```
 
 ***
@@ -768,6 +838,24 @@ voiceId: string;
 
 ```ts
 audio: Uint8Array;
+```
+
+##### contentIdentificationType?
+
+```ts
+optional contentIdentificationType?: "PII";
+```
+
+##### contentRedactionType?
+
+```ts
+optional contentRedactionType?: "PII";
+```
+
+##### enableChannelIdentification?
+
+```ts
+optional enableChannelIdentification?: boolean;
 ```
 
 ##### enablePartialResultsStabilization?
@@ -791,7 +879,13 @@ optional identifyMultipleLanguages?: boolean;
 ##### languageCode?
 
 ```ts
-optional languageCode?: string;
+optional languageCode?: AwsTranscribeLanguageCode;
+```
+
+##### languageModelName?
+
+```ts
+optional languageModelName?: string;
 ```
 
 ##### languageOptions?
@@ -806,16 +900,28 @@ optional languageOptions?: string[];
 optional mediaEncoding?: AwsTranscribeMediaEncoding;
 ```
 
+##### numberOfChannels?
+
+```ts
+optional numberOfChannels?: number;
+```
+
 ##### partialResultsStability?
 
 ```ts
 optional partialResultsStability?: AwsTranscribePartialResultsStability;
 ```
 
+##### piiEntityTypes?
+
+```ts
+optional piiEntityTypes?: string[];
+```
+
 ##### preferredLanguage?
 
 ```ts
-optional preferredLanguage?: string;
+optional preferredLanguage?: AwsTranscribeLanguageCode;
 ```
 
 ##### sampleRate?
@@ -828,6 +934,18 @@ optional sampleRate?: number;
 
 ```ts
 optional sessionId?: string;
+```
+
+##### sessionResumeWindow?
+
+```ts
+optional sessionResumeWindow?: number;
+```
+
+##### showSpeakerLabel?
+
+```ts
+optional showSpeakerLabel?: boolean;
 ```
 
 ##### signal?
@@ -848,10 +966,22 @@ optional vocabularyFilterMethod?: AwsTranscribeVocabularyFilterMethod;
 optional vocabularyFilterName?: string;
 ```
 
+##### vocabularyFilterNames?
+
+```ts
+optional vocabularyFilterNames?: string[];
+```
+
 ##### vocabularyName?
 
 ```ts
 optional vocabularyName?: string;
+```
+
+##### vocabularyNames?
+
+```ts
+optional vocabularyNames?: string[];
 ```
 
 ***
@@ -902,256 +1032,20 @@ optional startedAtSeconds?: number;
 text: string;
 ```
 
-***
-
-### AwsTranscribeStreamingAudioStreamEvent
-
-#### Properties
-
-##### AudioEvent
-
-```ts
-AudioEvent: {
-  AudioChunk: Uint8Array;
-};
-```
-
-###### AudioChunk
-
-```ts
-AudioChunk: Uint8Array;
-```
-
-***
-
-### AwsTranscribeStreamingCommandInput
-
-#### Properties
-
-##### AudioStream
-
-```ts
-AudioStream: AsyncIterable<AwsTranscribeStreamingAudioStreamEvent>;
-```
-
-##### EnablePartialResultsStabilization?
-
-```ts
-optional EnablePartialResultsStabilization?: boolean;
-```
-
-##### IdentifyLanguage?
-
-```ts
-optional IdentifyLanguage?: boolean;
-```
-
-##### IdentifyMultipleLanguages?
-
-```ts
-optional IdentifyMultipleLanguages?: boolean;
-```
-
-##### LanguageCode?
-
-```ts
-optional LanguageCode?: string;
-```
-
-##### LanguageOptions?
-
-```ts
-optional LanguageOptions?: string;
-```
-
-##### MediaEncoding
-
-```ts
-MediaEncoding: AwsTranscribeMediaEncoding;
-```
-
-##### MediaSampleRateHertz
-
-```ts
-MediaSampleRateHertz: number;
-```
-
-##### PartialResultsStability?
-
-```ts
-optional PartialResultsStability?: AwsTranscribePartialResultsStability;
-```
-
-##### PreferredLanguage?
-
-```ts
-optional PreferredLanguage?: string;
-```
-
-##### SessionId?
-
-```ts
-optional SessionId?: string;
-```
-
-##### VocabularyFilterMethod?
-
-```ts
-optional VocabularyFilterMethod?: AwsTranscribeVocabularyFilterMethod;
-```
-
-##### VocabularyFilterName?
-
-```ts
-optional VocabularyFilterName?: string;
-```
-
-##### VocabularyName?
-
-```ts
-optional VocabularyName?: string;
-```
-
-***
-
-### AwsTranscribeStreamingCommandOutput
-
-#### Properties
-
-##### LanguageCode?
-
-```ts
-optional LanguageCode?: string;
-```
-
-##### MediaEncoding?
-
-```ts
-optional MediaEncoding?: AwsTranscribeMediaEncoding;
-```
-
-##### MediaSampleRateHertz?
-
-```ts
-optional MediaSampleRateHertz?: number;
-```
-
-##### TranscriptResultStream?
-
-```ts
-optional TranscriptResultStream?: AsyncIterable<AwsTranscribeStreamingResponseEvent>;
-```
-
-***
-
-### AwsTranscribeStreamingResponseEvent
-
-#### Properties
-
-##### BadRequestException?
-
-```ts
-optional BadRequestException?: AwsSdkExceptionShape;
-```
-
-##### ConflictException?
-
-```ts
-optional ConflictException?: AwsSdkExceptionShape;
-```
-
-##### InternalFailureException?
-
-```ts
-optional InternalFailureException?: AwsSdkExceptionShape;
-```
-
-##### LimitExceededException?
-
-```ts
-optional LimitExceededException?: AwsSdkExceptionShape;
-```
-
-##### ServiceUnavailableException?
-
-```ts
-optional ServiceUnavailableException?: AwsSdkExceptionShape;
-```
-
-##### TranscriptEvent?
-
-```ts
-optional TranscriptEvent?: {
-  Transcript?: {
-     Results?: AwsTranscribeStreamingResult[];
-  };
-};
-```
-
-###### Transcript?
-
-```ts
-optional Transcript?: {
-  Results?: AwsTranscribeStreamingResult[];
-};
-```
-
-###### Transcript.Results?
-
-```ts
-optional Results?: AwsTranscribeStreamingResult[];
-```
-
-***
-
-### AwsTranscribeStreamingResult
-
-#### Properties
-
-##### Alternatives?
-
-```ts
-optional Alternatives?: {
-  Transcript?: string;
-}[];
-```
-
-###### Transcript?
-
-```ts
-optional Transcript?: string;
-```
-
-##### EndTime?
-
-```ts
-optional EndTime?: number;
-```
-
-##### IsPartial?
-
-```ts
-optional IsPartial?: boolean;
-```
-
-##### ResultId?
-
-```ts
-optional ResultId?: string;
-```
-
-##### StartTime?
-
-```ts
-optional StartTime?: number;
-```
-
 ## Type Aliases
 
 ### AwsPollyEngine
 
 ```ts
-type AwsPollyEngine = "standard" | "neural" | "long-form" | "generative";
+type AwsPollyEngine = NonNullable<SynthesizeSpeechCommandInput["Engine"]>;
+```
+
+***
+
+### AwsPollyLanguageCode
+
+```ts
+type AwsPollyLanguageCode = NonNullable<SynthesizeSpeechCommandInput["LanguageCode"]>;
 ```
 
 ***
@@ -1159,7 +1053,31 @@ type AwsPollyEngine = "standard" | "neural" | "long-form" | "generative";
 ### AwsPollyOutputFormat
 
 ```ts
-type AwsPollyOutputFormat = "json" | "mp3" | "ogg_vorbis" | "pcm" | "ogg_opus";
+type AwsPollyOutputFormat = NonNullable<SynthesizeSpeechCommandInput["OutputFormat"]>;
+```
+
+***
+
+### AwsPollySpeechMarkType
+
+```ts
+type AwsPollySpeechMarkType = NonNullable<SynthesizeSpeechCommandInput["SpeechMarkTypes"]>[number];
+```
+
+***
+
+### AwsPollySynthesizeCommandInput
+
+```ts
+type AwsPollySynthesizeCommandInput = SynthesizeSpeechCommandInput;
+```
+
+***
+
+### AwsPollySynthesizeCommandOutput
+
+```ts
+type AwsPollySynthesizeCommandOutput = SynthesizeSpeechCommandOutput;
 ```
 
 ***
@@ -1167,7 +1085,15 @@ type AwsPollyOutputFormat = "json" | "mp3" | "ogg_vorbis" | "pcm" | "ogg_opus";
 ### AwsPollyTextType
 
 ```ts
-type AwsPollyTextType = "text" | "ssml";
+type AwsPollyTextType = NonNullable<SynthesizeSpeechCommandInput["TextType"]>;
+```
+
+***
+
+### AwsPollyVoiceId
+
+```ts
+type AwsPollyVoiceId = NonNullable<SynthesizeSpeechCommandInput["VoiceId"]>;
 ```
 
 ***
@@ -1225,10 +1151,34 @@ type AwsSpeechResource =
 
 ***
 
+### AwsTranscribeContentIdentificationType
+
+```ts
+type AwsTranscribeContentIdentificationType = NonNullable<StartStreamTranscriptionCommandInput["ContentIdentificationType"]>;
+```
+
+***
+
+### AwsTranscribeContentRedactionType
+
+```ts
+type AwsTranscribeContentRedactionType = NonNullable<StartStreamTranscriptionCommandInput["ContentRedactionType"]>;
+```
+
+***
+
+### AwsTranscribeLanguageCode
+
+```ts
+type AwsTranscribeLanguageCode = NonNullable<StartStreamTranscriptionCommandInput["LanguageCode"]>;
+```
+
+***
+
 ### AwsTranscribeMediaEncoding
 
 ```ts
-type AwsTranscribeMediaEncoding = "pcm" | "ogg-opus" | "flac";
+type AwsTranscribeMediaEncoding = NonNullable<StartStreamTranscriptionCommandInput["MediaEncoding"]>;
 ```
 
 ***
@@ -1236,7 +1186,39 @@ type AwsTranscribeMediaEncoding = "pcm" | "ogg-opus" | "flac";
 ### AwsTranscribePartialResultsStability
 
 ```ts
-type AwsTranscribePartialResultsStability = "high" | "medium" | "low";
+type AwsTranscribePartialResultsStability = NonNullable<StartStreamTranscriptionCommandInput["PartialResultsStability"]>;
+```
+
+***
+
+### AwsTranscribeStreamingAudioStreamEvent
+
+```ts
+type AwsTranscribeStreamingAudioStreamEvent = NonNullable<StartStreamTranscriptionCommandInput["AudioStream"]> extends AsyncIterable<infer Event> ? Event : never;
+```
+
+***
+
+### AwsTranscribeStreamingCommandInput
+
+```ts
+type AwsTranscribeStreamingCommandInput = StartStreamTranscriptionCommandInput;
+```
+
+***
+
+### AwsTranscribeStreamingCommandOutput
+
+```ts
+type AwsTranscribeStreamingCommandOutput = StartStreamTranscriptionCommandOutput;
+```
+
+***
+
+### AwsTranscribeStreamingResponseEvent
+
+```ts
+type AwsTranscribeStreamingResponseEvent = NonNullable<StartStreamTranscriptionCommandOutput["TranscriptResultStream"]> extends AsyncIterable<infer Event> ? Event : never;
 ```
 
 ***
@@ -1244,7 +1226,7 @@ type AwsTranscribePartialResultsStability = "high" | "medium" | "low";
 ### AwsTranscribeVocabularyFilterMethod
 
 ```ts
-type AwsTranscribeVocabularyFilterMethod = "remove" | "mask" | "tag";
+type AwsTranscribeVocabularyFilterMethod = NonNullable<StartStreamTranscriptionCommandInput["VocabularyFilterMethod"]>;
 ```
 
 ## Variables
@@ -1350,7 +1332,7 @@ function createAwsSdkSpeechClient(options): AwsSpeechClient;
 ### createAwsSpeechClient()
 
 ```ts
-function createAwsSpeechClient(options): AwsSpeechClient;
+function createAwsSpeechClient(options): AwsSpeechClient<AwsSpeechRawClients>;
 ```
 
 #### Parameters
@@ -1361,17 +1343,14 @@ function createAwsSpeechClient(options): AwsSpeechClient;
 
 #### Returns
 
-[`AwsSpeechClient`](#awsspeechclient)
+[`AwsSpeechClient`](#awsspeechclient)\<[`AwsSpeechRawClients`](#awsspeechrawclients)\>
 
 ***
 
 ### createAwsSpeechRawClients()
 
 ```ts
-function createAwsSpeechRawClients(options): {
-  pollyClient: PollyClient;
-  transcribeStreamingClient: TranscribeStreamingClient;
-};
+function createAwsSpeechRawClients(options): AwsSpeechRawClients;
 ```
 
 #### Parameters
@@ -1382,17 +1361,7 @@ function createAwsSpeechRawClients(options): {
 
 #### Returns
 
-```ts
-{
-  pollyClient: PollyClient;
-  transcribeStreamingClient: TranscribeStreamingClient;
-}
-```
-
-| Name | Type |
-| ------ | ------ |
-| `pollyClient` | `PollyClient` |
-| `transcribeStreamingClient` | `TranscribeStreamingClient` |
+[`AwsSpeechRawClients`](#awsspeechrawclients)
 
 ***
 

@@ -392,15 +392,15 @@ optional sort?:
 
 #### Properties
 
-##### apiBaseUrl?
+##### accessToken?
 
 ```ts
-optional apiBaseUrl?: string;
+optional accessToken?: string;
 ```
 
 ###### Inherited from
 
-[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`apiBaseUrl`](#apibaseurl-1)
+[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`accessToken`](#accesstoken-1)
 
 ##### appId
 
@@ -411,6 +411,16 @@ appId: string;
 ###### Inherited from
 
 [`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`appId`](#appid-2)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`baseUrl`](#baseurl-1)
 
 ##### client?
 
@@ -469,20 +479,10 @@ optional fetch?: {
 
 [`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`fetch`](#fetch-1)
 
-##### issuerId
+##### getJwt?
 
 ```ts
-issuerId: string;
-```
-
-###### Inherited from
-
-[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`issuerId`](#issuerid-3)
-
-##### jwtFactory?
-
-```ts
-optional jwtFactory?: () => string | Promise<string>;
+optional getJwt?: () => string | Promise<string>;
 ```
 
 ###### Returns
@@ -491,12 +491,22 @@ optional jwtFactory?: () => string | Promise<string>;
 
 ###### Inherited from
 
-[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`jwtFactory`](#jwtfactory-1)
+[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`getJwt`](#getjwt-1)
 
-##### keyId
+##### issuerId?
 
 ```ts
-keyId: string;
+optional issuerId?: string;
+```
+
+###### Inherited from
+
+[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`issuerId`](#issuerid-3)
+
+##### keyId?
+
+```ts
+optional keyId?: string;
 ```
 
 ###### Inherited from
@@ -512,6 +522,58 @@ optional privateKey?: string;
 ###### Inherited from
 
 [`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`privateKey`](#privatekey-2)
+
+##### providerClient?
+
+```ts
+optional providerClient?: AppStoreReviewsProviderClient;
+```
+
+###### Inherited from
+
+[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`providerClient`](#providerclient-2)
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`retry`](#retry-1)
+
+##### sdkClient?
+
+```ts
+optional sdkClient?: Client;
+```
+
+###### Inherited from
+
+[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`sdkClient`](#sdkclient-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`signal`](#signal-1)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions).[`timeoutMs`](#timeoutms-1)
 
 ***
 
@@ -674,37 +736,287 @@ reviewId: string;
 
 ### AppStoreReviewsClient
 
+#### Extends
+
+- [`AppStoreReviewsProviderClient`](#appstorereviewsproviderclient)
+
 #### Properties
 
-##### rawClient
+##### providerClient
 
 ```ts
-rawClient: {
-  request: Promise<T>;
-};
+providerClient: AppStoreReviewsProviderClient;
 ```
 
-###### request()
+#### Methods
+
+##### createOrUpdateReviewResponse()
 
 ```ts
-request<T>(input): Promise<T>;
+createOrUpdateReviewResponse(input): Promise<AppStoreCustomerReviewResponseDocument>;
 ```
-
-###### Type Parameters
-
-| Type Parameter | Default type |
-| ------ | ------ |
-| `T` | [`AppStoreReviewsJsonObject`](#appstorereviewsjsonobject) |
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | [`AppStoreRawRequestInput`](#appstorerawrequestinput) |
+| `input` | [`AppStoreReviewResponseInput`](#appstorereviewresponseinput) |
 
 ###### Returns
 
-`Promise`\<`T`\>
+`Promise`\<[`AppStoreCustomerReviewResponseDocument`](#appstorecustomerreviewresponsedocument)\>
+
+###### Inherited from
+
+[`AppStoreReviewsProviderClient`](#appstorereviewsproviderclient).[`createOrUpdateReviewResponse`](#createorupdatereviewresponse-1)
+
+##### deleteReviewResponse()
+
+```ts
+deleteReviewResponse(responseId): Promise<void>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `responseId` | `string` |
+
+###### Returns
+
+`Promise`\<`void`\>
+
+###### Inherited from
+
+[`AppStoreReviewsProviderClient`](#appstorereviewsproviderclient).[`deleteReviewResponse`](#deletereviewresponse-1)
+
+##### getApp()
+
+```ts
+getApp(): Promise<AppStoreAppResponse>;
+```
+
+###### Returns
+
+`Promise`\<[`AppStoreAppResponse`](#appstoreappresponse)\>
+
+###### Inherited from
+
+[`AppStoreReviewsProviderClient`](#appstorereviewsproviderclient).[`getApp`](#getapp-1)
+
+##### getReview()
+
+```ts
+getReview(reviewId, input?): Promise<AppStoreReviewResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `reviewId` | `string` |
+| `input?` | `Pick`\<[`AppStoreListReviewsInput`](#appstorelistreviewsinput), `"include"` \| `"fields"`\> |
+
+###### Returns
+
+`Promise`\<[`AppStoreReviewResponse`](#appstorereviewresponse)\>
+
+###### Inherited from
+
+[`AppStoreReviewsProviderClient`](#appstorereviewsproviderclient).[`getReview`](#getreview-1)
+
+##### listReviews()
+
+```ts
+listReviews(input?): Promise<AppStoreReviewsListResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`AppStoreListReviewsInput`](#appstorelistreviewsinput) |
+
+###### Returns
+
+`Promise`\<[`AppStoreReviewsListResponse`](#appstorereviewslistresponse)\>
+
+###### Inherited from
+
+[`AppStoreReviewsProviderClient`](#appstorereviewsproviderclient).[`listReviews`](#listreviews-1)
+
+##### listReviewsPage()
+
+```ts
+listReviewsPage(pageUrl): Promise<AppStoreReviewsListResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `pageUrl` | `string` |
+
+###### Returns
+
+`Promise`\<[`AppStoreReviewsListResponse`](#appstorereviewslistresponse)\>
+
+###### Inherited from
+
+[`AppStoreReviewsProviderClient`](#appstorereviewsproviderclient).[`listReviewsPage`](#listreviewspage-1)
+
+***
+
+### AppStoreReviewsClientOptions
+
+#### Extended by
+
+- [`AppStoreLiveCheckOptions`](#appstorelivecheckoptions)
+
+#### Properties
+
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+##### appId
+
+```ts
+appId: string;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+##### getJwt?
+
+```ts
+optional getJwt?: () => string | Promise<string>;
+```
+
+###### Returns
+
+`string` \| `Promise`\<`string`\>
+
+##### issuerId?
+
+```ts
+optional issuerId?: string;
+```
+
+##### keyId?
+
+```ts
+optional keyId?: string;
+```
+
+##### privateKey?
+
+```ts
+optional privateKey?: string;
+```
+
+##### providerClient?
+
+```ts
+optional providerClient?: AppStoreReviewsProviderClient;
+```
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+##### sdkClient?
+
+```ts
+optional sdkClient?: Client;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+***
+
+### AppStoreReviewsJsonObject
+
+#### Indexable
+
+```ts
+[key: string]: AppStoreReviewsProviderExtensionValue
+```
+
+***
+
+### AppStoreReviewsProviderClient
+
+#### Extended by
+
+- [`AppStoreReviewsClient`](#appstorereviewsclient)
 
 #### Methods
 
@@ -798,113 +1110,6 @@ listReviewsPage(pageUrl): Promise<AppStoreReviewsListResponse>;
 ###### Returns
 
 `Promise`\<[`AppStoreReviewsListResponse`](#appstorereviewslistresponse)\>
-
-***
-
-### AppStoreReviewsClientOptions
-
-#### Extended by
-
-- [`AppStoreLiveCheckOptions`](#appstorelivecheckoptions)
-
-#### Properties
-
-##### apiBaseUrl?
-
-```ts
-optional apiBaseUrl?: string;
-```
-
-##### appId
-
-```ts
-appId: string;
-```
-
-##### fetch?
-
-```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
-```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-##### issuerId
-
-```ts
-issuerId: string;
-```
-
-##### jwtFactory?
-
-```ts
-optional jwtFactory?: () => string | Promise<string>;
-```
-
-###### Returns
-
-`string` \| `Promise`\<`string`\>
-
-##### keyId
-
-```ts
-keyId: string;
-```
-
-##### privateKey?
-
-```ts
-optional privateKey?: string;
-```
-
-***
-
-### AppStoreReviewsJsonObject
-
-#### Indexable
-
-```ts
-[key: string]: AppStoreReviewsProviderExtensionValue
-```
 
 ## Type Aliases
 
@@ -1050,109 +1255,232 @@ type AppStoreReviewsProviderPayload = AppStoreReviewsJsonObject | object;
 ### AppStoreReviewsProviderQuery
 
 ```ts
-type AppStoreReviewsProviderQuery = Record<string, AppStoreReviewsProviderExtensionValue>;
+type AppStoreReviewsProviderQuery = Record<string, ProviderQueryValue>;
 ```
 
 ## Variables
 
+### appStoreReviewOperations
+
+```ts
+const appStoreReviewOperations: typeof createAppStoreReviewsOperationHandlers;
+```
+
+***
+
 ### appStoreReviewsIntegration
 
 ```ts
-const appStoreReviewsIntegration: DefinedIntegration<{
-  capabilities: {
-     audiences?: ("customer-facing" | "mixed" | "internal-support")[];
-     capability: string;
-     changesWorkflow?: boolean;
-     description?: string;
-     exposesSensitiveData?: boolean;
-     extension?: boolean;
-     label?: string;
-     metadata?: Record<string, unknown>;
-     providerObjects?: {
+const appStoreReviewsIntegration: {
+  bindingReport: {
+     extraHandlerAliases: never[];
+     invalidExtensionOperationAliases: never[];
+     missingHandlerAliases: string[];
+  };
+  manifest: {
+     capabilities: {
+        audiences?: ("customer-facing" | "mixed" | "internal-support")[];
+        capability: string;
+        changesWorkflow?: boolean;
         description?: string;
-        kind: string;
+        exposesSensitiveData?: boolean;
+        extension?: boolean;
         label?: string;
         metadata?: Record<string, unknown>;
-        schemaName?: string;
+        providerObjects?: {
+           description?: string;
+           kind: string;
+           label?: string;
+           metadata?: Record<string, unknown>;
+           schemaName?: string;
+        }[];
+        requiresCredential?: boolean;
+        sideEffect?: boolean;
      }[];
-     requiresCredential?: boolean;
-     sideEffect?: boolean;
-  }[];
-  category: string;
-  channelAudiences?: ("customer-facing" | "mixed" | "internal-support")[];
-  coverage?: {
-     evidence?: {
-        label: string;
+     category: string;
+     channelAudiences: ("customer-facing" | "mixed" | "internal-support")[];
+     coverage: {
+        evidence: {
+           label: string;
+           url?: string;
+        }[];
+        notes: string[];
+        scope:   | "support-workflow-subset"
+           | "provider-api-subset"
+           | "connector-required"
+           | "local-protocol"
+           | "full-provider-api";
+     };
+     credentialRequirements: {
+        description?: string;
+        id: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        required: boolean;
+        scopes: string[];
+     }[];
+     directions: (
+        | "receive-only"
+        | "send-only"
+        | "bidirectional"
+        | "inbound-only"
+       | "outbound-only")[];
+     id: string;
+     limitations: string[];
+     maintainers: {
+        name: string;
+        type: "official" | "community" | "unknown" | "partner";
         url?: string;
      }[];
-     notes?: string[];
-     scope?:   | "support-workflow-subset"
-        | "provider-api-subset"
-        | "connector-required"
-        | "local-protocol"
-        | "full-provider-api";
-  };
-  credentialRequirements?: {
-     description?: string;
-     id: string;
-     label?: string;
      metadata?: Record<string, unknown>;
-     required?: boolean;
-     scopes?: string[];
-  }[];
-  directions: (
-     | "receive-only"
-     | "send-only"
-     | "bidirectional"
-     | "inbound-only"
-    | "outbound-only")[];
-  id: string;
-  limitations?: string[];
-  maintainers?: {
      name: string;
-     type?: "official" | "community" | "unknown" | "partner";
-     url?: string;
-  }[];
-  metadata?: Record<string, unknown>;
-  name: string;
-  operations?: {
-     alias: string;
-     audience?: "customer-facing" | "mixed" | "internal-support";
-     audiences?: ("customer-facing" | "mixed" | "internal-support")[];
-     capability: string;
-     changesWorkflow?: boolean;
-     description?: string;
-     exposesSensitiveData?: boolean;
-     extension?: boolean;
-     externallyVisible?: boolean;
-     inputSchema?: unknown;
-     inputSchemaName?: string;
-     inputSchemaRef?: string;
-     label?: string;
-     metadata?: Record<string, unknown>;
-     outputSchema?: unknown;
-     outputSchemaName?: string;
-     outputSchemaRef?: string;
-     providerObject?: string;
-     providerObjects?: {
+     operations: {
+        alias: string;
+        audience?: "customer-facing" | "mixed" | "internal-support";
+        audiences?: ("customer-facing" | "mixed" | "internal-support")[];
+        capability: string;
+        changesWorkflow?: boolean;
         description?: string;
-        kind: string;
+        exposesSensitiveData?: boolean;
+        extension: boolean;
+        externallyVisible?: boolean;
+        inputSchema?: unknown;
+        inputSchemaName?: string;
+        inputSchemaRef?: string;
         label?: string;
         metadata?: Record<string, unknown>;
-        schemaName?: string;
+        outputSchema?: unknown;
+        outputSchemaName?: string;
+        outputSchemaRef?: string;
+        providerObject?: string;
+        providerObjects?: {
+           description?: string;
+           kind: string;
+           label?: string;
+           metadata?: Record<string, unknown>;
+           schemaName?: string;
+        }[];
+        providerOperation?: string;
+        requiredPolicyIds?: string[];
+        requiresApproval?: boolean;
+        requiresCredential?: boolean;
+        sideEffect?: boolean;
      }[];
-     providerOperation?: string;
-     requiredPolicyIds?: string[];
-     requiresApproval?: boolean;
-     requiresCredential?: boolean;
-     sideEffect?: boolean;
-  }[];
-  packageName: string;
-  privacyNotes?: string[];
-  provider: string;
-  trustLevel?: "official" | "community" | "verified" | "experimental";
-}, unknown, never>;
+     packageName: string;
+     privacyNotes: string[];
+     provider: string;
+     trustLevel: "official" | "community" | "verified" | "experimental";
+   } & {
+     capabilities: {
+        audiences?: ("customer-facing" | "mixed" | "internal-support")[];
+        capability: string;
+        changesWorkflow?: boolean;
+        description?: string;
+        exposesSensitiveData?: boolean;
+        extension?: boolean;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        providerObjects?: {
+           description?: string;
+           kind: string;
+           label?: string;
+           metadata?: Record<string, unknown>;
+           schemaName?: string;
+        }[];
+        requiresCredential?: boolean;
+        sideEffect?: boolean;
+     }[];
+     category: string;
+     channelAudiences?: ("customer-facing" | "mixed" | "internal-support")[];
+     coverage?: {
+        evidence?: {
+           label: string;
+           url?: string;
+        }[];
+        notes?: string[];
+        scope?:   | "support-workflow-subset"
+           | "provider-api-subset"
+           | "connector-required"
+           | "local-protocol"
+           | "full-provider-api";
+     };
+     credentialRequirements?: {
+        description?: string;
+        id: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        required?: boolean;
+        scopes?: string[];
+     }[];
+     directions: (
+        | "receive-only"
+        | "send-only"
+        | "bidirectional"
+        | "inbound-only"
+       | "outbound-only")[];
+     id: string;
+     limitations?: string[];
+     maintainers?: {
+        name: string;
+        type?: "official" | "community" | "unknown" | "partner";
+        url?: string;
+     }[];
+     metadata?: Record<string, unknown>;
+     name: string;
+     operations?: {
+        alias: string;
+        audience?: "customer-facing" | "mixed" | "internal-support";
+        audiences?: ("customer-facing" | "mixed" | "internal-support")[];
+        capability: string;
+        changesWorkflow?: boolean;
+        description?: string;
+        exposesSensitiveData?: boolean;
+        extension?: boolean;
+        externallyVisible?: boolean;
+        inputSchema?: unknown;
+        inputSchemaName?: string;
+        inputSchemaRef?: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        outputSchema?: unknown;
+        outputSchemaName?: string;
+        outputSchemaRef?: string;
+        providerObject?: string;
+        providerObjects?: {
+           description?: string;
+           kind: string;
+           label?: string;
+           metadata?: Record<..., ...>;
+           schemaName?: string;
+        }[];
+        providerOperation?: string;
+        requiredPolicyIds?: string[];
+        requiresApproval?: boolean;
+        requiresCredential?: boolean;
+        sideEffect?: boolean;
+     }[];
+     packageName: string;
+     privacyNotes?: string[];
+     provider: string;
+     trustLevel?: "official" | "community" | "verified" | "experimental";
+  };
+  operationAliases: never[];
+  operations: {
+  };
+};
 ```
+
+#### Type Declaration
+
+| Name | Type |
+| ------ | ------ |
+| <a id="property-bindingreport"></a> `bindingReport` | \{ `extraHandlerAliases`: `never`[]; `invalidExtensionOperationAliases`: `never`[]; `missingHandlerAliases`: `string`[]; \} |
+| `bindingReport.extraHandlerAliases` | `never`[] |
+| `bindingReport.invalidExtensionOperationAliases` | `never`[] |
+| `bindingReport.missingHandlerAliases` | `string`[] |
+| <a id="property-manifest"></a> `manifest` | \{ `capabilities`: \{ `audiences?`: (`"customer-facing"` \| `"mixed"` \| `"internal-support"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[]; `category`: `string`; `channelAudiences`: (`"customer-facing"` \| `"mixed"` \| `"internal-support"`)[]; `coverage`: \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \}; `credentialRequirements`: \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[]; `directions`: ( \| `"receive-only"` \| `"send-only"` \| `"bidirectional"` \| `"inbound-only"` \| `"outbound-only"`)[]; `id`: `string`; `limitations`: `string`[]; `maintainers`: \{ `name`: `string`; `type`: `"official"` \| `"community"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[]; `metadata?`: `Record`\<`string`, `unknown`\>; `name`: `string`; `operations`: \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"mixed"` \| `"internal-support"`; `audiences?`: (`"customer-facing"` \| `"mixed"` \| `"internal-support"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[]; `packageName`: `string`; `privacyNotes`: `string`[]; `provider`: `string`; `trustLevel`: `"official"` \| `"community"` \| `"verified"` \| `"experimental"`; \} & \{ `capabilities`: \{ `audiences?`: (`"customer-facing"` \| `"mixed"` \| `"internal-support"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[]; `category`: `string`; `channelAudiences?`: (`"customer-facing"` \| `"mixed"` \| `"internal-support"`)[]; `coverage?`: \{ `evidence?`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes?`: `string`[]; `scope?`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \}; `credentialRequirements?`: \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required?`: `boolean`; `scopes?`: `string`[]; \}[]; `directions`: ( \| `"receive-only"` \| `"send-only"` \| `"bidirectional"` \| `"inbound-only"` \| `"outbound-only"`)[]; `id`: `string`; `limitations?`: `string`[]; `maintainers?`: \{ `name`: `string`; `type?`: `"official"` \| `"community"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[]; `metadata?`: `Record`\<`string`, `unknown`\>; `name`: `string`; `operations?`: \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"mixed"` \| `"internal-support"`; `audiences?`: (`"customer-facing"` \| `"mixed"` \| `"internal-support"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<..., ...\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[]; `packageName`: `string`; `privacyNotes?`: `string`[]; `provider`: `string`; `trustLevel?`: `"official"` \| `"community"` \| `"verified"` \| `"experimental"`; \} |
+| <a id="property-operationaliases"></a> `operationAliases` | `never`[] |
+| <a id="property-operations"></a> `operations` | \{ \} |
 
 ## Functions
 
@@ -1197,35 +1525,6 @@ function appStoreOperationUrl(
 #### Returns
 
 `string`
-
-***
-
-### appStoreRequest()
-
-```ts
-function appStoreRequest<T>(input): Promise<T>;
-```
-
-#### Type Parameters
-
-| Type Parameter |
-| ------ |
-| `T` |
-
-#### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | \{ `body?`: [`AppStoreReviewsProviderPayload`](#appstorereviewsproviderpayload); `fetch`: \{ (`input`, `init?`): `Promise`\<`Response`\>; (`input`, `init?`): `Promise`\<`Response`\>; \}; `method`: [`AppStoreHttpMethod`](#appstorehttpmethod); `options`: [`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions); `url`: `string`; \} |
-| `input.body?` | [`AppStoreReviewsProviderPayload`](#appstorereviewsproviderpayload) |
-| `input.fetch` | \{ (`input`, `init?`): `Promise`\<`Response`\>; (`input`, `init?`): `Promise`\<`Response`\>; \} |
-| `input.method` | [`AppStoreHttpMethod`](#appstorehttpmethod) |
-| `input.options` | [`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions) |
-| `input.url` | `string` |
-
-#### Returns
-
-`Promise`\<`T`\>
 
 ***
 
@@ -1293,6 +1592,24 @@ function createAppStoreConnectJwt(options): string;
 
 ***
 
+### createAppStoreConnectRestProviderClient()
+
+```ts
+function createAppStoreConnectRestProviderClient(options): AppStoreReviewsProviderClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | `Omit`\<[`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions), `"providerClient"`\> |
+
+#### Returns
+
+[`AppStoreReviewsProviderClient`](#appstorereviewsproviderclient)
+
+***
+
 ### createAppStoreReviewsClient()
 
 ```ts
@@ -1308,6 +1625,222 @@ function createAppStoreReviewsClient(options): AppStoreReviewsClient;
 #### Returns
 
 [`AppStoreReviewsClient`](#appstorereviewsclient)
+
+***
+
+### createAppStoreReviewsIntegration()
+
+```ts
+function createAppStoreReviewsIntegration(options): DefinedIntegration<{
+  capabilities: {
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+     capability: string;
+     changesWorkflow?: boolean;
+     description?: string;
+     exposesSensitiveData?: boolean;
+     extension?: boolean;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        schemaName?: string;
+     }[];
+     requiresCredential?: boolean;
+     sideEffect?: boolean;
+  }[];
+  category: string;
+  channelAudiences?: ("customer-facing" | "internal-support" | "mixed")[];
+  coverage?: {
+     evidence?: {
+        label: string;
+        url?: string;
+     }[];
+     notes?: string[];
+     scope?:   | "support-workflow-subset"
+        | "provider-api-subset"
+        | "connector-required"
+        | "local-protocol"
+        | "full-provider-api";
+  };
+  credentialRequirements?: {
+     description?: string;
+     id: string;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     required?: boolean;
+     scopes?: string[];
+  }[];
+  directions: (
+     | "receive-only"
+     | "send-only"
+     | "inbound-only"
+     | "outbound-only"
+    | "bidirectional")[];
+  id: string;
+  limitations?: string[];
+  maintainers?: {
+     name: string;
+     type?: "community" | "official" | "unknown" | "partner";
+     url?: string;
+  }[];
+  metadata?: Record<string, unknown>;
+  name: string;
+  operations?: {
+     alias: string;
+     audience?: "customer-facing" | "internal-support" | "mixed";
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+     capability: string;
+     changesWorkflow?: boolean;
+     description?: string;
+     exposesSensitiveData?: boolean;
+     extension?: boolean;
+     externallyVisible?: boolean;
+     inputSchema?: unknown;
+     inputSchemaName?: string;
+     inputSchemaRef?: string;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     outputSchema?: unknown;
+     outputSchemaName?: string;
+     outputSchemaRef?: string;
+     providerObject?: string;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        schemaName?: string;
+     }[];
+     providerOperation?: string;
+     requiredPolicyIds?: string[];
+     requiresApproval?: boolean;
+     requiresCredential?: boolean;
+     sideEffect?: boolean;
+  }[];
+  packageName: string;
+  privacyNotes?: string[];
+  provider: string;
+  trustLevel?: "community" | "official" | "verified" | "experimental";
+}, unknown, {
+  appstore.reviewResponses.createOrUpdate: (input) => Promise<AppStoreCustomerReviewResponseDocument>;
+  appstore.reviewResponses.delete: (input) => Promise<void>;
+  appstore.reviews.get: (input) => Promise<AppStoreReviewResponse>;
+  appstore.reviews.list: (input) => Promise<AppStoreReviewsListResponse>;
+  appstore.reviews.page: (input) => Promise<AppStoreReviewsListResponse>;
+}>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions) |
+
+#### Returns
+
+[`DefinedIntegration`](../../../packages/integration-kit/dist.md#definedintegration)\<\{
+  `capabilities`: \{
+     `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+     `capability`: `string`;
+     `changesWorkflow?`: `boolean`;
+     `description?`: `string`;
+     `exposesSensitiveData?`: `boolean`;
+     `extension?`: `boolean`;
+     `label?`: `string`;
+     `metadata?`: `Record`\<`string`, `unknown`\>;
+     `providerObjects?`: \{
+        `description?`: `string`;
+        `kind`: `string`;
+        `label?`: `string`;
+        `metadata?`: `Record`\<`string`, `unknown`\>;
+        `schemaName?`: `string`;
+     \}[];
+     `requiresCredential?`: `boolean`;
+     `sideEffect?`: `boolean`;
+  \}[];
+  `category`: `string`;
+  `channelAudiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+  `coverage?`: \{
+     `evidence?`: \{
+        `label`: `string`;
+        `url?`: `string`;
+     \}[];
+     `notes?`: `string`[];
+     `scope?`:   \| `"support-workflow-subset"`
+        \| `"provider-api-subset"`
+        \| `"connector-required"`
+        \| `"local-protocol"`
+        \| `"full-provider-api"`;
+  \};
+  `credentialRequirements?`: \{
+     `description?`: `string`;
+     `id`: `string`;
+     `label?`: `string`;
+     `metadata?`: `Record`\<`string`, `unknown`\>;
+     `required?`: `boolean`;
+     `scopes?`: `string`[];
+  \}[];
+  `directions`: (
+     \| `"receive-only"`
+     \| `"send-only"`
+     \| `"inbound-only"`
+     \| `"outbound-only"`
+    \| `"bidirectional"`)[];
+  `id`: `string`;
+  `limitations?`: `string`[];
+  `maintainers?`: \{
+     `name`: `string`;
+     `type?`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`;
+     `url?`: `string`;
+  \}[];
+  `metadata?`: `Record`\<`string`, `unknown`\>;
+  `name`: `string`;
+  `operations?`: \{
+     `alias`: `string`;
+     `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`;
+     `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+     `capability`: `string`;
+     `changesWorkflow?`: `boolean`;
+     `description?`: `string`;
+     `exposesSensitiveData?`: `boolean`;
+     `extension?`: `boolean`;
+     `externallyVisible?`: `boolean`;
+     `inputSchema?`: `unknown`;
+     `inputSchemaName?`: `string`;
+     `inputSchemaRef?`: `string`;
+     `label?`: `string`;
+     `metadata?`: `Record`\<`string`, `unknown`\>;
+     `outputSchema?`: `unknown`;
+     `outputSchemaName?`: `string`;
+     `outputSchemaRef?`: `string`;
+     `providerObject?`: `string`;
+     `providerObjects?`: \{
+        `description?`: `string`;
+        `kind`: `string`;
+        `label?`: `string`;
+        `metadata?`: `Record`\<`string`, `unknown`\>;
+        `schemaName?`: `string`;
+     \}[];
+     `providerOperation?`: `string`;
+     `requiredPolicyIds?`: `string`[];
+     `requiresApproval?`: `boolean`;
+     `requiresCredential?`: `boolean`;
+     `sideEffect?`: `boolean`;
+  \}[];
+  `packageName`: `string`;
+  `privacyNotes?`: `string`[];
+  `provider`: `string`;
+  `trustLevel?`: `"community"` \| `"official"` \| `"verified"` \| `"experimental"`;
+\}, `unknown`, \{
+  `appstore.reviewResponses.createOrUpdate`: (`input`) => `Promise`\<[`AppStoreCustomerReviewResponseDocument`](#appstorecustomerreviewresponsedocument)\>;
+  `appstore.reviewResponses.delete`: (`input`) => `Promise`\<`void`\>;
+  `appstore.reviews.get`: (`input`) => `Promise`\<[`AppStoreReviewResponse`](#appstorereviewresponse)\>;
+  `appstore.reviews.list`: (`input`) => `Promise`\<[`AppStoreReviewsListResponse`](#appstorereviewslistresponse)\>;
+  `appstore.reviews.page`: (`input`) => `Promise`\<[`AppStoreReviewsListResponse`](#appstorereviewslistresponse)\>;
+\}\>
 
 ***
 
@@ -1348,6 +1881,58 @@ function createAppStoreReviewsLiveChecks(options): {
      \};
   \}\>;
 \}[]
+
+***
+
+### createAppStoreReviewsOperationHandlers()
+
+```ts
+function createAppStoreReviewsOperationHandlers(options): {
+  appstore.reviewResponses.createOrUpdate: (input) => Promise<AppStoreCustomerReviewResponseDocument>;
+  appstore.reviewResponses.delete: (input) => Promise<void>;
+  appstore.reviews.get: (input) => Promise<AppStoreReviewResponse>;
+  appstore.reviews.list: (input) => Promise<AppStoreReviewsListResponse>;
+  appstore.reviews.page: (input) => Promise<AppStoreReviewsListResponse>;
+};
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`AppStoreReviewsClientOptions`](#appstorereviewsclientoptions) |
+
+#### Returns
+
+```ts
+{
+  appstore.reviewResponses.createOrUpdate: (input) => Promise<AppStoreCustomerReviewResponseDocument>;
+  appstore.reviewResponses.delete: (input) => Promise<void>;
+  appstore.reviews.get: (input) => Promise<AppStoreReviewResponse>;
+  appstore.reviews.list: (input) => Promise<AppStoreReviewsListResponse>;
+  appstore.reviews.page: (input) => Promise<AppStoreReviewsListResponse>;
+}
+```
+
+| Name | Type |
+| ------ | ------ |
+| `appstore.reviewResponses.createOrUpdate()` | (`input`) => `Promise`\<[`AppStoreCustomerReviewResponseDocument`](#appstorecustomerreviewresponsedocument)\> |
+| `appstore.reviewResponses.delete()` | (`input`) => `Promise`\<`void`\> |
+| `appstore.reviews.get()` | (`input`) => `Promise`\<[`AppStoreReviewResponse`](#appstorereviewresponse)\> |
+| `appstore.reviews.list()` | (`input`) => `Promise`\<[`AppStoreReviewsListResponse`](#appstorereviewslistresponse)\> |
+| `appstore.reviews.page()` | (`input`) => `Promise`\<[`AppStoreReviewsListResponse`](#appstorereviewslistresponse)\> |
+
+***
+
+### createUnconfiguredAppStoreProviderClient()
+
+```ts
+function createUnconfiguredAppStoreProviderClient(): AppStoreReviewsProviderClient;
+```
+
+#### Returns
+
+[`AppStoreReviewsProviderClient`](#appstorereviewsproviderclient)
 
 ***
 

@@ -149,7 +149,7 @@ optional timestampsGranularity?: "none" | "word" | "character";
 ```ts
 optional conversationalAi?: {
   conversations?: {
-     getSignedUrl?: Promise<
+     getSignedUrl: Promise<
         | string
        | ElevenLabsConversationSignedUrlResponse>;
   };
@@ -160,16 +160,16 @@ optional conversationalAi?: {
 
 ```ts
 optional conversations?: {
-  getSignedUrl?: Promise<
+  getSignedUrl: Promise<
      | string
     | ElevenLabsConversationSignedUrlResponse>;
 };
 ```
 
-###### conversations.getSignedUrl()?
+###### conversations.getSignedUrl()
 
 ```ts
-optional getSignedUrl(request, requestOptions?): Promise<
+getSignedUrl(...args): Promise<
   | string
 | ElevenLabsConversationSignedUrlResponse>;
 ```
@@ -178,8 +178,7 @@ optional getSignedUrl(request, requestOptions?): Promise<
 
 | Parameter | Type |
 | ------ | ------ |
-| `request` | [`ElevenLabsConversationSignedUrlRequest`](#elevenlabsconversationsignedurlrequest) |
-| `requestOptions?` | `Record`\<`string`, `unknown`\> |
+| ...`args` | \[`ConversationsGetSignedUrlRequest`, `RequestOptions`\] |
 
 ###### Returns
 
@@ -187,14 +186,35 @@ optional getSignedUrl(request, requestOptions?): Promise<
   \| `string`
   \| [`ElevenLabsConversationSignedUrlResponse`](#elevenlabsconversationsignedurlresponse)\>
 
+##### fetch?
+
+```ts
+optional fetch?: (input, init?, requestOptions?) => Promise<Response>;
+```
+
+Make a passthrough request using the SDK's configured auth, retry, logging, etc.
+This is useful for making requests to endpoints not yet supported in the SDK.
+The input can be a URL string, URL object, or Request object. Relative paths are resolved against the configured base URL.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` | The URL, path, or Request object. |
+| `init?` | `RequestInit` | Standard fetch RequestInit options. |
+| `requestOptions?` | `RequestOptions` | Per-request overrides (timeout, retries, headers, abort signal). |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+A standard Response object.
+
 ##### speechToText?
 
 ```ts
 optional speechToText?: {
-  transcripts?: {
-     delete: Promise<unknown>;
-     get: Promise<unknown>;
-  };
+  transcripts?: Partial<Pick<ElevenLabsClient["speechToText"]["transcripts"], "get" | "delete">>;
   convert: Promise<unknown>;
 };
 ```
@@ -202,58 +222,20 @@ optional speechToText?: {
 ###### transcripts?
 
 ```ts
-optional transcripts?: {
-  delete: Promise<unknown>;
-  get: Promise<unknown>;
-};
+optional transcripts?: Partial<Pick<ElevenLabsClient["speechToText"]["transcripts"], "get" | "delete">>;
 ```
-
-###### transcripts.delete()
-
-```ts
-delete(transcriptionId, requestOptions?): Promise<unknown>;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `transcriptionId` | `string` |
-| `requestOptions?` | `Record`\<`string`, `unknown`\> |
-
-###### Returns
-
-`Promise`\<`unknown`\>
-
-###### transcripts.get()
-
-```ts
-get(transcriptionId, requestOptions?): Promise<unknown>;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `transcriptionId` | `string` |
-| `requestOptions?` | `Record`\<`string`, `unknown`\> |
-
-###### Returns
-
-`Promise`\<`unknown`\>
 
 ###### convert()
 
 ```ts
-convert(request, requestOptions?): Promise<unknown>;
+convert(...args): Promise<unknown>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `request` | `Record`\<`string`, `unknown`\> |
-| `requestOptions?` | `Record`\<`string`, `unknown`\> |
+| ...`args` | \[`BodySpeechToTextV1SpeechToTextPost`, `RequestOptions`\] |
 
 ###### Returns
 
@@ -272,19 +254,14 @@ optional textToSpeech?: {
 ###### convert()
 
 ```ts
-convert(
-   voiceId,
-   request,
-requestOptions?): Promise<unknown>;
+convert(...args): Promise<unknown>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `voiceId` | `string` |
-| `request` | `Record`\<`string`, `unknown`\> |
-| `requestOptions?` | `Record`\<`string`, `unknown`\> |
+| ...`args` | \[`string`, `BodyTextToSpeechFull`, `RequestOptions`\] |
 
 ###### Returns
 
@@ -293,19 +270,14 @@ requestOptions?): Promise<unknown>;
 ###### convertWithTimestamps()?
 
 ```ts
-optional convertWithTimestamps(
-   voiceId,
-   request,
-requestOptions?): Promise<unknown>;
+optional convertWithTimestamps(...args): Promise<unknown>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `voiceId` | `string` |
-| `request` | `Record`\<`string`, `unknown`\> |
-| `requestOptions?` | `Record`\<`string`, `unknown`\> |
+| ...`args` | \[`string`, `BodyTextToSpeechFullWithTimestamps`, `RequestOptions`\] |
 
 ###### Returns
 
@@ -314,19 +286,14 @@ requestOptions?): Promise<unknown>;
 ###### stream()?
 
 ```ts
-optional stream(
-   voiceId,
-   request,
-requestOptions?): Promise<unknown>;
+optional stream(...args): Promise<unknown>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `voiceId` | `string` |
-| `request` | `Record`\<`string`, `unknown`\> |
-| `requestOptions?` | `Record`\<`string`, `unknown`\> |
+| ...`args` | \[`string`, `StreamTextToSpeechRequest`, `RequestOptions`\] |
 
 ###### Returns
 
@@ -356,6 +323,18 @@ optional language_code?: string;
 optional language_probability?: number;
 ```
 
+##### languageCode?
+
+```ts
+optional languageCode?: string;
+```
+
+##### languageProbability?
+
+```ts
+optional languageProbability?: number;
+```
+
 ##### text?
 
 ```ts
@@ -366,6 +345,12 @@ optional text?: string;
 
 ```ts
 optional transcription_id?: string;
+```
+
+##### transcriptionId?
+
+```ts
+optional transcriptionId?: string;
 ```
 
 ***

@@ -190,7 +190,7 @@ const deepgramVoiceProviderManifest: {
      exposesSensitiveData: true;
      label: "Transcribe speech";
      providerObject: "voiceTranscript";
-     providerOperation: "transcribeAudio";
+     providerOperation: "listen.v1.media.transcribeFile";
    }, {
      alias: "voice.speak";
      audiences: readonly ["customer-facing"];
@@ -198,7 +198,7 @@ const deepgramVoiceProviderManifest: {
      exposesSensitiveData: true;
      label: "Synthesize speech";
      providerObject: "voiceAudio";
-     providerOperation: "synthesizeSpeech";
+     providerOperation: "speak.v1.audio.generate";
      sideEffect: true;
   }];
   packageName: "@cognidesk/integration-voice-deepgram";
@@ -258,7 +258,7 @@ const deepgramVoiceProviderManifest: {
 | `metadata.rawClient.coverage` | `"upstream-sdk"` |
 | `metadata.rawClient.export` | `"getRawClient"` |
 | `name` | `"Deepgram Voice"` |
-| `operations` | readonly \[\{ `alias`: `"voice.turn.finalize"`; `audiences`: readonly \[`"customer-facing"`\]; `capability`: `"receive"`; `exposesSensitiveData`: `true`; `label`: `"Transcribe speech"`; `providerObject`: `"voiceTranscript"`; `providerOperation`: `"transcribeAudio"`; \}, \{ `alias`: `"voice.speak"`; `audiences`: readonly \[`"customer-facing"`\]; `capability`: `"send"`; `exposesSensitiveData`: `true`; `label`: `"Synthesize speech"`; `providerObject`: `"voiceAudio"`; `providerOperation`: `"synthesizeSpeech"`; `sideEffect`: `true`; \}\] |
+| `operations` | readonly \[\{ `alias`: `"voice.turn.finalize"`; `audiences`: readonly \[`"customer-facing"`\]; `capability`: `"receive"`; `exposesSensitiveData`: `true`; `label`: `"Transcribe speech"`; `providerObject`: `"voiceTranscript"`; `providerOperation`: `"listen.v1.media.transcribeFile"`; \}, \{ `alias`: `"voice.speak"`; `audiences`: readonly \[`"customer-facing"`\]; `capability`: `"send"`; `exposesSensitiveData`: `true`; `label`: `"Synthesize speech"`; `providerObject`: `"voiceAudio"`; `providerOperation`: `"speak.v1.audio.generate"`; `sideEffect`: `true`; \}\] |
 | `packageName` | `"@cognidesk/integration-voice-deepgram"` |
 | `privacyNotes` | readonly \[`"Customer audio is sent to Deepgram for transcription, and assistant response text is sent to Deepgram for synthesis."`, `"Deepgram API keys remain server-side and are never issued to browsers by this package."`\] |
 | `provider` | `"deepgram"` |

@@ -102,7 +102,7 @@ const cognideskHelpCenterProviderManifest: {
   capabilities: readonly [{
      audiences: readonly ["customer-facing", "internal-support", "mixed"];
      capability: "read-provider-object";
-     description: "Fetches articles from SDK-user-configured local or generic HTTP help center sources.";
+     description: "Fetches articles from SDK-user-configured local sources, HTTP sources, or a HelpCenter provider client override.";
      exposesSensitiveData: true;
      label: "Fetch help center articles";
      providerObjects: readonly [{
@@ -113,7 +113,7 @@ const cognideskHelpCenterProviderManifest: {
    }, {
      audiences: readonly ["customer-facing", "internal-support", "mixed"];
      capability: "search-provider-object";
-     description: "Searches configured help center article sources using explicit source search parameters.";
+     description: "Searches local help center articles, HTTP sources, or a HelpCenter provider client override.";
      exposesSensitiveData: true;
      label: "Search help center articles";
      providerObjects: readonly [{
@@ -149,11 +149,11 @@ const cognideskHelpCenterProviderManifest: {
   channelAudiences: readonly ["customer-facing", "internal-support", "mixed"];
   coverage: {
      evidence: readonly [];
-     notes: readonly ["Coverage is limited to Cognidesk local or generic HTTP help-center source search/fetch/readiness plus Cognidesk HMAC webhook normalization.", "The package does not implement a named external help-center provider API for article/category/section/versioning/locale/permission/webhook administration; SDK users must wrap provider-specific APIs behind the configured source endpoints."];
+     notes: readonly ["Coverage is limited to Cognidesk local help-center source search/fetch/readiness, built-in HTTP source adapters, remote HelpCenterClient overrides, and Cognidesk HMAC webhook normalization.", "The package does not implement a named external help-center provider API or broader article/category/section/versioning/locale/permission/webhook administration clients; SDK users can configure generic HTTP sources or wrap provider-specific APIs behind a HelpCenter provider client."];
      scope: "local-protocol";
   };
   credentialRequirements: readonly [{
-     description: "SDK-user-configured local or HTTP help center content source.";
+     description: "SDK-user-configured local content source, HTTP source, or remote help center provider client override.";
      id: "help-center-source";
      label: "Help center source";
      required: true;
@@ -165,7 +165,7 @@ const cognideskHelpCenterProviderManifest: {
   }];
   directions: readonly ["receive-only", "inbound-only"];
   id: "help-center.cognidesk";
-  limitations: readonly ["Source selection, article visibility, indexing cadence, ranking, retention, locale fallback, and answer policy are owned by SDK user configuration.", "Local search is explicit lexical filtering; semantic ranking belongs in a configured search provider or evaluator."];
+  limitations: readonly ["Remote provider transport, source selection, article visibility, indexing cadence, ranking, retention, locale fallback, and answer policy are owned by SDK user configuration.", "Local search is explicit lexical filtering; semantic ranking belongs in a configured search provider or evaluator."];
   maintainers: readonly [{
      name: "Cognidesk";
      type: "official";
@@ -175,8 +175,25 @@ const cognideskHelpCenterProviderManifest: {
         articles: "typed-read-search";
         contentWebhooks: "typed-validate-parse";
         providerSpecificAdminLocalePermissionVersioning: "not-covered";
-        readiness: "typed-readiness";
+        readiness: "typed-local-or-http-source-readiness-or-provider-client-delegation";
      };
+     defaultClientPolicy: "built-in-http-source-when-base-url-configured";
+     implementation: {
+        checkedAt: "2026-06-25";
+        defaultClientPolicy: "built-in-http-source-when-base-url-configured";
+        externalProviderSdk: "not-applicable-internal-provider";
+        integrationKitStatus: "implemented";
+        manifestImport: "no-sdk-client-initialization";
+        protocolSource: "Cognidesk local help-center source protocol";
+        providerSdkDecision: "internal-provider/local-runtime/no-provider-SDK";
+        reason: "Cognidesk Help Center is an internal local/HTTP-source protocol and host-client adapter rather than a named external help-center provider SDK.";
+        rejectedSdkPackages: readonly [];
+        runtimePackage: "@cognidesk/integration-help-center-cognidesk";
+        sdkPackage: "@cognidesk/integration-help-center-cognidesk";
+        strategy: "local-protocol";
+        typedClientOverride: "HelpCenterProviderClient";
+     };
+     importPolicy: "local-source-http-source-or-provider-client";
   };
   name: "Cognidesk Help Center";
   operations: readonly [{
@@ -205,7 +222,7 @@ const cognideskHelpCenterProviderManifest: {
      requiresCredential: true;
   }];
   packageName: "@cognidesk/integration-help-center-cognidesk";
-  privacyNotes: readonly ["Help center content can include public support guidance, draft metadata, author data, locale data, and SDK-user-defined source metadata.", "HTTP headers, access tokens, and webhook secrets stay server-side and are represented in Studio only as readiness state."];
+  privacyNotes: readonly ["Help center content can include public support guidance, draft metadata, author data, locale data, and SDK-user-defined source metadata.", "Remote provider credentials, HTTP headers, access tokens, and webhook secrets stay in the host runtime and are represented in Studio only as readiness state."];
   provider: "cognidesk";
   trustLevel: "official";
 };
@@ -239,27 +256,43 @@ const cognideskHelpCenterProviderManifest: {
 
 | Name | Type |
 | ------ | ------ |
-| `capabilities` | readonly \[\{ `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\]; `capability`: `"read-provider-object"`; `description`: `"Fetches articles from SDK-user-configured local or generic HTTP help center sources."`; `exposesSensitiveData`: `true`; `label`: `"Fetch help center articles"`; `providerObjects`: readonly \[\{ `kind`: `"help-center-article"`; `label`: `"Help Center Article"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\]; `capability`: `"search-provider-object"`; `description`: `"Searches configured help center article sources using explicit source search parameters."`; `exposesSensitiveData`: `true`; `label`: `"Search help center articles"`; `providerObjects`: readonly \[\{ `kind`: `"help-center-article"`; `label`: `"Help Center Article"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: readonly \[`"internal-support"`, `"mixed"`\]; `capability`: `"receive"`; `description`: `"Validates signed content webhooks and normalizes article ingestion events."`; `exposesSensitiveData`: `true`; `label`: `"Receive help center content events"`; `providerObjects`: readonly \[\{ `kind`: `"help-center-webhook"`; `label`: `"Help Center Webhook"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: readonly \[`"internal-support"`\]; `capability`: `"help-center.webhook-signature"`; `description`: `"Validates HMAC-SHA256 signatures for generic help center content webhooks."`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Validate help center webhook signatures"`; `providerObjects`: readonly \[\{ `kind`: `"signed-help-center-webhook"`; `label`: `"Signed Help Center Webhook"`; \}\]; `requiresCredential`: `true`; \}\] |
+| `capabilities` | readonly \[\{ `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\]; `capability`: `"read-provider-object"`; `description`: `"Fetches articles from SDK-user-configured local sources, HTTP sources, or a HelpCenter provider client override."`; `exposesSensitiveData`: `true`; `label`: `"Fetch help center articles"`; `providerObjects`: readonly \[\{ `kind`: `"help-center-article"`; `label`: `"Help Center Article"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\]; `capability`: `"search-provider-object"`; `description`: `"Searches local help center articles, HTTP sources, or a HelpCenter provider client override."`; `exposesSensitiveData`: `true`; `label`: `"Search help center articles"`; `providerObjects`: readonly \[\{ `kind`: `"help-center-article"`; `label`: `"Help Center Article"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: readonly \[`"internal-support"`, `"mixed"`\]; `capability`: `"receive"`; `description`: `"Validates signed content webhooks and normalizes article ingestion events."`; `exposesSensitiveData`: `true`; `label`: `"Receive help center content events"`; `providerObjects`: readonly \[\{ `kind`: `"help-center-webhook"`; `label`: `"Help Center Webhook"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: readonly \[`"internal-support"`\]; `capability`: `"help-center.webhook-signature"`; `description`: `"Validates HMAC-SHA256 signatures for generic help center content webhooks."`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Validate help center webhook signatures"`; `providerObjects`: readonly \[\{ `kind`: `"signed-help-center-webhook"`; `label`: `"Signed Help Center Webhook"`; \}\]; `requiresCredential`: `true`; \}\] |
 | `category` | `"help-center"` |
 | `channelAudiences` | readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\] |
-| `coverage` | \{ `evidence`: readonly \[\]; `notes`: readonly \[`"Coverage is limited to Cognidesk local or generic HTTP help-center source search/fetch/readiness plus Cognidesk HMAC webhook normalization."`, `"The package does not implement a named external help-center provider API for article/category/section/versioning/locale/permission/webhook administration; SDK users must wrap provider-specific APIs behind the configured source endpoints."`\]; `scope`: `"local-protocol"`; \} |
+| `coverage` | \{ `evidence`: readonly \[\]; `notes`: readonly \[`"Coverage is limited to Cognidesk local help-center source search/fetch/readiness, built-in HTTP source adapters, remote HelpCenterClient overrides, and Cognidesk HMAC webhook normalization."`, `"The package does not implement a named external help-center provider API or broader article/category/section/versioning/locale/permission/webhook administration clients; SDK users can configure generic HTTP sources or wrap provider-specific APIs behind a HelpCenter provider client."`\]; `scope`: `"local-protocol"`; \} |
 | `coverage.evidence` | readonly \[\] |
-| `coverage.notes` | readonly \[`"Coverage is limited to Cognidesk local or generic HTTP help-center source search/fetch/readiness plus Cognidesk HMAC webhook normalization."`, `"The package does not implement a named external help-center provider API for article/category/section/versioning/locale/permission/webhook administration; SDK users must wrap provider-specific APIs behind the configured source endpoints."`\] |
+| `coverage.notes` | readonly \[`"Coverage is limited to Cognidesk local help-center source search/fetch/readiness, built-in HTTP source adapters, remote HelpCenterClient overrides, and Cognidesk HMAC webhook normalization."`, `"The package does not implement a named external help-center provider API or broader article/category/section/versioning/locale/permission/webhook administration clients; SDK users can configure generic HTTP sources or wrap provider-specific APIs behind a HelpCenter provider client."`\] |
 | `coverage.scope` | `"local-protocol"` |
-| `credentialRequirements` | readonly \[\{ `description`: `"SDK-user-configured local or HTTP help center content source."`; `id`: `"help-center-source"`; `label`: `"Help center source"`; `required`: `true`; \}, \{ `description`: `"Shared HMAC secret used to verify help center content webhooks."`; `id`: `"help-center-webhook-secret"`; `label`: `"Help center webhook secret"`; `required`: `false`; \}\] |
+| `credentialRequirements` | readonly \[\{ `description`: `"SDK-user-configured local content source, HTTP source, or remote help center provider client override."`; `id`: `"help-center-source"`; `label`: `"Help center source"`; `required`: `true`; \}, \{ `description`: `"Shared HMAC secret used to verify help center content webhooks."`; `id`: `"help-center-webhook-secret"`; `label`: `"Help center webhook secret"`; `required`: `false`; \}\] |
 | `directions` | readonly \[`"receive-only"`, `"inbound-only"`\] |
 | `id` | `"help-center.cognidesk"` |
-| `limitations` | readonly \[`"Source selection, article visibility, indexing cadence, ranking, retention, locale fallback, and answer policy are owned by SDK user configuration."`, `"Local search is explicit lexical filtering; semantic ranking belongs in a configured search provider or evaluator."`\] |
+| `limitations` | readonly \[`"Remote provider transport, source selection, article visibility, indexing cadence, ranking, retention, locale fallback, and answer policy are owned by SDK user configuration."`, `"Local search is explicit lexical filtering; semantic ranking belongs in a configured search provider or evaluator."`\] |
 | `maintainers` | readonly \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
-| `metadata` | \{ `channelCoverage`: \{ `articles`: `"typed-read-search"`; `contentWebhooks`: `"typed-validate-parse"`; `providerSpecificAdminLocalePermissionVersioning`: `"not-covered"`; `readiness`: `"typed-readiness"`; \}; \} |
-| `metadata.channelCoverage` | \{ `articles`: `"typed-read-search"`; `contentWebhooks`: `"typed-validate-parse"`; `providerSpecificAdminLocalePermissionVersioning`: `"not-covered"`; `readiness`: `"typed-readiness"`; \} |
+| `metadata` | \{ `channelCoverage`: \{ `articles`: `"typed-read-search"`; `contentWebhooks`: `"typed-validate-parse"`; `providerSpecificAdminLocalePermissionVersioning`: `"not-covered"`; `readiness`: `"typed-local-or-http-source-readiness-or-provider-client-delegation"`; \}; `defaultClientPolicy`: `"built-in-http-source-when-base-url-configured"`; `implementation`: \{ `checkedAt`: `"2026-06-25"`; `defaultClientPolicy`: `"built-in-http-source-when-base-url-configured"`; `externalProviderSdk`: `"not-applicable-internal-provider"`; `integrationKitStatus`: `"implemented"`; `manifestImport`: `"no-sdk-client-initialization"`; `protocolSource`: `"Cognidesk local help-center source protocol"`; `providerSdkDecision`: `"internal-provider/local-runtime/no-provider-SDK"`; `reason`: `"Cognidesk Help Center is an internal local/HTTP-source protocol and host-client adapter rather than a named external help-center provider SDK."`; `rejectedSdkPackages`: readonly \[\]; `runtimePackage`: `"@cognidesk/integration-help-center-cognidesk"`; `sdkPackage`: `"@cognidesk/integration-help-center-cognidesk"`; `strategy`: `"local-protocol"`; `typedClientOverride`: `"HelpCenterProviderClient"`; \}; `importPolicy`: `"local-source-http-source-or-provider-client"`; \} |
+| `metadata.channelCoverage` | \{ `articles`: `"typed-read-search"`; `contentWebhooks`: `"typed-validate-parse"`; `providerSpecificAdminLocalePermissionVersioning`: `"not-covered"`; `readiness`: `"typed-local-or-http-source-readiness-or-provider-client-delegation"`; \} |
 | `metadata.channelCoverage.articles` | `"typed-read-search"` |
 | `metadata.channelCoverage.contentWebhooks` | `"typed-validate-parse"` |
 | `metadata.channelCoverage.providerSpecificAdminLocalePermissionVersioning` | `"not-covered"` |
-| `metadata.channelCoverage.readiness` | `"typed-readiness"` |
+| `metadata.channelCoverage.readiness` | `"typed-local-or-http-source-readiness-or-provider-client-delegation"` |
+| `metadata.defaultClientPolicy` | `"built-in-http-source-when-base-url-configured"` |
+| `metadata.implementation` | \{ `checkedAt`: `"2026-06-25"`; `defaultClientPolicy`: `"built-in-http-source-when-base-url-configured"`; `externalProviderSdk`: `"not-applicable-internal-provider"`; `integrationKitStatus`: `"implemented"`; `manifestImport`: `"no-sdk-client-initialization"`; `protocolSource`: `"Cognidesk local help-center source protocol"`; `providerSdkDecision`: `"internal-provider/local-runtime/no-provider-SDK"`; `reason`: `"Cognidesk Help Center is an internal local/HTTP-source protocol and host-client adapter rather than a named external help-center provider SDK."`; `rejectedSdkPackages`: readonly \[\]; `runtimePackage`: `"@cognidesk/integration-help-center-cognidesk"`; `sdkPackage`: `"@cognidesk/integration-help-center-cognidesk"`; `strategy`: `"local-protocol"`; `typedClientOverride`: `"HelpCenterProviderClient"`; \} |
+| `metadata.implementation.checkedAt` | `"2026-06-25"` |
+| `metadata.implementation.defaultClientPolicy` | `"built-in-http-source-when-base-url-configured"` |
+| `metadata.implementation.externalProviderSdk` | `"not-applicable-internal-provider"` |
+| `metadata.implementation.integrationKitStatus` | `"implemented"` |
+| `metadata.implementation.manifestImport` | `"no-sdk-client-initialization"` |
+| `metadata.implementation.protocolSource` | `"Cognidesk local help-center source protocol"` |
+| `metadata.implementation.providerSdkDecision` | `"internal-provider/local-runtime/no-provider-SDK"` |
+| `metadata.implementation.reason` | `"Cognidesk Help Center is an internal local/HTTP-source protocol and host-client adapter rather than a named external help-center provider SDK."` |
+| `metadata.implementation.rejectedSdkPackages` | readonly \[\] |
+| `metadata.implementation.runtimePackage` | `"@cognidesk/integration-help-center-cognidesk"` |
+| `metadata.implementation.sdkPackage` | `"@cognidesk/integration-help-center-cognidesk"` |
+| `metadata.implementation.strategy` | `"local-protocol"` |
+| `metadata.implementation.typedClientOverride` | `"HelpCenterProviderClient"` |
+| `metadata.importPolicy` | `"local-source-http-source-or-provider-client"` |
 | `name` | `"Cognidesk Help Center"` |
 | `operations` | readonly \[\{ `alias`: `"cognidesk.help-center.article.search"`; `capability`: `"search-provider-object"`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Search help center articles"`; `providerObject`: `"help-center-article"`; `requiresCredential`: `true`; \}, \{ `alias`: `"cognidesk.help-center.article.fetch"`; `capability`: `"read-provider-object"`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Fetch help center article"`; `providerObject`: `"help-center-article"`; `requiresCredential`: `true`; \}, \{ `alias`: `"cognidesk.help-center.webhook.parse"`; `capability`: `"help-center.webhook-signature"`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Parse help center webhook"`; `providerObject`: `"signed-help-center-webhook"`; `requiresCredential`: `true`; \}\] |
 | `packageName` | `"@cognidesk/integration-help-center-cognidesk"` |
-| `privacyNotes` | readonly \[`"Help center content can include public support guidance, draft metadata, author data, locale data, and SDK-user-defined source metadata."`, `"HTTP headers, access tokens, and webhook secrets stay server-side and are represented in Studio only as readiness state."`\] |
+| `privacyNotes` | readonly \[`"Help center content can include public support guidance, draft metadata, author data, locale data, and SDK-user-defined source metadata."`, `"Remote provider credentials, HTTP headers, access tokens, and webhook secrets stay in the host runtime and are represented in Studio only as readiness state."`\] |
 | `provider` | `"cognidesk"` |
 | `trustLevel` | `"official"` |

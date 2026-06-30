@@ -24,6 +24,12 @@ replyText: string;
 
 #### Properties
 
+##### handlers
+
+```ts
+handlers: GooglePlayReviewsOperationHandlers;
+```
+
 ##### rawClient
 
 ```ts
@@ -31,6 +37,29 @@ rawClient: Pick<GooglePlayAndroidPublisherClient, "reviews">;
 ```
 
 #### Methods
+
+##### execute()
+
+```ts
+execute<K>(alias, input): Promise<GooglePlayReviewsOperationOutputMap[K]>;
+```
+
+###### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `K` *extends* [`GooglePlayReviewsOperationAlias`](#googleplayreviewsoperationalias) |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `alias` | `K` |
+| `input` | [`GooglePlayReviewsOperationInputMap`](#googleplayreviewsoperationinputmap)\[`K`\] |
+
+###### Returns
+
+`Promise`\<[`GooglePlayReviewsOperationOutputMap`](#googleplayreviewsoperationoutputmap)\[`K`\]\>
 
 ##### getReview()
 
@@ -326,6 +355,74 @@ optional serviceAccount?: GooglePlayServiceAccountCredentials;
 
 ***
 
+### GooglePlayReviewsOperationInputMap
+
+#### Properties
+
+##### googleplay.reviews.get
+
+```ts
+googleplay.reviews.get: {
+  reviewId: string;
+} & GooglePlayReviewsGetInput;
+```
+
+###### Type Declaration
+
+###### reviewId
+
+```ts
+reviewId: string;
+```
+
+##### googleplay.reviews.list
+
+```ts
+googleplay.reviews.list: GooglePlayReviewsListInput;
+```
+
+##### googleplay.reviews.reply
+
+```ts
+googleplay.reviews.reply: {
+  reviewId: string;
+} & GooglePlayReviewReplyInput;
+```
+
+###### Type Declaration
+
+###### reviewId
+
+```ts
+reviewId: string;
+```
+
+***
+
+### GooglePlayReviewsOperationOutputMap
+
+#### Properties
+
+##### googleplay.reviews.get
+
+```ts
+googleplay.reviews.get: Schema$Review;
+```
+
+##### googleplay.reviews.list
+
+```ts
+googleplay.reviews.list: Schema$ReviewsListResponse;
+```
+
+##### googleplay.reviews.reply
+
+```ts
+googleplay.reviews.reply: Schema$ReviewsReplyResponse;
+```
+
+***
+
 ### GooglePlayServiceAccountCredentials
 
 #### Properties
@@ -390,6 +487,49 @@ type GooglePlayReviewReplyResponse = androidpublisher_v3.Schema$ReviewsReplyResp
 
 ```ts
 type GooglePlayReviewsListResponse = androidpublisher_v3.Schema$ReviewsListResponse;
+```
+
+***
+
+### GooglePlayReviewsOperationAlias
+
+```ts
+type GooglePlayReviewsOperationAlias =
+  | "googleplay.reviews.list"
+  | "googleplay.reviews.get"
+  | "googleplay.reviews.reply";
+```
+
+***
+
+### GooglePlayReviewsOperationHandler
+
+```ts
+type GooglePlayReviewsOperationHandler<K> = (input) => Promise<GooglePlayReviewsOperationOutputMap[K]>;
+```
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `K` *extends* [`GooglePlayReviewsOperationAlias`](#googleplayreviewsoperationalias) |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`GooglePlayReviewsOperationInputMap`](#googleplayreviewsoperationinputmap)\[`K`\] |
+
+#### Returns
+
+`Promise`\<[`GooglePlayReviewsOperationOutputMap`](#googleplayreviewsoperationoutputmap)\[`K`\]\>
+
+***
+
+### GooglePlayReviewsOperationHandlers
+
+```ts
+type GooglePlayReviewsOperationHandlers = { [K in GooglePlayReviewsOperationAlias]: GooglePlayReviewsOperationHandler<K> };
 ```
 
 ***
@@ -501,6 +641,14 @@ const googlePlayReviewsIntegration: DefinedIntegration<{
 }, unknown, never>;
 ```
 
+***
+
+### googlePlayReviewsOperationHandlers
+
+```ts
+const googlePlayReviewsOperationHandlers: typeof createGooglePlayReviewsOperationHandlers;
+```
+
 ## Functions
 
 ### createGooglePlayReviewsClient()
@@ -518,6 +666,210 @@ function createGooglePlayReviewsClient(options): GooglePlayReviewsClient;
 #### Returns
 
 [`GooglePlayReviewsClient`](#googleplayreviewsclient)
+
+***
+
+### createGooglePlayReviewsIntegration()
+
+```ts
+function createGooglePlayReviewsIntegration(options): DefinedIntegration<{
+  capabilities: {
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+     capability: string;
+     changesWorkflow?: boolean;
+     description?: string;
+     exposesSensitiveData?: boolean;
+     extension?: boolean;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        schemaName?: string;
+     }[];
+     requiresCredential?: boolean;
+     sideEffect?: boolean;
+  }[];
+  category: string;
+  channelAudiences?: ("customer-facing" | "internal-support" | "mixed")[];
+  coverage?: {
+     evidence?: {
+        label: string;
+        url?: string;
+     }[];
+     notes?: string[];
+     scope?:   | "support-workflow-subset"
+        | "provider-api-subset"
+        | "connector-required"
+        | "local-protocol"
+        | "full-provider-api";
+  };
+  credentialRequirements?: {
+     description?: string;
+     id: string;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     required?: boolean;
+     scopes?: string[];
+  }[];
+  directions: (
+     | "receive-only"
+     | "send-only"
+     | "inbound-only"
+     | "outbound-only"
+    | "bidirectional")[];
+  id: string;
+  limitations?: string[];
+  maintainers?: {
+     name: string;
+     type?: "community" | "official" | "unknown" | "partner";
+     url?: string;
+  }[];
+  metadata?: Record<string, unknown>;
+  name: string;
+  operations?: {
+     alias: string;
+     audience?: "customer-facing" | "internal-support" | "mixed";
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+     capability: string;
+     changesWorkflow?: boolean;
+     description?: string;
+     exposesSensitiveData?: boolean;
+     extension?: boolean;
+     externallyVisible?: boolean;
+     inputSchema?: unknown;
+     inputSchemaName?: string;
+     inputSchemaRef?: string;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     outputSchema?: unknown;
+     outputSchemaName?: string;
+     outputSchemaRef?: string;
+     providerObject?: string;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        schemaName?: string;
+     }[];
+     providerOperation?: string;
+     requiredPolicyIds?: string[];
+     requiresApproval?: boolean;
+     requiresCredential?: boolean;
+     sideEffect?: boolean;
+  }[];
+  packageName: string;
+  privacyNotes?: string[];
+  provider: string;
+  trustLevel?: "community" | "official" | "verified" | "experimental";
+}, unknown, IntegrationOperationHandlers>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`GooglePlayReviewsClientOptions`](#googleplayreviewsclientoptions) |
+
+#### Returns
+
+[`DefinedIntegration`](../../../packages/integration-kit/dist.md#definedintegration)\<\{
+  `capabilities`: \{
+     `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+     `capability`: `string`;
+     `changesWorkflow?`: `boolean`;
+     `description?`: `string`;
+     `exposesSensitiveData?`: `boolean`;
+     `extension?`: `boolean`;
+     `label?`: `string`;
+     `metadata?`: `Record`\<`string`, `unknown`\>;
+     `providerObjects?`: \{
+        `description?`: `string`;
+        `kind`: `string`;
+        `label?`: `string`;
+        `metadata?`: `Record`\<`string`, `unknown`\>;
+        `schemaName?`: `string`;
+     \}[];
+     `requiresCredential?`: `boolean`;
+     `sideEffect?`: `boolean`;
+  \}[];
+  `category`: `string`;
+  `channelAudiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+  `coverage?`: \{
+     `evidence?`: \{
+        `label`: `string`;
+        `url?`: `string`;
+     \}[];
+     `notes?`: `string`[];
+     `scope?`:   \| `"support-workflow-subset"`
+        \| `"provider-api-subset"`
+        \| `"connector-required"`
+        \| `"local-protocol"`
+        \| `"full-provider-api"`;
+  \};
+  `credentialRequirements?`: \{
+     `description?`: `string`;
+     `id`: `string`;
+     `label?`: `string`;
+     `metadata?`: `Record`\<`string`, `unknown`\>;
+     `required?`: `boolean`;
+     `scopes?`: `string`[];
+  \}[];
+  `directions`: (
+     \| `"receive-only"`
+     \| `"send-only"`
+     \| `"inbound-only"`
+     \| `"outbound-only"`
+    \| `"bidirectional"`)[];
+  `id`: `string`;
+  `limitations?`: `string`[];
+  `maintainers?`: \{
+     `name`: `string`;
+     `type?`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`;
+     `url?`: `string`;
+  \}[];
+  `metadata?`: `Record`\<`string`, `unknown`\>;
+  `name`: `string`;
+  `operations?`: \{
+     `alias`: `string`;
+     `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`;
+     `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+     `capability`: `string`;
+     `changesWorkflow?`: `boolean`;
+     `description?`: `string`;
+     `exposesSensitiveData?`: `boolean`;
+     `extension?`: `boolean`;
+     `externallyVisible?`: `boolean`;
+     `inputSchema?`: `unknown`;
+     `inputSchemaName?`: `string`;
+     `inputSchemaRef?`: `string`;
+     `label?`: `string`;
+     `metadata?`: `Record`\<`string`, `unknown`\>;
+     `outputSchema?`: `unknown`;
+     `outputSchemaName?`: `string`;
+     `outputSchemaRef?`: `string`;
+     `providerObject?`: `string`;
+     `providerObjects?`: \{
+        `description?`: `string`;
+        `kind`: `string`;
+        `label?`: `string`;
+        `metadata?`: `Record`\<`string`, `unknown`\>;
+        `schemaName?`: `string`;
+     \}[];
+     `providerOperation?`: `string`;
+     `requiredPolicyIds?`: `string`[];
+     `requiresApproval?`: `boolean`;
+     `requiresCredential?`: `boolean`;
+     `sideEffect?`: `boolean`;
+  \}[];
+  `packageName`: `string`;
+  `privacyNotes?`: `string`[];
+  `provider`: `string`;
+  `trustLevel?`: `"community"` \| `"official"` \| `"verified"` \| `"experimental"`;
+\}, `unknown`, [`IntegrationOperationHandlers`](../../../packages/integration-kit/dist.md#integrationoperationhandlers)\>
 
 ***
 
@@ -556,6 +908,24 @@ function createGooglePlayReviewsLiveChecks(options): {
      \};
   \}\>;
 \}[]
+
+***
+
+### createGooglePlayReviewsOperationHandlers()
+
+```ts
+function createGooglePlayReviewsOperationHandlers(options): GooglePlayReviewsOperationHandlers;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`GooglePlayReviewsClientOptions`](#googleplayreviewsclientoptions) |
+
+#### Returns
+
+[`GooglePlayReviewsOperationHandlers`](#googleplayreviewsoperationhandlers)
 
 ***
 

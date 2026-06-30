@@ -15,7 +15,7 @@ optional idempotencyKey?: string;
 ##### payload?
 
 ```ts
-optional payload?: unknown;
+optional payload?: ProviderJsonObject;
 ```
 
 ##### query?
@@ -26,111 +26,59 @@ optional query?: Record<string, ProviderQueryValue>;
 
 ***
 
-### ProviderExtensionRequestInput
-
-#### Extends
-
-- [`TalkdeskOperationInput`](#talkdeskoperationinput)
+### ProviderRestRetryOptions
 
 #### Properties
 
-##### allowMutation?
+##### attempts?
 
 ```ts
-optional allowMutation?: boolean;
+optional attempts?: number;
 ```
 
-##### body?
+##### baseDelayMs?
 
 ```ts
-optional body?: unknown;
+optional baseDelayMs?: number;
 ```
 
-###### Inherited from
-
-[`TalkdeskOperationInput`](#talkdeskoperationinput).[`body`](#body-1)
-
-##### classification?
+##### maxDelayMs?
 
 ```ts
-optional classification?: string;
+optional maxDelayMs?: number;
 ```
 
-##### headers?
+##### statusCodes?
 
 ```ts
-optional headers?: Record<string, string>;
+optional statusCodes?: readonly number[];
 ```
-
-###### Inherited from
-
-[`TalkdeskOperationInput`](#talkdeskoperationinput).[`headers`](#headers-1)
-
-##### idempotencyKey?
-
-```ts
-optional idempotencyKey?: string;
-```
-
-###### Inherited from
-
-[`TalkdeskOperationInput`](#talkdeskoperationinput).[`idempotencyKey`](#idempotencykey-2)
-
-##### method?
-
-```ts
-optional method?: ProviderHttpMethod;
-```
-
-##### operationId?
-
-```ts
-optional operationId?: string;
-```
-
-##### path?
-
-```ts
-optional path?: string;
-```
-
-##### pathParams?
-
-```ts
-optional pathParams?: Record<string, string | number | boolean>;
-```
-
-###### Inherited from
-
-[`TalkdeskOperationInput`](#talkdeskoperationinput).[`pathParams`](#pathparams-1)
-
-##### query?
-
-```ts
-optional query?: Record<string, ProviderQueryValue>;
-```
-
-###### Inherited from
-
-[`TalkdeskOperationInput`](#talkdeskoperationinput).[`query`](#query-2)
 
 ***
 
 ### TalkdeskClient
+
+#### Properties
+
+##### providerClient
+
+```ts
+providerClient: TalkdeskProviderClient;
+```
 
 #### Methods
 
 ##### createHandoff()
 
 ```ts
-createHandoff(input): Promise<ProviderJsonObject>;
+createHandoff(input?): Promise<ProviderJsonObject>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | [`ConfiguredHandoffInput`](#configuredhandoffinput) |
+| `input?` | [`ConfiguredHandoffInput`](#configuredhandoffinput) |
 
 ###### Returns
 
@@ -182,6 +130,10 @@ scheduleCallback(input?): Promise<ProviderJsonObject>;
 
 ### TalkdeskClientOptions
 
+#### Extended by
+
+- [`TalkdeskIntegrationOptions`](#talkdeskintegrationoptions)
+
 #### Properties
 
 ##### accessToken?
@@ -190,10 +142,10 @@ scheduleCallback(input?): Promise<ProviderJsonObject>;
 optional accessToken?: string;
 ```
 
-##### apiBaseUrl
+##### apiBaseUrl?
 
 ```ts
-apiBaseUrl: string;
+optional apiBaseUrl?: string;
 ```
 
 ##### apiKey?
@@ -212,6 +164,12 @@ optional apiKeyHeaderName?: string;
 
 ```ts
 optional authorizationHeader?: string;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
 ```
 
 ##### defaultHandoffPath?
@@ -267,11 +225,222 @@ optional fetch?: {
 
 `Promise`\<`Response`\>
 
+##### providerClient?
+
+```ts
+optional providerClient?: TalkdeskProviderClient;
+```
+
 ##### readinessPath?
 
 ```ts
 optional readinessPath?: string;
 ```
+
+##### retry?
+
+```ts
+optional retry?: number | ProviderRestRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+***
+
+### TalkdeskIntegrationOptions
+
+#### Extends
+
+- [`TalkdeskClientOptions`](#talkdeskclientoptions)
+
+#### Properties
+
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`accessToken`](#accesstoken)
+
+##### apiBaseUrl?
+
+```ts
+optional apiBaseUrl?: string;
+```
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`apiBaseUrl`](#apibaseurl)
+
+##### apiKey?
+
+```ts
+optional apiKey?: string;
+```
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`apiKey`](#apikey)
+
+##### apiKeyHeaderName?
+
+```ts
+optional apiKeyHeaderName?: string;
+```
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`apiKeyHeaderName`](#apikeyheadername)
+
+##### authorizationHeader?
+
+```ts
+optional authorizationHeader?: string;
+```
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`authorizationHeader`](#authorizationheader)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`baseUrl`](#baseurl)
+
+##### defaultHandoffPath?
+
+```ts
+optional defaultHandoffPath?: string;
+```
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`defaultHandoffPath`](#defaulthandoffpath)
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`fetch`](#fetch)
+
+##### providerClient?
+
+```ts
+optional providerClient?: TalkdeskProviderClient;
+```
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`providerClient`](#providerclient-1)
+
+##### readinessPath?
+
+```ts
+optional readinessPath?: string;
+```
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`readinessPath`](#readinesspath)
+
+##### retry?
+
+```ts
+optional retry?: number | ProviderRestRetryOptions;
+```
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`retry`](#retry)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`signal`](#signal)
+
+##### talkdeskClient?
+
+```ts
+optional talkdeskClient?: TalkdeskClient;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`TalkdeskClientOptions`](#talkdeskclientoptions).[`timeoutMs`](#timeoutms)
 
 ***
 
@@ -279,20 +448,14 @@ optional readinessPath?: string;
 
 #### Extended by
 
-- [`ProviderExtensionRequestInput`](#providerextensionrequestinput)
+- [`TalkdeskReviewedOperationInput`](#talkdeskreviewedoperationinput)
 
 #### Properties
 
 ##### body?
 
 ```ts
-optional body?: unknown;
-```
-
-##### headers?
-
-```ts
-optional headers?: Record<string, string>;
+optional body?: ProviderJsonObject;
 ```
 
 ##### idempotencyKey?
@@ -301,10 +464,122 @@ optional headers?: Record<string, string>;
 optional idempotencyKey?: string;
 ```
 
-##### pathParams?
+##### query?
 
 ```ts
-optional pathParams?: Record<string, string | number | boolean>;
+optional query?: Record<string, ProviderQueryValue>;
+```
+
+***
+
+### TalkdeskProviderClient
+
+#### Methods
+
+##### createHandoff()
+
+```ts
+createHandoff(input): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ConfiguredHandoffInput`](#configuredhandoffinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+##### createTask()
+
+```ts
+createTask(input): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`TalkdeskReviewedOperationInput`](#talkdeskreviewedoperationinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+##### readiness()?
+
+```ts
+optional readiness(): Promise<ProviderJsonObject>;
+```
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+##### scheduleCallback()
+
+```ts
+scheduleCallback(input): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`TalkdeskReviewedOperationInput`](#talkdeskreviewedoperationinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+***
+
+### TalkdeskReviewedOperationInput
+
+#### Extends
+
+- [`TalkdeskOperationInput`](#talkdeskoperationinput)
+
+#### Properties
+
+##### body?
+
+```ts
+optional body?: ProviderJsonObject;
+```
+
+###### Inherited from
+
+[`TalkdeskOperationInput`](#talkdeskoperationinput).[`body`](#body)
+
+##### idempotencyKey?
+
+```ts
+optional idempotencyKey?: string;
+```
+
+###### Inherited from
+
+[`TalkdeskOperationInput`](#talkdeskoperationinput).[`idempotencyKey`](#idempotencykey-1)
+
+##### method
+
+```ts
+method: ProviderHttpMethod;
+```
+
+##### operationId
+
+```ts
+operationId: TalkdeskReviewedOperationId;
+```
+
+##### path
+
+```ts
+path: string;
 ```
 
 ##### query?
@@ -313,12 +588,46 @@ optional pathParams?: Record<string, string | number | boolean>;
 optional query?: Record<string, ProviderQueryValue>;
 ```
 
+###### Inherited from
+
+[`TalkdeskOperationInput`](#talkdeskoperationinput).[`query`](#query-1)
+
 ## Type Aliases
 
 ### ProviderJsonObject
 
 ```ts
-type ProviderJsonObject = Record<string, unknown>;
+type ProviderJsonObject = {
+[key: string]: TalkdeskJsonValue;
+};
+```
+
+#### Index Signature
+
+```ts
+[key: string]: TalkdeskJsonValue
+```
+
+***
+
+### TalkdeskJsonValue
+
+```ts
+type TalkdeskJsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | ProviderJsonObject
+  | readonly TalkdeskJsonValue[];
+```
+
+***
+
+### TalkdeskReviewedOperationId
+
+```ts
+type TalkdeskReviewedOperationId = "calls-callback-post" | "CreatingACase";
 ```
 
 ## Functions
@@ -326,14 +635,14 @@ type ProviderJsonObject = Record<string, unknown>;
 ### createTalkdeskClient()
 
 ```ts
-function createTalkdeskClient(options): TalkdeskClient;
+function createTalkdeskClient(options?): TalkdeskClient;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`TalkdeskClientOptions`](#talkdeskclientoptions) |
+| `options?` | [`TalkdeskClientOptions`](#talkdeskclientoptions) |
 
 #### Returns
 
@@ -344,7 +653,7 @@ function createTalkdeskClient(options): TalkdeskClient;
 ### createTalkdeskIntegration()
 
 ```ts
-function createTalkdeskIntegration(options): DefinedIntegration<{
+function createTalkdeskIntegration(options?): DefinedIntegration<{
   capabilities: readonly [{
      capability: "handoff";
      exposesSensitiveData: true;
@@ -383,7 +692,7 @@ function createTalkdeskIntegration(options): DefinedIntegration<{
         label: "Talkdesk Callback API";
         url: "https://docs.talkdesk.com/docs/callback-api";
      }];
-     notes: readonly ["No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation."];
+     notes: readonly ["No suitable official npm REST SDK was verified.", "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with TalkdeskProviderClient available as an override."];
      scope: "support-workflow-subset";
   };
   credentialRequirements: readonly [{
@@ -407,7 +716,15 @@ function createTalkdeskIntegration(options): DefinedIntegration<{
   }];
   metadata: {
      implementation: {
+        adapterKind: "no-official-sdk-rest-adapter";
         allowedOperations: readonly [{
+           alias: "contact-center.handoff.request";
+           checksum: "not-applicable-host-configured";
+           id: "configuredHandoff";
+           method: "POST";
+           path: "host-configured";
+           source: "provider-rest-adapter";
+         }, {
            alias: "contact-center.callback.schedule";
            checksum: "sha256:aa27c72eff1b281fdebab70da85cb4cd30f98c37dd0465207f7bab00438be491";
            id: "calls-callback-post";
@@ -422,11 +739,54 @@ function createTalkdeskIntegration(options): DefinedIntegration<{
            path: "/cm/core/va/cases";
            source: "https://api-docs.talkdeskapp.com/public-api";
         }];
-        implementationStrategy: "generated-support-slice";
-        sdkDecision: "No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation.";
-        verifiedAt: "2026-06-21";
+        implementationStrategy: "provider-rest-adapter";
+        providerSdkDecision: {
+           checkedAt: "2026-06-25";
+           checkedPackages: readonly [{
+              package: "@talkdesk/td-sdk";
+              reason: "No public npm package exists under this likely official SDK name.";
+              result: "not-published";
+            }, {
+              package: "@talkdesk/client-sdk";
+              reason: "No public npm package exists under this likely official SDK name.";
+              result: "not-published";
+            }, {
+              package: "@talkdesk/app-connect";
+              reason: "No public npm package exists under this likely official SDK name.";
+              result: "not-published";
+           }];
+           defaultRestPolicy: "fail-closed-provider-rest-adapter-with-typed-provider-client-override";
+           result: "no-official-npm-rest-sdk";
+           typedClientOverride: "TalkdeskProviderClient";
+        };
+        sdkDecision: "No suitable official npm REST SDK was verified; this package provides a built-in REST adapter with providerClient override.";
+        verifiedAt: "2026-06-25";
      };
      manifestOnlySafe: true;
+     providerRestAdapter: {
+        adapterKind: "no-official-sdk-rest-adapter";
+        providerClientOverride: "TalkdeskProviderClient";
+        strategy: "provider-rest-adapter";
+     };
+     providerSdkDecision: {
+        checkedAt: "2026-06-25";
+        checkedPackages: readonly [{
+           package: "@talkdesk/td-sdk";
+           reason: "No public npm package exists under this likely official SDK name.";
+           result: "not-published";
+         }, {
+           package: "@talkdesk/client-sdk";
+           reason: "No public npm package exists under this likely official SDK name.";
+           result: "not-published";
+         }, {
+           package: "@talkdesk/app-connect";
+           reason: "No public npm package exists under this likely official SDK name.";
+           result: "not-published";
+        }];
+        defaultRestPolicy: "fail-closed-provider-rest-adapter-with-typed-provider-client-override";
+        result: "no-official-npm-rest-sdk";
+        typedClientOverride: "TalkdeskProviderClient";
+     };
   };
   name: "Talkdesk";
   operations: readonly [{
@@ -456,7 +816,7 @@ function createTalkdeskIntegration(options): DefinedIntegration<{
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`TalkdeskClientOptions`](#talkdeskclientoptions) |
+| `options?` | [`TalkdeskIntegrationOptions`](#talkdeskintegrationoptions) |
 
 #### Returns
 
@@ -499,7 +859,7 @@ function createTalkdeskIntegration(options): DefinedIntegration<{
         `label`: `"Talkdesk Callback API"`;
         `url`: `"https://docs.talkdesk.com/docs/callback-api"`;
      \}\];
-     `notes`: readonly \[`"No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation."`\];
+     `notes`: readonly \[`"No suitable official npm REST SDK was verified."`, `"Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with TalkdeskProviderClient available as an override."`\];
      `scope`: `"support-workflow-subset"`;
   \};
   `credentialRequirements`: readonly \[\{
@@ -523,7 +883,15 @@ function createTalkdeskIntegration(options): DefinedIntegration<{
   \}\];
   `metadata`: \{
      `implementation`: \{
+        `adapterKind`: `"no-official-sdk-rest-adapter"`;
         `allowedOperations`: readonly \[\{
+           `alias`: `"contact-center.handoff.request"`;
+           `checksum`: `"not-applicable-host-configured"`;
+           `id`: `"configuredHandoff"`;
+           `method`: `"POST"`;
+           `path`: `"host-configured"`;
+           `source`: `"provider-rest-adapter"`;
+         \}, \{
            `alias`: `"contact-center.callback.schedule"`;
            `checksum`: `"sha256:aa27c72eff1b281fdebab70da85cb4cd30f98c37dd0465207f7bab00438be491"`;
            `id`: `"calls-callback-post"`;
@@ -538,11 +906,54 @@ function createTalkdeskIntegration(options): DefinedIntegration<{
            `path`: `"/cm/core/va/cases"`;
            `source`: `"https://api-docs.talkdeskapp.com/public-api"`;
         \}\];
-        `implementationStrategy`: `"generated-support-slice"`;
-        `sdkDecision`: `"No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation."`;
-        `verifiedAt`: `"2026-06-21"`;
+        `implementationStrategy`: `"provider-rest-adapter"`;
+        `providerSdkDecision`: \{
+           `checkedAt`: `"2026-06-25"`;
+           `checkedPackages`: readonly \[\{
+              `package`: `"@talkdesk/td-sdk"`;
+              `reason`: `"No public npm package exists under this likely official SDK name."`;
+              `result`: `"not-published"`;
+            \}, \{
+              `package`: `"@talkdesk/client-sdk"`;
+              `reason`: `"No public npm package exists under this likely official SDK name."`;
+              `result`: `"not-published"`;
+            \}, \{
+              `package`: `"@talkdesk/app-connect"`;
+              `reason`: `"No public npm package exists under this likely official SDK name."`;
+              `result`: `"not-published"`;
+           \}\];
+           `defaultRestPolicy`: `"fail-closed-provider-rest-adapter-with-typed-provider-client-override"`;
+           `result`: `"no-official-npm-rest-sdk"`;
+           `typedClientOverride`: `"TalkdeskProviderClient"`;
+        \};
+        `sdkDecision`: `"No suitable official npm REST SDK was verified; this package provides a built-in REST adapter with providerClient override."`;
+        `verifiedAt`: `"2026-06-25"`;
      \};
      `manifestOnlySafe`: `true`;
+     `providerRestAdapter`: \{
+        `adapterKind`: `"no-official-sdk-rest-adapter"`;
+        `providerClientOverride`: `"TalkdeskProviderClient"`;
+        `strategy`: `"provider-rest-adapter"`;
+     \};
+     `providerSdkDecision`: \{
+        `checkedAt`: `"2026-06-25"`;
+        `checkedPackages`: readonly \[\{
+           `package`: `"@talkdesk/td-sdk"`;
+           `reason`: `"No public npm package exists under this likely official SDK name."`;
+           `result`: `"not-published"`;
+         \}, \{
+           `package`: `"@talkdesk/client-sdk"`;
+           `reason`: `"No public npm package exists under this likely official SDK name."`;
+           `result`: `"not-published"`;
+         \}, \{
+           `package`: `"@talkdesk/app-connect"`;
+           `reason`: `"No public npm package exists under this likely official SDK name."`;
+           `result`: `"not-published"`;
+        \}\];
+        `defaultRestPolicy`: `"fail-closed-provider-rest-adapter-with-typed-provider-client-override"`;
+        `result`: `"no-official-npm-rest-sdk"`;
+        `typedClientOverride`: `"TalkdeskProviderClient"`;
+     \};
   \};
   `name`: `"Talkdesk"`;
   `operations`: readonly \[\{
@@ -566,6 +977,40 @@ function createTalkdeskIntegration(options): DefinedIntegration<{
   `contact-center.handoff.request`: (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>;
   `contact-center.task.create`: (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>;
 \}\>
+
+***
+
+### createTalkdeskIntegrationOperationHandlers()
+
+```ts
+function createTalkdeskIntegrationOperationHandlers(options?): {
+  contact-center.callback.schedule: (input) => Promise<ProviderJsonObject>;
+  contact-center.handoff.request: (input) => Promise<ProviderJsonObject>;
+  contact-center.task.create: (input) => Promise<ProviderJsonObject>;
+};
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`TalkdeskIntegrationOptions`](#talkdeskintegrationoptions) |
+
+#### Returns
+
+```ts
+{
+  contact-center.callback.schedule: (input) => Promise<ProviderJsonObject>;
+  contact-center.handoff.request: (input) => Promise<ProviderJsonObject>;
+  contact-center.task.create: (input) => Promise<ProviderJsonObject>;
+}
+```
+
+| Name | Type |
+| ------ | ------ |
+| `contact-center.callback.schedule()` | (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\> |
+| `contact-center.handoff.request()` | (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\> |
+| `contact-center.task.create()` | (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\> |
 
 ## References
 

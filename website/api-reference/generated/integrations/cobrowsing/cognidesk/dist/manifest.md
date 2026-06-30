@@ -230,6 +230,21 @@ const cognideskCobrowsingProviderManifest: {
         signedEvents: "typed-verify-parse";
      };
      docs: "https://github.com/cognilabz/cognidesk/tree/main/integrations/cobrowsing/cognidesk";
+     implementation: {
+        checkedAt: "2026-06-25";
+        defaultClientPolicy: "sdk-user-provided-cobrowsing-session-client";
+        externalProviderSdk: "not-applicable-internal-provider";
+        integrationKitStatus: "implemented";
+        manifestImport: "no-sdk-client-initialization";
+        protocolSource: "Cognidesk local cobrowsing protocol";
+        providerSdkDecision: "internal-provider/local-runtime/no-provider-SDK";
+        reason: "Cognidesk Cobrowsing is an internal local-protocol adapter for SDK-user-owned session storage, signed session tokens, and event normalization rather than a named external cobrowsing provider SDK.";
+        rejectedSdkPackages: readonly [];
+        runtimePackage: "@cognidesk/integration-cobrowsing-cognidesk";
+        sdkPackage: "@cognidesk/integration-cobrowsing-cognidesk";
+        strategy: "local-protocol";
+        typedClientOverride: "CognideskCobrowsingIntegrationClient";
+     };
   };
   name: "Cognidesk Cobrowsing";
   operations: readonly [{
@@ -318,13 +333,27 @@ const cognideskCobrowsingProviderManifest: {
 | `id` | `"cobrowsing.cognidesk"` |
 | `limitations` | readonly \[`"This package provides the SDK adapter contract, readiness helpers, session lifecycle primitives, token validation, event normalization, and signed-event parsing only."`, `"It does not implement browser remoting, DOM capture, cursor transport, screen control, storage persistence, or a hosted cobrowsing relay."`, `"Studio can surface this package's configuration state later, but SDK user configuration remains the authority for behavior."`\] |
 | `maintainers` | readonly \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
-| `metadata` | \{ `channelCoverage`: \{ `browserRemotingDomCaptureCursorScreenControlHostedRelay`: `"not-covered"`; `sessions`: `"typed-create-read-update"`; `sessionTokens`: `"typed-create-validate"`; `signedEvents`: `"typed-verify-parse"`; \}; `docs`: `"https://github.com/cognilabz/cognidesk/tree/main/integrations/cobrowsing/cognidesk"`; \} |
+| `metadata` | \{ `channelCoverage`: \{ `browserRemotingDomCaptureCursorScreenControlHostedRelay`: `"not-covered"`; `sessions`: `"typed-create-read-update"`; `sessionTokens`: `"typed-create-validate"`; `signedEvents`: `"typed-verify-parse"`; \}; `docs`: `"https://github.com/cognilabz/cognidesk/tree/main/integrations/cobrowsing/cognidesk"`; `implementation`: \{ `checkedAt`: `"2026-06-25"`; `defaultClientPolicy`: `"sdk-user-provided-cobrowsing-session-client"`; `externalProviderSdk`: `"not-applicable-internal-provider"`; `integrationKitStatus`: `"implemented"`; `manifestImport`: `"no-sdk-client-initialization"`; `protocolSource`: `"Cognidesk local cobrowsing protocol"`; `providerSdkDecision`: `"internal-provider/local-runtime/no-provider-SDK"`; `reason`: `"Cognidesk Cobrowsing is an internal local-protocol adapter for SDK-user-owned session storage, signed session tokens, and event normalization rather than a named external cobrowsing provider SDK."`; `rejectedSdkPackages`: readonly \[\]; `runtimePackage`: `"@cognidesk/integration-cobrowsing-cognidesk"`; `sdkPackage`: `"@cognidesk/integration-cobrowsing-cognidesk"`; `strategy`: `"local-protocol"`; `typedClientOverride`: `"CognideskCobrowsingIntegrationClient"`; \}; \} |
 | `metadata.channelCoverage` | \{ `browserRemotingDomCaptureCursorScreenControlHostedRelay`: `"not-covered"`; `sessions`: `"typed-create-read-update"`; `sessionTokens`: `"typed-create-validate"`; `signedEvents`: `"typed-verify-parse"`; \} |
 | `metadata.channelCoverage.browserRemotingDomCaptureCursorScreenControlHostedRelay` | `"not-covered"` |
 | `metadata.channelCoverage.sessions` | `"typed-create-read-update"` |
 | `metadata.channelCoverage.sessionTokens` | `"typed-create-validate"` |
 | `metadata.channelCoverage.signedEvents` | `"typed-verify-parse"` |
 | `metadata.docs` | `"https://github.com/cognilabz/cognidesk/tree/main/integrations/cobrowsing/cognidesk"` |
+| `metadata.implementation` | \{ `checkedAt`: `"2026-06-25"`; `defaultClientPolicy`: `"sdk-user-provided-cobrowsing-session-client"`; `externalProviderSdk`: `"not-applicable-internal-provider"`; `integrationKitStatus`: `"implemented"`; `manifestImport`: `"no-sdk-client-initialization"`; `protocolSource`: `"Cognidesk local cobrowsing protocol"`; `providerSdkDecision`: `"internal-provider/local-runtime/no-provider-SDK"`; `reason`: `"Cognidesk Cobrowsing is an internal local-protocol adapter for SDK-user-owned session storage, signed session tokens, and event normalization rather than a named external cobrowsing provider SDK."`; `rejectedSdkPackages`: readonly \[\]; `runtimePackage`: `"@cognidesk/integration-cobrowsing-cognidesk"`; `sdkPackage`: `"@cognidesk/integration-cobrowsing-cognidesk"`; `strategy`: `"local-protocol"`; `typedClientOverride`: `"CognideskCobrowsingIntegrationClient"`; \} |
+| `metadata.implementation.checkedAt` | `"2026-06-25"` |
+| `metadata.implementation.defaultClientPolicy` | `"sdk-user-provided-cobrowsing-session-client"` |
+| `metadata.implementation.externalProviderSdk` | `"not-applicable-internal-provider"` |
+| `metadata.implementation.integrationKitStatus` | `"implemented"` |
+| `metadata.implementation.manifestImport` | `"no-sdk-client-initialization"` |
+| `metadata.implementation.protocolSource` | `"Cognidesk local cobrowsing protocol"` |
+| `metadata.implementation.providerSdkDecision` | `"internal-provider/local-runtime/no-provider-SDK"` |
+| `metadata.implementation.reason` | `"Cognidesk Cobrowsing is an internal local-protocol adapter for SDK-user-owned session storage, signed session tokens, and event normalization rather than a named external cobrowsing provider SDK."` |
+| `metadata.implementation.rejectedSdkPackages` | readonly \[\] |
+| `metadata.implementation.runtimePackage` | `"@cognidesk/integration-cobrowsing-cognidesk"` |
+| `metadata.implementation.sdkPackage` | `"@cognidesk/integration-cobrowsing-cognidesk"` |
+| `metadata.implementation.strategy` | `"local-protocol"` |
+| `metadata.implementation.typedClientOverride` | `"CognideskCobrowsingIntegrationClient"` |
 | `name` | `"Cognidesk Cobrowsing"` |
 | `operations` | readonly \[\{ `alias`: `"cognidesk.cobrowsing.session.create"`; `capability`: `"create-provider-object"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Create cobrowsing session"`; `providerObject`: `"cobrowsingSession"`; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `alias`: `"cognidesk.cobrowsing.session.join"`; `capability`: `"update-provider-object"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Join cobrowsing session"`; `providerObject`: `"cobrowsingSession"`; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `alias`: `"cognidesk.cobrowsing.session.end"`; `capability`: `"update-provider-object"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"End cobrowsing session"`; `providerObject`: `"cobrowsingSession"`; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `alias`: `"cognidesk.cobrowsing.event.normalize"`; `capability`: `"receive"`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Normalize cobrowsing session event"`; `providerObject`: `"cobrowsingSessionEvent"`; `requiresCredential`: `true`; \}\] |
 | `packageName` | `"@cognidesk/integration-cobrowsing-cognidesk"` |

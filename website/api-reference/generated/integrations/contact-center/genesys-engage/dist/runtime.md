@@ -14,9 +14,27 @@ Re-exports [createGenesysEngageClient](../dist.md#creategenesysengageclient)
 
 ***
 
+### createGenesysEngageEngagementSdkClient
+
+Re-exports [createGenesysEngageEngagementSdkClient](../dist.md#creategenesysengageengagementsdkclient)
+
+***
+
 ### createGenesysEngageIntegration
 
 Re-exports [createGenesysEngageIntegration](../dist.md#creategenesysengageintegration)
+
+***
+
+### createGenesysEngageIntegrationOperationHandlers
+
+Re-exports [createGenesysEngageIntegrationOperationHandlers](../dist.md#creategenesysengageintegrationoperationhandlers)
+
+***
+
+### GenesysEngageCallbacksApi
+
+Re-exports [GenesysEngageCallbacksApi](../dist.md#genesysengagecallbacksapi)
 
 ***
 
@@ -32,9 +50,39 @@ Re-exports [GenesysEngageClientOptions](../dist.md#genesysengageclientoptions)
 
 ***
 
+### GenesysEngageEngagementApiClient
+
+Re-exports [GenesysEngageEngagementApiClient](../dist.md#genesysengageengagementapiclient)
+
+***
+
+### GenesysEngageEngagementSdk
+
+Re-exports [GenesysEngageEngagementSdk](../dist.md#genesysengageengagementsdk)
+
+***
+
+### GenesysEngageEngagementSdkClient
+
+Re-exports [GenesysEngageEngagementSdkClient](../dist.md#genesysengageengagementsdkclient)
+
+***
+
+### GenesysEngageIntegrationOptions
+
+Re-exports [GenesysEngageIntegrationOptions](../dist.md#genesysengageintegrationoptions)
+
+***
+
 ### GenesysEngageOperationInput
 
 Re-exports [GenesysEngageOperationInput](../dist.md#genesysengageoperationinput)
+
+***
+
+### GenesysEngageProviderClient
+
+Re-exports [GenesysEngageProviderClient](../dist.md#genesysengageproviderclient)
 
 ***
 
@@ -47,6 +95,12 @@ Re-exports [genesysEngageProviderManifest](manifest.md#genesysengageprovidermani
 ### genesysEngageProviderManifestInput
 
 Re-exports [genesysEngageProviderManifestInput](manifest.md#genesysengageprovidermanifestinput)
+
+***
+
+### genesysEngageRestSupportSlice
+
+Re-exports [genesysEngageRestSupportSlice](manifest.md#genesysengagerestsupportslice)
 
 ***
 
@@ -65,3 +119,9 @@ Re-exports [ProviderExtensionRequestInput](../dist.md#providerextensionrequestin
 ### ProviderJsonObject
 
 Re-exports [ProviderJsonObject](../dist.md#providerjsonobject)
+
+***
+
+### ProviderRestRetryOptions
+
+Re-exports [ProviderRestRetryOptions](../dist.md#providerrestretryoptions)

@@ -180,6 +180,12 @@ optional accessToken?: string;
 optional expiresAt?: string;
 ```
 
+##### providerClientConfigured?
+
+```ts
+optional providerClientConfigured?: boolean;
+```
+
 ##### scopes?
 
 ```ts
@@ -334,31 +340,61 @@ optional total_records?: number;
 
 #### Properties
 
-##### accessToken
+##### accessToken?
 
 ```ts
-accessToken: string;
+optional accessToken?: string;
 ```
 
 ###### Inherited from
 
 [`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`accessToken`](#accesstoken-2)
 
-##### apiBaseUrl?
+##### accountId?
 
 ```ts
-optional apiBaseUrl?: string;
+optional accountId?: string;
 ```
 
 ###### Inherited from
 
-[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`apiBaseUrl`](#apibaseurl-1)
+[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`accountId`](#accountid-2)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`baseUrl`](#baseurl-1)
 
 ##### client?
 
 ```ts
 optional client?: Pick<ZoomVideoClient, "getCurrentUser">;
 ```
+
+##### clientId?
+
+```ts
+optional clientId?: string;
+```
+
+###### Inherited from
+
+[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`clientId`](#clientid-2)
+
+##### clientSecret?
+
+```ts
+optional clientSecret?: string;
+```
+
+###### Inherited from
+
+[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`clientSecret`](#clientsecret-2)
 
 ##### fetch?
 
@@ -409,12 +445,78 @@ optional fetch?: {
 
 ###### Inherited from
 
-[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`fetch`](#fetch-1)
+[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`fetch`](#fetch-2)
+
+##### getAccessToken?
+
+```ts
+optional getAccessToken?: () => string | Promise<string>;
+```
+
+###### Returns
+
+`string` \| `Promise`\<`string`\>
+
+###### Inherited from
+
+[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`getAccessToken`](#getaccesstoken-1)
+
+##### oauthBaseUrl?
+
+```ts
+optional oauthBaseUrl?: string;
+```
+
+###### Inherited from
+
+[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`oauthBaseUrl`](#oauthbaseurl-2)
+
+##### providerClient?
+
+```ts
+optional providerClient?: ZoomVideoProviderClient;
+```
+
+###### Inherited from
+
+[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`providerClient`](#providerclient-2)
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ZoomProviderJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`retry`](#retry-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`signal`](#signal-2)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`ZoomVideoClientOptions`](#zoomvideoclientoptions).[`timeoutMs`](#timeoutms-1)
 
 ##### userId?
 
 ```ts
-optional userId?: string;
+optional userId?: string | number;
 ```
 
 ###### Inherited from
@@ -5814,7 +5916,7 @@ RecordingGet(...args): Promise<{
   recording_files?: readonly {
      deleted_time?: string;
      download_url?: string;
-     file_extension?: "MP4" | "M4A" | "CSV" | "TXT" | "VTT" | "JSON" | "JPG";
+     file_extension?: "JSON" | "MP4" | "M4A" | "CSV" | "TXT" | "VTT" | "JPG";
      file_path?: string;
      file_size?: number;
      file_type?:   | "MP4"
@@ -5905,7 +6007,7 @@ RecordingGet(...args): Promise<{
   `recording_files?`: readonly \{
      `deleted_time?`: `string`;
      `download_url?`: `string`;
-     `file_extension?`: `"MP4"` \| `"M4A"` \| `"CSV"` \| `"TXT"` \| `"VTT"` \| `"JSON"` \| `"JPG"`;
+     `file_extension?`: `"JSON"` \| `"MP4"` \| `"M4A"` \| `"CSV"` \| `"TXT"` \| `"VTT"` \| `"JPG"`;
      `file_path?`: `string`;
      `file_size?`: `number`;
      `file_type?`:   \| `"MP4"`
@@ -6165,7 +6267,7 @@ RecordingsList(...args): Promise<{
      recording_files?: readonly {
         deleted_time?: string;
         download_url?: string;
-        file_extension?: "MP4" | "M4A" | "CSV" | "TXT" | "VTT" | "JSON" | "JPG";
+        file_extension?: "JSON" | "MP4" | "M4A" | "CSV" | "TXT" | "VTT" | "JPG";
         file_path?: string;
         file_size?: number;
         file_type?:   | "MP4"
@@ -6243,7 +6345,7 @@ RecordingsList(...args): Promise<{
      `recording_files?`: readonly \{
         `deleted_time?`: `string`;
         `download_url?`: `string`;
-        `file_extension?`: `"MP4"` \| `"M4A"` \| `"CSV"` \| `"TXT"` \| `"VTT"` \| `"JSON"` \| `"JPG"`;
+        `file_extension?`: `"JSON"` \| `"MP4"` \| `"M4A"` \| `"CSV"` \| `"TXT"` \| `"VTT"` \| `"JPG"`;
         `file_path?`: `string`;
         `file_size?`: `number`;
         `file_type?`:   \| `"MP4"`
@@ -9641,19 +9743,19 @@ WebinarRegistrantGet(...args): Promise<{
   status?: "pending" | "approved" | "denied";
   zip?: string;
 } & {
-  language?:   | "en-US"
-     | "de-DE"
+  language?:   | "de-DE"
+     | "en-US"
      | "es-ES"
      | "fr-FR"
-     | "jp-JP"
+     | "it-IT"
+     | "pl-PL"
      | "pt-PT"
      | "ru-RU"
+     | "vi-VN"
      | "zh-CN"
      | "zh-TW"
+     | "jp-JP"
      | "ko-KO"
-     | "it-IT"
-     | "vi-VN"
-     | "pl-PL"
      | "Tr-TR";
 } & {
   create_time?: string;
@@ -9713,19 +9815,19 @@ WebinarRegistrantGet(...args): Promise<{
   `status?`: `"pending"` \| `"approved"` \| `"denied"`;
   `zip?`: `string`;
 \} & \{
-  `language?`:   \| `"en-US"`
-     \| `"de-DE"`
+  `language?`:   \| `"de-DE"`
+     \| `"en-US"`
      \| `"es-ES"`
      \| `"fr-FR"`
-     \| `"jp-JP"`
+     \| `"it-IT"`
+     \| `"pl-PL"`
      \| `"pt-PT"`
      \| `"ru-RU"`
+     \| `"vi-VN"`
      \| `"zh-CN"`
      \| `"zh-TW"`
+     \| `"jp-JP"`
      \| `"ko-KO"`
-     \| `"it-IT"`
-     \| `"vi-VN"`
-     \| `"pl-PL"`
      \| `"Tr-TR"`;
 \} & \{
   `create_time?`: `string`;
@@ -18996,19 +19098,19 @@ POST /meetings/{meetingId}/registrants: {
   state?: string;
   zip?: string;
 } & {
-  language?:   | "en-US"
-     | "de-DE"
+  language?:   | "de-DE"
+     | "en-US"
      | "es-ES"
      | "fr-FR"
-     | "jp-JP"
+     | "it-IT"
+     | "pl-PL"
      | "pt-PT"
      | "ru-RU"
+     | "vi-VN"
      | "zh-CN"
      | "zh-TW"
+     | "jp-JP"
      | "ko-KO"
-     | "it-IT"
-     | "vi-VN"
-     | "pl-PL"
      | "Tr-TR";
 } & {
   auto_approve?: boolean;
@@ -19148,19 +19250,19 @@ optional zip?: string;
 
 ```ts
 optional language?:
-  | "en-US"
   | "de-DE"
+  | "en-US"
   | "es-ES"
   | "fr-FR"
-  | "jp-JP"
+  | "it-IT"
+  | "pl-PL"
   | "pt-PT"
   | "ru-RU"
+  | "vi-VN"
   | "zh-CN"
   | "zh-TW"
+  | "jp-JP"
   | "ko-KO"
-  | "it-IT"
-  | "vi-VN"
-  | "pl-PL"
   | "Tr-TR";
 ```
 
@@ -21600,19 +21702,19 @@ POST /webinars/{webinarId}/registrants: {
   first_name: string;
   industry?: string;
   job_title?: string;
-  language?:   | "en-US"
-     | "de-DE"
+  language?:   | "de-DE"
+     | "en-US"
      | "es-ES"
      | "fr-FR"
-     | "jp-JP"
+     | "it-IT"
+     | "pl-PL"
      | "pt-PT"
      | "ru-RU"
+     | "vi-VN"
      | "zh-CN"
      | "zh-TW"
+     | "jp-JP"
      | "ko-KO"
-     | "it-IT"
-     | "vi-VN"
-     | "pl-PL"
      | "Tr-TR";
   last_name?: string;
   no_of_employees?:   | ""
@@ -21704,19 +21806,19 @@ optional job_title?: string;
 
 ```ts
 optional language?:
-  | "en-US"
   | "de-DE"
+  | "en-US"
   | "es-ES"
   | "fr-FR"
-  | "jp-JP"
+  | "it-IT"
+  | "pl-PL"
   | "pt-PT"
   | "ru-RU"
+  | "vi-VN"
   | "zh-CN"
   | "zh-TW"
+  | "jp-JP"
   | "ko-KO"
-  | "it-IT"
-  | "vi-VN"
-  | "pl-PL"
   | "Tr-TR";
 ```
 
@@ -25788,7 +25890,7 @@ GET /meetings/{meetingId}/recordings: {
   recording_files?: readonly {
      deleted_time?: string;
      download_url?: string;
-     file_extension?: "MP4" | "M4A" | "CSV" | "TXT" | "VTT" | "JSON" | "JPG";
+     file_extension?: "JSON" | "MP4" | "M4A" | "CSV" | "TXT" | "VTT" | "JPG";
      file_path?: string;
      file_size?: number;
      file_type?:   | "MP4"
@@ -25971,7 +26073,7 @@ optional zone_instance_id?: string;
 optional recording_files?: readonly {
   deleted_time?: string;
   download_url?: string;
-  file_extension?: "MP4" | "M4A" | "CSV" | "TXT" | "VTT" | "JSON" | "JPG";
+  file_extension?: "JSON" | "MP4" | "M4A" | "CSV" | "TXT" | "VTT" | "JPG";
   file_path?: string;
   file_size?: number;
   file_type?:   | "MP4"
@@ -30234,7 +30336,7 @@ GET /users/{userId}/recordings: {
      recording_files?: readonly {
         deleted_time?: string;
         download_url?: string;
-        file_extension?: "MP4" | "M4A" | "CSV" | "TXT" | "VTT" | "JSON" | "JPG";
+        file_extension?: "JSON" | "MP4" | "M4A" | "CSV" | "TXT" | "VTT" | "JPG";
         file_path?: string;
         file_size?: number;
         file_type?:   | "MP4"
@@ -30340,7 +30442,7 @@ optional meetings?: readonly {
   recording_files?: readonly {
      deleted_time?: string;
      download_url?: string;
-     file_extension?: "MP4" | "M4A" | "CSV" | "TXT" | "VTT" | "JSON" | "JPG";
+     file_extension?: "JSON" | "MP4" | "M4A" | "CSV" | "TXT" | "VTT" | "JPG";
      file_path?: string;
      file_size?: number;
      file_type?:   | "MP4"
@@ -32142,19 +32244,19 @@ GET /webinars/{webinarId}/registrants/{registrantId}: {
   status?: "pending" | "approved" | "denied";
   zip?: string;
 } & {
-  language?:   | "en-US"
-     | "de-DE"
+  language?:   | "de-DE"
+     | "en-US"
      | "es-ES"
      | "fr-FR"
-     | "jp-JP"
+     | "it-IT"
+     | "pl-PL"
      | "pt-PT"
      | "ru-RU"
+     | "vi-VN"
      | "zh-CN"
      | "zh-TW"
+     | "jp-JP"
      | "ko-KO"
-     | "it-IT"
-     | "vi-VN"
-     | "pl-PL"
      | "Tr-TR";
 } & {
   create_time?: string;
@@ -32311,19 +32413,19 @@ optional zip?: string;
 
 ```ts
 optional language?:
-  | "en-US"
   | "de-DE"
+  | "en-US"
   | "es-ES"
   | "fr-FR"
-  | "jp-JP"
+  | "it-IT"
+  | "pl-PL"
   | "pt-PT"
   | "ru-RU"
+  | "vi-VN"
   | "zh-CN"
   | "zh-TW"
+  | "jp-JP"
   | "ko-KO"
-  | "it-IT"
-  | "vi-VN"
-  | "pl-PL"
   | "Tr-TR";
 ```
 
@@ -36152,12 +36254,125 @@ optional query?: ZoomVideoProviderQuery;
 
 ***
 
+### ZoomProviderJsonRetryOptions
+
+#### Properties
+
+##### attempts?
+
+```ts
+optional attempts?: number;
+```
+
+##### baseDelayMs?
+
+```ts
+optional baseDelayMs?: number;
+```
+
+##### maxDelayMs?
+
+```ts
+optional maxDelayMs?: number;
+```
+
+##### statusCodes?
+
+```ts
+optional statusCodes?: readonly number[];
+```
+
+***
+
 ### ZoomResource
 
 #### Indexable
 
 ```ts
 [key: string]: ZoomVideoProviderExtensionValue
+```
+
+***
+
+### ZoomServerOAuthTokenOptions
+
+#### Properties
+
+##### accountId
+
+```ts
+accountId: string;
+```
+
+##### clientId
+
+```ts
+clientId: string;
+```
+
+##### clientSecret
+
+```ts
+clientSecret: string;
+```
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+##### oauthBaseUrl?
+
+```ts
+optional oauthBaseUrl?: string;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
 ```
 
 ***
@@ -36385,12 +36600,354 @@ optional type?: number;
 
 ### ZoomVideoClient
 
+#### Extends
+
+- [`ZoomVideoProviderClient`](#zoomvideoproviderclient)
+
 #### Properties
 
 ##### meetingsApi
 
 ```ts
 meetingsApi: ZoomMeetingsApiGeneratedClient;
+```
+
+##### providerClient
+
+```ts
+providerClient: ZoomVideoProviderClient;
+```
+
+##### rawClient?
+
+```ts
+optional rawClient?: unknown;
+```
+
+###### Inherited from
+
+[`ZoomVideoProviderClient`](#zoomvideoproviderclient).[`rawClient`](#rawclient-1)
+
+##### requestOperation
+
+```ts
+requestOperation: ZoomMeetingsGeneratedOperationCaller;
+```
+
+###### Inherited from
+
+[`ZoomVideoProviderClient`](#zoomvideoproviderclient).[`requestOperation`](#requestoperation-1)
+
+#### Methods
+
+##### createMeeting()
+
+```ts
+createMeeting(input): Promise<ZoomMeetingResource>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ZoomCreateMeetingInput`](#zoomcreatemeetinginput) |
+
+###### Returns
+
+`Promise`\<[`ZoomMeetingResource`](#zoommeetingresource)\>
+
+###### Inherited from
+
+[`ZoomVideoProviderClient`](#zoomvideoproviderclient).[`createMeeting`](#createmeeting-1)
+
+##### deleteMeeting()
+
+```ts
+deleteMeeting(meetingId, input?): Promise<Record<string, never>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `meetingId` | `string` \| `number` |
+| `input?` | [`ZoomDeleteMeetingInput`](#zoomdeletemeetinginput) |
+
+###### Returns
+
+`Promise`\<`Record`\<`string`, `never`\>\>
+
+###### Inherited from
+
+[`ZoomVideoProviderClient`](#zoomvideoproviderclient).[`deleteMeeting`](#deletemeeting-1)
+
+##### getCurrentUser()
+
+```ts
+getCurrentUser(): Promise<ZoomUserResource>;
+```
+
+###### Returns
+
+`Promise`\<[`ZoomUserResource`](#zoomuserresource)\>
+
+###### Inherited from
+
+[`ZoomVideoProviderClient`](#zoomvideoproviderclient).[`getCurrentUser`](#getcurrentuser-1)
+
+##### getMeeting()
+
+```ts
+getMeeting(meetingId, input?): Promise<ZoomMeetingResource>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `meetingId` | `string` \| `number` |
+| `input?` | [`ZoomGetMeetingInput`](#zoomgetmeetinginput) |
+
+###### Returns
+
+`Promise`\<[`ZoomMeetingResource`](#zoommeetingresource)\>
+
+###### Inherited from
+
+[`ZoomVideoProviderClient`](#zoomvideoproviderclient).[`getMeeting`](#getmeeting-1)
+
+##### listMeetings()
+
+```ts
+listMeetings(input?): Promise<ZoomListMeetingsResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`ZoomListMeetingsInput`](#zoomlistmeetingsinput) |
+
+###### Returns
+
+`Promise`\<[`ZoomListMeetingsResponse`](#zoomlistmeetingsresponse)\>
+
+###### Inherited from
+
+[`ZoomVideoProviderClient`](#zoomvideoproviderclient).[`listMeetings`](#listmeetings-1)
+
+##### rawRequest()?
+
+```ts
+optional rawRequest<T>(operation, input?): Promise<T>;
+```
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `T` | [`ZoomVideoJsonValue`](#zoomvideojsonvalue) |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `operation` | `string` |
+| `input?` | `unknown` |
+
+###### Returns
+
+`Promise`\<`T`\>
+
+###### Inherited from
+
+[`ZoomVideoProviderClient`](#zoomvideoproviderclient).[`rawRequest`](#rawrequest-1)
+
+##### updateMeeting()
+
+```ts
+updateMeeting(meetingId, input): Promise<ZoomMeetingResource>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `meetingId` | `string` \| `number` |
+| `input` | [`ZoomUpdateMeetingInput`](#zoomupdatemeetinginput) |
+
+###### Returns
+
+`Promise`\<[`ZoomMeetingResource`](#zoommeetingresource)\>
+
+###### Inherited from
+
+[`ZoomVideoProviderClient`](#zoomvideoproviderclient).[`updateMeeting`](#updatemeeting-1)
+
+***
+
+### ZoomVideoClientOptions
+
+#### Extended by
+
+- [`ZoomLiveCheckOptions`](#zoomlivecheckoptions)
+
+#### Properties
+
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+##### accountId?
+
+```ts
+optional accountId?: string;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+##### clientId?
+
+```ts
+optional clientId?: string;
+```
+
+##### clientSecret?
+
+```ts
+optional clientSecret?: string;
+```
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+##### getAccessToken?
+
+```ts
+optional getAccessToken?: () => string | Promise<string>;
+```
+
+###### Returns
+
+`string` \| `Promise`\<`string`\>
+
+##### oauthBaseUrl?
+
+```ts
+optional oauthBaseUrl?: string;
+```
+
+##### providerClient?
+
+```ts
+optional providerClient?: ZoomVideoProviderClient;
+```
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ZoomProviderJsonRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+##### userId?
+
+```ts
+optional userId?: string | number;
+```
+
+***
+
+### ZoomVideoJsonObject
+
+#### Extended by
+
+- [`ZoomVideoProviderExtensionFields`](#zoomvideoproviderextensionfields)
+- [`ZoomVideoProviderResponse`](#zoomvideoproviderresponse)
+
+#### Indexable
+
+```ts
+[key: string]: ZoomVideoProviderExtensionValue
+```
+
+***
+
+### ZoomVideoProviderClient
+
+#### Extended by
+
+- [`ZoomVideoClient`](#zoomvideoclient)
+
+#### Properties
+
+##### rawClient?
+
+```ts
+optional rawClient?: unknown;
 ```
 
 ##### requestOperation
@@ -36477,6 +37034,29 @@ listMeetings(input?): Promise<ZoomListMeetingsResponse>;
 
 `Promise`\<[`ZoomListMeetingsResponse`](#zoomlistmeetingsresponse)\>
 
+##### rawRequest()?
+
+```ts
+optional rawRequest<T>(operation, input?): Promise<T>;
+```
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `T` | [`ZoomVideoJsonValue`](#zoomvideojsonvalue) |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `operation` | `string` |
+| `input?` | `unknown` |
+
+###### Returns
+
+`Promise`\<`T`\>
+
 ##### updateMeeting()
 
 ```ts
@@ -36493,96 +37073,6 @@ updateMeeting(meetingId, input): Promise<ZoomMeetingResource>;
 ###### Returns
 
 `Promise`\<[`ZoomMeetingResource`](#zoommeetingresource)\>
-
-***
-
-### ZoomVideoClientOptions
-
-#### Extended by
-
-- [`ZoomLiveCheckOptions`](#zoomlivecheckoptions)
-
-#### Properties
-
-##### accessToken
-
-```ts
-accessToken: string;
-```
-
-##### apiBaseUrl?
-
-```ts
-optional apiBaseUrl?: string;
-```
-
-##### fetch?
-
-```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
-```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-##### userId?
-
-```ts
-optional userId?: string;
-```
-
-***
-
-### ZoomVideoJsonObject
-
-#### Extended by
-
-- [`ZoomVideoProviderExtensionFields`](#zoomvideoproviderextensionfields)
-- [`ZoomVideoProviderResponse`](#zoomvideoproviderresponse)
-
-#### Indexable
-
-```ts
-[key: string]: ZoomVideoProviderExtensionValue
-```
 
 ***
 
@@ -36708,14 +37198,6 @@ plainToken: string;
 ```
 
 ## Type Aliases
-
-### ZoomHttpMethod
-
-```ts
-type ZoomHttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-```
-
-***
 
 ### ZoomListMeetingType
 
@@ -36963,6 +37445,30 @@ const ZOOM_MEETINGS_API_SPEC_VERSION: "2" = "2";
 
 ***
 
+### ZOOM\_RIVET\_MEETINGS\_REST\_EXCEPTION\_OPERATION\_UIDS
+
+```ts
+const ZOOM_RIVET_MEETINGS_REST_EXCEPTION_OPERATION_UIDS: readonly ["GET /report/disclaimer", "GET /report/remote_support"];
+```
+
+***
+
+### ZOOM\_RIVET\_MEETINGS\_SDK\_OPERATION\_COUNT
+
+```ts
+const ZOOM_RIVET_MEETINGS_SDK_OPERATION_COUNT: number;
+```
+
+***
+
+### ZOOM\_RIVET\_SDK\_PACKAGE\_NAME
+
+```ts
+const ZOOM_RIVET_SDK_PACKAGE_NAME: "@zoom/rivet" = "@zoom/rivet";
+```
+
+***
+
 ### zoomVideoIntegration
 
 ```ts
@@ -37018,7 +37524,7 @@ const zoomVideoIntegration: DefinedIntegration<{
   limitations: string[];
   maintainers: {
      name: string;
-     type: "official" | "community" | "unknown" | "partner";
+     type: "unknown" | "official" | "community" | "partner";
      url?: string;
   }[];
   metadata?: Record<string, unknown>;
@@ -37154,6 +37660,12 @@ const zoomVideoIntegration: DefinedIntegration<{
   channelAudiences: readonly ["customer-facing", "internal-support", "mixed"];
   coverage: {
      evidence: readonly [{
+        label: "Zoom Rivet for JavaScript";
+        url: "https://developers.zoom.us/docs/rivet/javascript/";
+      }, {
+        label: "Zoom Rivet JavaScript repository";
+        url: "https://github.com/zoom/rivet-javascript";
+      }, {
         label: "Zoom Meetings API Hub OpenAPI";
         url: "https://developers.zoom.us/api-hub/meetings/methods/endpoints.json";
       }, {
@@ -37166,14 +37678,25 @@ const zoomVideoIntegration: DefinedIntegration<{
         label: "Zoom webhook validation";
         url: "https://developers.zoom.us/docs/api/rest/webhook-reference/#validate-your-webhook-endpoint";
      }];
-     notes: readonly ["Coverage includes generated per-operation functions for every operation in Zoom's official Meetings API Hub OpenAPI spec.", "Typed convenience helpers remain available for meetings create/list/read/update/delete, current-user readiness, webhook URL-validation handling, and x-zm-signature verification.", "This package is a generated Zoom Meetings API domain slice, not full Zoom platform coverage. Zoom Phone, Contact Center, Team Chat, Rooms, Marketplace app management outside the Meetings API Hub, account administration beyond this spec, and full webhook/event catalogs remain separate Zoom surfaces.", "The SDK user owns OAuth scopes, host delegation, account plan/admin settings, meeting lifecycle policy, recording/transcript consent, retention, deletion, and participant disclosure decisions."];
+     notes: readonly ["Coverage includes generated per-operation functions for every operation in Zoom's official Meetings API Hub OpenAPI spec. Runtime uses Zoom's official @zoom/rivet Meetings SDK for mapped SDK operations when accessToken/getAccessToken/account OAuth credentials are provided.", "Typed convenience helpers remain available for meetings create/list/read/update/delete through @zoom/rivet, current-user readiness through @zoom/rivet/users, webhook URL-validation handling, and x-zm-signature verification; providerClient remains available as a host override.", "The built-in typed REST adapter remains only for explicit REST exceptions: @zoom/rivet 0.4.0 does not expose GET /report/disclaimer or GET /report/remote_support, and low-level fetch/signal/retry/oauthBaseUrl options intentionally request the package-owned REST transport.", "This package is a generated Zoom Meetings API domain slice, not full Zoom platform coverage. Zoom Phone, Contact Center, Team Chat, Rooms, Marketplace app management outside the Meetings API Hub, account administration beyond this spec, and full webhook/event catalogs remain separate Zoom surfaces.", "The SDK user owns OAuth scopes, host delegation, account plan/admin settings, meeting lifecycle policy, recording/transcript consent, retention, deletion, and participant disclosure decisions."];
      scope: "provider-api-subset";
   };
   credentialRequirements: readonly [{
-     description: "Server-side OAuth access token for Zoom REST API meeting and user endpoints.";
+     description: "Optional host-managed Zoom provider client backed by an approved SDK, provider package, or host-owned transport when overriding the built-in @zoom/rivet runtime.";
+     id: "zoom-video-provider-client";
+     label: "Optional Zoom video provider client override";
+     metadata: {
+        credentialOwnership: "sdk-user-or-host-managed";
+        defaultClientPolicy: "official-rivet-sdk-with-reviewed-rest-exceptions";
+        injectionInterface: "ZoomVideoProviderClient";
+     };
+     required: false;
+   }, {
+     description: "Server-side OAuth access token used by @zoom/rivet, the reviewed REST exceptions, or a host provider client for meeting and user endpoints.";
      id: "zoom-oauth-access-token";
      label: "Zoom OAuth access token";
      metadata: {
+        credentialOwnership: "sdk-user-or-host-managed";
         scopeKind: "provider-oauth-scopes";
      };
      required: true;
@@ -37186,7 +37709,7 @@ const zoomVideoIntegration: DefinedIntegration<{
   }];
   directions: readonly ["inbound-only", "outbound-only", "bidirectional"];
   id: "video.zoom";
-  limitations: readonly ["Available meeting operations depend on the SDK user's Zoom OAuth scopes, account plan, account-level settings, admin policy, and delegated host permissions.", "This package does not choose whether a video workflow is inbound, outbound, customer-facing, internal, recorded, retained, or escalated; those decisions remain SDK-user configuration.", "Live meeting media transport, captions, cloud recording retrieval, and telephony dial-out are outside this package's REST and webhook foundation."];
+  limitations: readonly ["Runtime provider API calls use Zoom's official @zoom/rivet SDK when OAuth credentials are supplied, except for documented REST exceptions or explicit low-level REST transport options.", "Missing OAuth credentials and missing providerClient fail closed; SDK users own token lifecycle, retry policy, and account authorization policy.", "Available meeting operations depend on the SDK user's Zoom OAuth scopes, account plan, account-level settings, admin policy, and delegated host permissions.", "This package does not choose whether a video workflow is inbound, outbound, customer-facing, internal, recorded, retained, or escalated; those decisions remain SDK-user configuration.", "Live meeting media transport, captions, cloud recording retrieval, and telephony dial-out are outside this package's delegated SDK/provider-client and webhook foundation."];
   maintainers: readonly [{
      name: "Cognidesk";
      type: "official";
@@ -37218,9 +37741,49 @@ const zoomVideoIntegration: DefinedIntegration<{
         unimplementedOperationCount: 0;
         verifiedAt: "2026-06-21";
      };
+     implementation: {
+        defaultClient: "official-zoom-rivet-sdk";
+        failClosedWithoutOAuthCredentials: true;
+        failClosedWithoutProviderClientOrOAuthCredentials: true;
+        generatedMeetingsApiRuntime: "zoom-rivet-operation-dispatch-with-reviewed-rest-exception-fallback-and-host-provider-client-override";
+        manifestImport: "no-client-initialization";
+        officialSdk: {
+           checkedVersion: "0.4.0";
+           mappedMeetingsOperationCount: 182;
+           meetingsModule: "@zoom/rivet/meetings";
+           packageName: "@zoom/rivet";
+           usersModule: "@zoom/rivet/users";
+        };
+        providerClientInterface: "ZoomVideoProviderClient";
+        restAdapterException: {
+           adapterKind: "reviewed-rest-exception";
+           operationUids: readonly ["GET /report/disclaimer", "GET /report/remote_support"];
+           transportOptions: readonly ["fetch", "signal", "retry", "oauthBaseUrl"];
+        };
+        strategy: "official-sdk-with-reviewed-rest-exceptions";
+     };
+     implementationStrategy: "official-sdk-with-reviewed-rest-exceptions";
+     providerClient: {
+        defaultClient: "official-zoom-rivet-sdk";
+        importPolicy: "optional-host-override";
+        injectionPolicy: "optional-runtime-override";
+        interface: "ZoomVideoProviderClient";
+     };
+     providerRestAdapterException: {
+        adapterKind: "reviewed-rest-exception";
+        allowedDefaultRuntime: "official-zoom-rivet-sdk";
+        failClosed: true;
+        fallbackRuntime: "built-in-typed-rest-adapter";
+        guardrails: readonly ["Keep generated operation IDs resolved against the local Zoom Meetings API catalog before SDK dispatch or REST fallback.", "Use @zoom/rivet for mapped operations whenever fetch/signal/retry/oauthBaseUrl are not explicitly requested.", "Only use the REST adapter for documented @zoom/rivet gaps, per-request headers, or transport options the SDK cannot represent."];
+        hostSdkPath: "ZoomVideoProviderClient";
+        operationUids: readonly ["GET /report/disclaimer", "GET /report/remote_support"];
+        reason: "@zoom/rivet 0.4.0 covers 182 of this package's 184 generated Zoom Meetings API operations; the package-owned typed REST adapter is retained for the two missing report endpoints and explicit low-level transport options the SDK cannot honor.";
+        reviewedAt: "2026-06-25";
+        status: "accepted";
+     };
      sdkViability: {
-        checkedAt: "2026-06-21";
-        decision: "no-official-maintained-server-rest-sdk-found";
+        checkedAt: "2026-06-25";
+        decision: "official-provider-sdk-selected";
         rejectedSdkPackages: readonly [{
            packageName: "@zoom/meetingsdk";
            reason: "Official browser Meeting SDK for embedding/joining meetings, not a server REST API client.";
@@ -37231,6 +37794,12 @@ const zoomVideoIntegration: DefinedIntegration<{
            packageName: "@zoom/rtms";
            reason: "Official Node real-time media streams SDK, not scheduling/resource REST management.";
         }];
+        selectedSdkPackage: {
+           checkedVersion: "0.4.0";
+           packageName: "@zoom/rivet";
+           reason: "Official Zoom Node.js toolkit with Meetings API wrappers, server-to-server OAuth support, and webhook/event tooling.";
+           source: "https://developers.zoom.us/docs/rivet/javascript/";
+        };
      };
   };
   name: "Zoom Meetings";
@@ -37275,6 +37844,7 @@ const zoomVideoIntegration: DefinedIntegration<{
      capability: "read-provider-object";
      extension: true;
      metadata: {
+        execution: "official-rivet-sdk-or-reviewed-rest-exception-or-host-provider-client";
         supportSliceEscapeHatch: true;
      };
      providerObject: "zoomMeetingsApiOperation";
@@ -37333,6 +37903,18 @@ const zoomVideoOperationHandlers: {
 
 ## Functions
 
+### createMissingZoomVideoProviderClient()
+
+```ts
+function createMissingZoomVideoProviderClient(): ZoomVideoProviderClient;
+```
+
+#### Returns
+
+[`ZoomVideoProviderClient`](#zoomvideoproviderclient)
+
+***
+
 ### createZoomMeetingsApiGeneratedClient()
 
 ```ts
@@ -37351,17 +37933,71 @@ function createZoomMeetingsApiGeneratedClient(callOperation): ZoomMeetingsApiGen
 
 ***
 
-### createZoomVideoClient()
+### createZoomOfficialSdkVideoProviderClient()
 
 ```ts
-function createZoomVideoClient(options): ZoomVideoClient;
+function createZoomOfficialSdkVideoProviderClient(options?): ZoomVideoProviderClient;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`ZoomVideoClientOptions`](#zoomvideoclientoptions) |
+| `options?` | `Omit`\<[`ZoomVideoClientOptions`](#zoomvideoclientoptions), `"providerClient"`\> |
+
+#### Returns
+
+[`ZoomVideoProviderClient`](#zoomvideoproviderclient)
+
+***
+
+### createZoomRestVideoProviderClient()
+
+```ts
+function createZoomRestVideoProviderClient(options?): ZoomVideoProviderClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | `Omit`\<[`ZoomVideoClientOptions`](#zoomvideoclientoptions), `"providerClient"`\> |
+
+#### Returns
+
+[`ZoomVideoProviderClient`](#zoomvideoproviderclient)
+
+***
+
+### createZoomServerOAuthAccessToken()
+
+```ts
+function createZoomServerOAuthAccessToken(options): Promise<string>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`ZoomServerOAuthTokenOptions`](#zoomserveroauthtokenoptions) |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+***
+
+### createZoomVideoClient()
+
+```ts
+function createZoomVideoClient(options?): ZoomVideoClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`ZoomVideoClientOptions`](#zoomvideoclientoptions) |
 
 #### Returns
 
@@ -37372,7 +38008,7 @@ function createZoomVideoClient(options): ZoomVideoClient;
 ### createZoomVideoLiveChecks()
 
 ```ts
-function createZoomVideoLiveChecks(options): {
+function createZoomVideoLiveChecks(options?): {
   description: string;
   id: string;
   requiredCredentialIds: string[];
@@ -37391,7 +38027,7 @@ function createZoomVideoLiveChecks(options): {
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`ZoomLiveCheckOptions`](#zoomlivecheckoptions) |
+| `options?` | [`ZoomLiveCheckOptions`](#zoomlivecheckoptions) |
 
 #### Returns
 

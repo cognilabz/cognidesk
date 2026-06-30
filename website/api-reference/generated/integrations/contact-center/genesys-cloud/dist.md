@@ -2,6 +2,110 @@
 
 ## Interfaces
 
+### GenesysCloudContactCenterClient
+
+#### Properties
+
+##### sdkClient
+
+```ts
+sdkClient: GenesysCloudSdkClient;
+```
+
+#### Methods
+
+##### createCallback()
+
+```ts
+createCallback(input): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`GenesysCloudCreateCallbackInput`](#genesyscloudcreatecallbackinput) |
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+##### createHandoff()
+
+```ts
+createHandoff(input?): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`GenesysCloudHandoffInput`](#genesyscloudhandoffinput) |
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+##### createOpenMessage()
+
+```ts
+createOpenMessage(input): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`GenesysCloudCreateOpenMessageInput`](#genesyscloudcreateopenmessageinput) |
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+##### getConversation()
+
+```ts
+getConversation(input): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`GenesysCloudGetConversationInput`](#genesyscloudgetconversationinput) |
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+##### listQueues()
+
+```ts
+listQueues(input?): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`GenesysCloudListQueuesInput`](#genesyscloudlistqueuesinput) |
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+##### readiness()
+
+```ts
+readiness(): Promise<unknown>;
+```
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+***
+
 ### GenesysCloudContactCenterOptions
 
 #### Properties
@@ -18,149 +122,206 @@ optional accessToken?: string;
 apiBaseUrl: string;
 ```
 
-##### defaultHandoffPath?
+##### sdk?
 
 ```ts
-optional defaultHandoffPath?: string;
+optional sdk?: __module;
 ```
 
-##### rawClient?
+##### sdkClient?
 
 ```ts
-optional rawClient?: GenesysCloudRawClient;
-```
-
-##### readinessPath?
-
-```ts
-optional readinessPath?: string;
+optional sdkClient?: GenesysCloudSdkClient;
 ```
 
 ***
 
-### GenesysCloudRawClient
+### GenesysCloudCreateCallbackInput
+
+#### Properties
+
+##### callback
+
+```ts
+callback: unknown;
+```
+
+##### customHeaders?
+
+```ts
+optional customHeaders?: Record<string, string>;
+```
+
+***
+
+### GenesysCloudCreateOpenMessageInput
+
+#### Properties
+
+##### customHeaders?
+
+```ts
+optional customHeaders?: Record<string, string>;
+```
+
+##### integrationId
+
+```ts
+integrationId: string;
+```
+
+##### message
+
+```ts
+message: unknown;
+```
+
+##### prefetchConversationId?
+
+```ts
+optional prefetchConversationId?: boolean;
+```
+
+***
+
+### GenesysCloudGetConversationInput
+
+#### Properties
+
+##### conversationId
+
+```ts
+conversationId: string;
+```
+
+##### customHeaders?
+
+```ts
+optional customHeaders?: Record<string, string>;
+```
+
+***
+
+### GenesysCloudHandoffInput
+
+#### Properties
+
+##### callback?
+
+```ts
+optional callback?: unknown;
+```
+
+##### customHeaders?
+
+```ts
+optional customHeaders?: Record<string, string>;
+```
+
+##### integrationId?
+
+```ts
+optional integrationId?: string;
+```
+
+##### message?
+
+```ts
+optional message?: unknown;
+```
+
+##### openMessage?
+
+```ts
+optional openMessage?: GenesysCloudCreateOpenMessageInput;
+```
+
+##### payload?
+
+```ts
+optional payload?: unknown;
+```
+
+##### prefetchConversationId?
+
+```ts
+optional prefetchConversationId?: boolean;
+```
+
+***
+
+### GenesysCloudListQueuesInput
+
+#### Properties
+
+##### name?
+
+```ts
+optional name?: string;
+```
+
+##### pageNumber?
+
+```ts
+optional pageNumber?: number;
+```
+
+##### pageSize?
+
+```ts
+optional pageSize?: number;
+```
+
+***
+
+### GenesysCloudSdkClient
 
 #### Properties
 
 ##### apiClient
 
 ```ts
-apiClient: GenesysCloudSdkApiClient;
+apiClient: ApiClientClass;
 ```
 
-#### Methods
-
-##### request()
+##### conversationsApi
 
 ```ts
-request<T>(
-   method,
-   path,
-input?): Promise<T>;
+conversationsApi: ConversationsApi;
 ```
 
-###### Type Parameters
-
-| Type Parameter | Default type |
-| ------ | ------ |
-| `T` | `unknown` |
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `method` | [`GenesysCloudHttpMethod`](#genesyscloudhttpmethod) |
-| `path` | `string` |
-| `input?` | [`GenesysCloudRequestInput`](#genesyscloudrequestinput) |
-
-###### Returns
-
-`Promise`\<`T`\>
-
-***
-
-### GenesysCloudRequestInput
-
-#### Properties
-
-##### body?
+##### platformClient
 
 ```ts
-optional body?: unknown;
+platformClient: __module;
 ```
 
-##### headers?
+##### routingApi
 
 ```ts
-optional headers?: Record<string, string>;
+routingApi: RoutingApi;
 ```
 
-##### query?
+##### usersApi
 
 ```ts
-optional query?: Record<string, string | number | boolean | undefined>;
+usersApi: UsersApi;
 ```
-
-***
-
-### GenesysCloudSdkApiClient
-
-#### Properties
-
-##### callApi?
-
-```ts
-optional callApi?: (...args) => Promise<unknown>;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| ...`args` | `unknown`[] |
-
-###### Returns
-
-`Promise`\<`unknown`\>
-
-##### setAccessToken?
-
-```ts
-optional setAccessToken?: (token) => void;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `token` | `string` |
-
-###### Returns
-
-`void`
-
-##### setEnvironment?
-
-```ts
-optional setEnvironment?: (environment) => void;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `environment` | `string` |
-
-###### Returns
-
-`void`
 
 ## Type Aliases
 
-### GenesysCloudHttpMethod
+### GenesysCloudCallbackBody
 
 ```ts
-type GenesysCloudHttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+type GenesysCloudCallbackBody = Parameters<GenesysCloudConversationsApi["postConversationsCallbacks"]>[0];
+```
+
+***
+
+### GenesysCloudConversationsApi
+
+```ts
+type GenesysCloudConversationsApi = InstanceType<typeof GenesysCloudPlatformClient.ConversationsApi>;
 ```
 
 ***
@@ -171,20 +332,84 @@ type GenesysCloudHttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type GenesysCloudJsonObject = Record<string, unknown>;
 ```
 
+***
+
+### GenesysCloudListQueuesSdkOptions
+
+```ts
+type GenesysCloudListQueuesSdkOptions = NonNullable<Parameters<GenesysCloudRoutingApi["getRoutingQueues"]>[0]>;
+```
+
+***
+
+### GenesysCloudOpenMessageBody
+
+```ts
+type GenesysCloudOpenMessageBody = Parameters<GenesysCloudConversationsApi["postConversationsMessageInboundOpenMessage"]>[1];
+```
+
+***
+
+### GenesysCloudOpenMessageSdkCallOptions
+
+```ts
+type GenesysCloudOpenMessageSdkCallOptions = NonNullable<Parameters<GenesysCloudConversationsApi["postConversationsMessageInboundOpenMessage"]>[2]>;
+```
+
+***
+
+### GenesysCloudPlatformSdk
+
+```ts
+type GenesysCloudPlatformSdk = typeof GenesysCloudPlatformClient;
+```
+
+***
+
+### GenesysCloudRoutingApi
+
+```ts
+type GenesysCloudRoutingApi = InstanceType<typeof GenesysCloudPlatformClient.RoutingApi>;
+```
+
+***
+
+### GenesysCloudSdkApiClient
+
+```ts
+type GenesysCloudSdkApiClient = typeof GenesysCloudPlatformClient.ApiClient;
+```
+
+***
+
+### GenesysCloudSdkCallOptions
+
+```ts
+type GenesysCloudSdkCallOptions = NonNullable<Parameters<GenesysCloudConversationsApi["postConversationsCallbacks"]>[1]>;
+```
+
+***
+
+### GenesysCloudUsersApi
+
+```ts
+type GenesysCloudUsersApi = InstanceType<typeof GenesysCloudPlatformClient.UsersApi>;
+```
+
+## Variables
+
+### createGenesysCloudIntegrationOperationHandlers
+
+```ts
+const createGenesysCloudIntegrationOperationHandlers: typeof createGenesysCloudContactCenterOperationHandlers;
+```
+
 ## Functions
 
 ### createGenesysCloudContactCenterClient()
 
 ```ts
-function createGenesysCloudContactCenterClient(options): Promise<{
-  rawClient: GenesysCloudRawClient;
-  createCallback: Promise<unknown>;
-  createHandoff: Promise<unknown>;
-  createOpenMessage: Promise<unknown>;
-  getConversation: Promise<unknown>;
-  listQueues: Promise<unknown>;
-  readiness: Promise<unknown>;
-}>;
+function createGenesysCloudContactCenterClient(options): Promise<GenesysCloudContactCenterClient>;
 ```
 
 #### Parameters
@@ -195,15 +420,7 @@ function createGenesysCloudContactCenterClient(options): Promise<{
 
 #### Returns
 
-`Promise`\<\{
-  `rawClient`: [`GenesysCloudRawClient`](#genesyscloudrawclient);
-  `createCallback`: `Promise`\<`unknown`\>;
-  `createHandoff`: `Promise`\<`unknown`\>;
-  `createOpenMessage`: `Promise`\<`unknown`\>;
-  `getConversation`: `Promise`\<`unknown`\>;
-  `listQueues`: `Promise`\<`unknown`\>;
-  `readiness`: `Promise`\<`unknown`\>;
-\}\>
+`Promise`\<[`GenesysCloudContactCenterClient`](#genesyscloudcontactcenterclient)\>
 
 ***
 
@@ -212,6 +429,7 @@ function createGenesysCloudContactCenterClient(options): Promise<{
 ```ts
 function createGenesysCloudContactCenterIntegration(options): Promise<{
   bindingReport: OperationBindingReport;
+  contactCenterClient: GenesysCloudContactCenterClient;
   credentialStatuses: () => {
      message: string;
      providerPackageId: "contact-center.genesys-cloud";
@@ -375,7 +593,7 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
            label: "Genesys Cloud Open Messaging";
            url: "https://help.genesys.cloud/articles/configure-an-open-messaging-integration/";
         }];
-        notes: ["Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.", "The raw Genesys SDK ApiClient is exposed as an escape hatch for provider-specific operations.", "Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary.", "The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."];
+        notes: ["Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.", "The SDK-backed client exposes Genesys Conversations, Routing, Users, and ApiClient instances for host-level extension.", "Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary.", "The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."];
         scope: "support-workflow-subset";
      };
      credentialRequirements: [{
@@ -406,7 +624,7 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
      }];
      directions: ["inbound-only", "outbound-only", "bidirectional"];
      id: "contact-center.genesys-cloud";
-     limitations: ["Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.", "Raw SDK access is available for escape-hatch use, but raw SDK breadth is not declared as normalized Cognidesk adapter coverage."];
+     limitations: ["Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.", "SDK client injection is available for escape-hatch use, but full SDK breadth is not declared as normalized Cognidesk adapter coverage."];
      maintainers: [{
         name: "Cognidesk";
         type: "official";
@@ -415,11 +633,11 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
         channelCoverage: {
            callback: "sdk-normalized";
            conversations: "sdk-normalized";
+           genesysCloudSdkClient: "escape-hatch";
            messengerJavascriptSdk: "provider-supported-customer-site-not-typed";
            openMessagingInboundApi: "sdk-normalized";
            openMessagingOutboundWebhookSignature: "typed-verify-only";
            queues: "sdk-normalized";
-           rawGenesysCloudSdkClient: "escape-hatch";
         };
         implementation: {
            sdkPackage: "purecloud-platform-client-v2";
@@ -434,7 +652,7 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
         changesWorkflow: true;
         exposesSensitiveData: true;
         providerObject: "contactTransfer";
-        providerOperation: "sdk-configured-request";
+        providerOperation: "ConversationsApi.postConversationsCallbacks | ConversationsApi.postConversationsMessageInboundOpenMessage";
         sideEffect: true;
       }, {
         alias: "contact-center.callback.schedule";
@@ -442,19 +660,19 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
         changesWorkflow: true;
         exposesSensitiveData: true;
         providerObject: "callback";
-        providerOperation: "POST /api/v2/conversations/callbacks";
+        providerOperation: "ConversationsApi.postConversationsCallbacks";
         sideEffect: true;
       }, {
         alias: "contact-center.contact.read";
         capability: "read-provider-object";
         exposesSensitiveData: true;
         providerObject: "contact";
-        providerOperation: "GET /api/v2/conversations/{conversationId}";
+        providerOperation: "ConversationsApi.getConversation";
       }, {
         alias: "contact-center.queue.list";
         capability: "read-provider-object";
         providerObject: "queue";
-        providerOperation: "GET /api/v2/routing/queues";
+        providerOperation: "RoutingApi.getRoutingQueues";
       }, {
         alias: "genesys-cloud.openMessaging.message.create";
         capability: "contact-center.open-messaging-ingress";
@@ -462,7 +680,7 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
         exposesSensitiveData: true;
         extension: true;
         providerObject: "genesysCloudOpenMessage";
-        providerOperation: "POST /api/v2/conversations/messages/{integrationId}/inbound/open/message";
+        providerOperation: "ConversationsApi.postConversationsMessageInboundOpenMessage";
         sideEffect: true;
      }];
      packageName: "@cognidesk/integration-contact-center-genesys-cloud";
@@ -478,13 +696,12 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
      | "contact-center.callback.schedule"
     | "genesys-cloud.openMessaging.message.create")[];
   operations: {
-     contact-center.callback.schedule: (input) => Promise<unknown>;
-     contact-center.contact.read: (input) => Promise<unknown>;
-     contact-center.handoff.request: (input) => Promise<unknown>;
-     contact-center.queue.list: (input?) => Promise<unknown>;
-     genesys-cloud.openMessaging.message.create: (input) => Promise<unknown>;
+     contact-center.callback.schedule: (input, _context) => Promise<unknown>;
+     contact-center.contact.read: (input, _context) => Promise<unknown>;
+     contact-center.handoff.request: (input, _context) => Promise<unknown>;
+     contact-center.queue.list: (input, _context) => Promise<unknown>;
+     genesys-cloud.openMessaging.message.create: (input, _context) => Promise<unknown>;
   };
-  rawClient: GenesysCloudRawClient;
   readiness: () => Promise<
      | {
      blockers?: never;
@@ -504,26 +721,27 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
      providerPackageId: "contact-center.genesys-cloud";
      status: string;
   }>;
+  sdkClient: GenesysCloudSdkClient;
   getOperationHandler: {
-     contact-center.callback.schedule: (input) => Promise<unknown>;
-     contact-center.contact.read: (input) => Promise<unknown>;
-     contact-center.handoff.request: (input) => Promise<unknown>;
-     contact-center.queue.list: (input?) => Promise<unknown>;
-     genesys-cloud.openMessaging.message.create: (input) => Promise<unknown>;
+     contact-center.callback.schedule: (input, _context) => Promise<unknown>;
+     contact-center.contact.read: (input, _context) => Promise<unknown>;
+     contact-center.handoff.request: (input, _context) => Promise<unknown>;
+     contact-center.queue.list: (input, _context) => Promise<unknown>;
+     genesys-cloud.openMessaging.message.create: (input, _context) => Promise<unknown>;
   }[Alias];
   requireOperationHandler: {
-     contact-center.callback.schedule: (input) => Promise<unknown>;
-     contact-center.contact.read: (input) => Promise<unknown>;
-     contact-center.handoff.request: (input) => Promise<unknown>;
-     contact-center.queue.list: (input?) => Promise<unknown>;
-     genesys-cloud.openMessaging.message.create: (input) => Promise<unknown>;
+     contact-center.callback.schedule: (input, _context) => Promise<unknown>;
+     contact-center.contact.read: (input, _context) => Promise<unknown>;
+     contact-center.handoff.request: (input, _context) => Promise<unknown>;
+     contact-center.queue.list: (input, _context) => Promise<unknown>;
+     genesys-cloud.openMessaging.message.create: (input, _context) => Promise<unknown>;
   }[Alias];
   run: Promise<Awaited<ReturnType<{
-     contact-center.callback.schedule: (input) => Promise<unknown>;
-     contact-center.contact.read: (input) => Promise<unknown>;
-     contact-center.handoff.request: (input) => Promise<unknown>;
-     contact-center.queue.list: (input?) => Promise<unknown>;
-     genesys-cloud.openMessaging.message.create: (input) => Promise<unknown>;
+     contact-center.callback.schedule: (input, _context) => Promise<unknown>;
+     contact-center.contact.read: (input, _context) => Promise<unknown>;
+     contact-center.handoff.request: (input, _context) => Promise<unknown>;
+     contact-center.queue.list: (input, _context) => Promise<unknown>;
+     genesys-cloud.openMessaging.message.create: (input, _context) => Promise<unknown>;
   }[Alias]>>>;
 }>;
 ```
@@ -532,12 +750,13 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`GenesysCloudContactCenterOptions`](#genesyscloudcontactcenteroptions) |
+| `options` | `GenesysCloudContactCenterIntegrationOptions` |
 
 #### Returns
 
 `Promise`\<\{
   `bindingReport`: [`OperationBindingReport`](../../../packages/integration-kit/dist.md#operationbindingreport);
+  `contactCenterClient`: [`GenesysCloudContactCenterClient`](#genesyscloudcontactcenterclient);
   `credentialStatuses`: () => \{
      `message`: `string`;
      `providerPackageId`: `"contact-center.genesys-cloud"`;
@@ -701,7 +920,7 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
            `label`: `"Genesys Cloud Open Messaging"`;
            `url`: `"https://help.genesys.cloud/articles/configure-an-open-messaging-integration/"`;
         \}\];
-        `notes`: \[`"Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows."`, `"The raw Genesys SDK ApiClient is exposed as an escape hatch for provider-specific operations."`, `"Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary."`, `"The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."`\];
+        `notes`: \[`"Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows."`, `"The SDK-backed client exposes Genesys Conversations, Routing, Users, and ApiClient instances for host-level extension."`, `"Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary."`, `"The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."`\];
         `scope`: `"support-workflow-subset"`;
      \};
      `credentialRequirements`: \[\{
@@ -732,7 +951,7 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
      \}\];
      `directions`: \[`"inbound-only"`, `"outbound-only"`, `"bidirectional"`\];
      `id`: `"contact-center.genesys-cloud"`;
-     `limitations`: \[`"Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration."`, `"Raw SDK access is available for escape-hatch use, but raw SDK breadth is not declared as normalized Cognidesk adapter coverage."`\];
+     `limitations`: \[`"Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration."`, `"SDK client injection is available for escape-hatch use, but full SDK breadth is not declared as normalized Cognidesk adapter coverage."`\];
      `maintainers`: \[\{
         `name`: `"Cognidesk"`;
         `type`: `"official"`;
@@ -741,11 +960,11 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
         `channelCoverage`: \{
            `callback`: `"sdk-normalized"`;
            `conversations`: `"sdk-normalized"`;
+           `genesysCloudSdkClient`: `"escape-hatch"`;
            `messengerJavascriptSdk`: `"provider-supported-customer-site-not-typed"`;
            `openMessagingInboundApi`: `"sdk-normalized"`;
            `openMessagingOutboundWebhookSignature`: `"typed-verify-only"`;
            `queues`: `"sdk-normalized"`;
-           `rawGenesysCloudSdkClient`: `"escape-hatch"`;
         \};
         `implementation`: \{
            `sdkPackage`: `"purecloud-platform-client-v2"`;
@@ -760,7 +979,7 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
         `changesWorkflow`: `true`;
         `exposesSensitiveData`: `true`;
         `providerObject`: `"contactTransfer"`;
-        `providerOperation`: `"sdk-configured-request"`;
+        `providerOperation`: "ConversationsApi.postConversationsCallbacks \| ConversationsApi.postConversationsMessageInboundOpenMessage";
         `sideEffect`: `true`;
       \}, \{
         `alias`: `"contact-center.callback.schedule"`;
@@ -768,19 +987,19 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
         `changesWorkflow`: `true`;
         `exposesSensitiveData`: `true`;
         `providerObject`: `"callback"`;
-        `providerOperation`: `"POST /api/v2/conversations/callbacks"`;
+        `providerOperation`: `"ConversationsApi.postConversationsCallbacks"`;
         `sideEffect`: `true`;
       \}, \{
         `alias`: `"contact-center.contact.read"`;
         `capability`: `"read-provider-object"`;
         `exposesSensitiveData`: `true`;
         `providerObject`: `"contact"`;
-        `providerOperation`: `"GET /api/v2/conversations/{conversationId}"`;
+        `providerOperation`: `"ConversationsApi.getConversation"`;
       \}, \{
         `alias`: `"contact-center.queue.list"`;
         `capability`: `"read-provider-object"`;
         `providerObject`: `"queue"`;
-        `providerOperation`: `"GET /api/v2/routing/queues"`;
+        `providerOperation`: `"RoutingApi.getRoutingQueues"`;
       \}, \{
         `alias`: `"genesys-cloud.openMessaging.message.create"`;
         `capability`: `"contact-center.open-messaging-ingress"`;
@@ -788,7 +1007,7 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
         `exposesSensitiveData`: `true`;
         `extension`: `true`;
         `providerObject`: `"genesysCloudOpenMessage"`;
-        `providerOperation`: `"POST /api/v2/conversations/messages/{integrationId}/inbound/open/message"`;
+        `providerOperation`: `"ConversationsApi.postConversationsMessageInboundOpenMessage"`;
         `sideEffect`: `true`;
      \}\];
      `packageName`: `"@cognidesk/integration-contact-center-genesys-cloud"`;
@@ -804,13 +1023,12 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
      \| `"contact-center.callback.schedule"`
     \| `"genesys-cloud.openMessaging.message.create"`)[];
   `operations`: \{
-     `contact-center.callback.schedule`: (`input`) => `Promise`\<`unknown`\>;
-     `contact-center.contact.read`: (`input`) => `Promise`\<`unknown`\>;
-     `contact-center.handoff.request`: (`input`) => `Promise`\<`unknown`\>;
-     `contact-center.queue.list`: (`input?`) => `Promise`\<`unknown`\>;
-     `genesys-cloud.openMessaging.message.create`: (`input`) => `Promise`\<`unknown`\>;
+     `contact-center.callback.schedule`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `contact-center.contact.read`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `contact-center.handoff.request`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `contact-center.queue.list`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `genesys-cloud.openMessaging.message.create`: (`input`, `_context`) => `Promise`\<`unknown`\>;
   \};
-  `rawClient`: [`GenesysCloudRawClient`](#genesyscloudrawclient);
   `readiness`: () => `Promise`\<
      \| \{
      `blockers?`: `never`;
@@ -830,28 +1048,77 @@ function createGenesysCloudContactCenterIntegration(options): Promise<{
      `providerPackageId`: `"contact-center.genesys-cloud"`;
      `status`: `string`;
   \}\>;
+  `sdkClient`: [`GenesysCloudSdkClient`](#genesyscloudsdkclient);
   `getOperationHandler`: \{
-     `contact-center.callback.schedule`: (`input`) => `Promise`\<`unknown`\>;
-     `contact-center.contact.read`: (`input`) => `Promise`\<`unknown`\>;
-     `contact-center.handoff.request`: (`input`) => `Promise`\<`unknown`\>;
-     `contact-center.queue.list`: (`input?`) => `Promise`\<`unknown`\>;
-     `genesys-cloud.openMessaging.message.create`: (`input`) => `Promise`\<`unknown`\>;
+     `contact-center.callback.schedule`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `contact-center.contact.read`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `contact-center.handoff.request`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `contact-center.queue.list`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `genesys-cloud.openMessaging.message.create`: (`input`, `_context`) => `Promise`\<`unknown`\>;
   \}\[`Alias`\];
   `requireOperationHandler`: \{
-     `contact-center.callback.schedule`: (`input`) => `Promise`\<`unknown`\>;
-     `contact-center.contact.read`: (`input`) => `Promise`\<`unknown`\>;
-     `contact-center.handoff.request`: (`input`) => `Promise`\<`unknown`\>;
-     `contact-center.queue.list`: (`input?`) => `Promise`\<`unknown`\>;
-     `genesys-cloud.openMessaging.message.create`: (`input`) => `Promise`\<`unknown`\>;
+     `contact-center.callback.schedule`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `contact-center.contact.read`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `contact-center.handoff.request`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `contact-center.queue.list`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `genesys-cloud.openMessaging.message.create`: (`input`, `_context`) => `Promise`\<`unknown`\>;
   \}\[`Alias`\];
   `run`: `Promise`\<`Awaited`\<`ReturnType`\<\{
-     `contact-center.callback.schedule`: (`input`) => `Promise`\<`unknown`\>;
-     `contact-center.contact.read`: (`input`) => `Promise`\<`unknown`\>;
-     `contact-center.handoff.request`: (`input`) => `Promise`\<`unknown`\>;
-     `contact-center.queue.list`: (`input?`) => `Promise`\<`unknown`\>;
-     `genesys-cloud.openMessaging.message.create`: (`input`) => `Promise`\<`unknown`\>;
+     `contact-center.callback.schedule`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `contact-center.contact.read`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `contact-center.handoff.request`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `contact-center.queue.list`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+     `genesys-cloud.openMessaging.message.create`: (`input`, `_context`) => `Promise`\<`unknown`\>;
   \}\[`Alias`\]\>\>\>;
 \}\>
+
+***
+
+### createGenesysCloudContactCenterOperationHandlers()
+
+```ts
+function createGenesysCloudContactCenterOperationHandlers(options): Promise<{
+  contact-center.callback.schedule: (input, _context) => Promise<unknown>;
+  contact-center.contact.read: (input, _context) => Promise<unknown>;
+  contact-center.handoff.request: (input, _context) => Promise<unknown>;
+  contact-center.queue.list: (input, _context) => Promise<unknown>;
+  genesys-cloud.openMessaging.message.create: (input, _context) => Promise<unknown>;
+}>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | `GenesysCloudContactCenterIntegrationOptions` |
+
+#### Returns
+
+`Promise`\<\{
+  `contact-center.callback.schedule`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+  `contact-center.contact.read`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+  `contact-center.handoff.request`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+  `contact-center.queue.list`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+  `genesys-cloud.openMessaging.message.create`: (`input`, `_context`) => `Promise`\<`unknown`\>;
+\}\>
+
+***
+
+### createGenesysCloudSdkClient()
+
+```ts
+function createGenesysCloudSdkClient(options): Promise<GenesysCloudSdkClient>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | `Pick`\<[`GenesysCloudContactCenterOptions`](#genesyscloudcontactcenteroptions), `"apiBaseUrl"` \| `"accessToken"` \| `"sdk"`\> |
+
+#### Returns
+
+`Promise`\<[`GenesysCloudSdkClient`](#genesyscloudsdkclient)\>
 
 ***
 
@@ -870,7 +1137,7 @@ function genesysCloudContactCenterCredentialStatuses(input): {
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | `Pick`\<[`GenesysCloudContactCenterOptions`](#genesyscloudcontactcenteroptions), `"apiBaseUrl"` \| `"accessToken"` \| `"defaultHandoffPath"`\> |
+| `input` | `Pick`\<[`GenesysCloudContactCenterOptions`](#genesyscloudcontactcenteroptions), `"accessToken"` \| `"apiBaseUrl"` \| `"sdkClient"`\> & \{ `contactCenterClient?`: [`GenesysCloudContactCenterClient`](#genesyscloudcontactcenterclient); \} |
 
 #### Returns
 
@@ -907,3 +1174,9 @@ function verifyGenesysCloudOpenMessagingWebhookSignature(input): boolean;
 ### genesysCloudContactCenterManifest
 
 Re-exports [genesysCloudContactCenterManifest](dist/manifest.md#genesyscloudcontactcentermanifest)
+
+***
+
+### genesysCloudContactCenterManifestInput
+
+Re-exports [genesysCloudContactCenterManifestInput](dist/manifest.md#genesyscloudcontactcentermanifestinput)

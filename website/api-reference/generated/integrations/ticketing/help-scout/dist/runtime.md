@@ -14,9 +14,27 @@ Re-exports [createHelpScoutTicketingIntegration](../dist.md#createhelpscoutticke
 
 ***
 
+### createHelpScoutTicketingOperationHandlers
+
+Re-exports [createHelpScoutTicketingOperationHandlers](../dist.md#createhelpscoutticketingoperationhandlers)
+
+***
+
 ### HelpScoutTicketingClientOptions
 
 Re-exports [HelpScoutTicketingClientOptions](../dist.md#helpscoutticketingclientoptions)
+
+***
+
+### HelpScoutTicketingIntegrationOptions
+
+Re-exports [HelpScoutTicketingIntegrationOptions](../dist.md#helpscoutticketingintegrationoptions)
+
+***
+
+### HelpScoutTicketingProviderClient
+
+Re-exports [HelpScoutTicketingProviderClient](../dist.md#helpscoutticketingproviderclient)
 
 ***
 
@@ -41,3 +59,9 @@ Re-exports [JsonPrimitive](../dist.md#jsonprimitive)
 ### JsonValue
 
 Re-exports [JsonValue](../dist.md#jsonvalue)
+
+***
+
+### ProviderJsonRetryOptions
+
+Re-exports [ProviderJsonRetryOptions](../dist.md#providerjsonretryoptions)

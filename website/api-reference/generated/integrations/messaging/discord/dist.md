@@ -27,7 +27,7 @@ new DiscordGatewayService(options): DiscordGatewayService;
 ##### continueConversation()
 
 ```ts
-continueConversation(conversationId): Promise<ContinueConversationInDiscordResult>;
+continueConversation(conversationId, options?): Promise<ContinueConversationInDiscordResult>;
 ```
 
 ###### Parameters
@@ -35,6 +35,7 @@ continueConversation(conversationId): Promise<ContinueConversationInDiscordResul
 | Parameter | Type |
 | ------ | ------ |
 | `conversationId` | `string` |
+| `options?` | [`ContinueConversationInDiscordOptions`](#continueconversationindiscordoptions) |
 
 ###### Returns
 
@@ -271,10 +272,12 @@ upsertBinding(input): Promise<DiscordThreadBinding>;
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | \{ `active?`: `boolean`; `conversationId`: `string`; `discordThreadId`: `string`; `guildId`: `string`; `parentChannelId`: `string`; `starterUserId?`: `string`; `threadName?`: `string`; \} |
+| `input` | \{ `active?`: `boolean`; `conversationId`: `string`; `discordThreadId`: `string`; `discordVoiceChannelId?`: `string`; `discordVoiceChannelName?`: `string`; `guildId`: `string`; `parentChannelId`: `string`; `starterUserId?`: `string`; `threadName?`: `string`; \} |
 | `input.active?` | `boolean` |
 | `input.conversationId` | `string` |
 | `input.discordThreadId` | `string` |
+| `input.discordVoiceChannelId?` | `string` |
+| `input.discordVoiceChannelName?` | `string` |
 | `input.guildId` | `string` |
 | `input.parentChannelId` | `string` |
 | `input.starterUserId?` | `string` |
@@ -289,6 +292,18 @@ upsertBinding(input): Promise<DiscordThreadBinding>;
 [`DiscordGatewayStore`](#discordgatewaystore).[`upsertBinding`](#upsertbinding-1)
 
 ## Interfaces
+
+### ContinueConversationInDiscordOptions
+
+#### Properties
+
+##### voice?
+
+```ts
+optional voice?: boolean;
+```
+
+***
 
 ### ContinueConversationInDiscordResult
 
@@ -310,6 +325,18 @@ discordThreadId: string;
 
 ```ts
 discordThreadUrl: string;
+```
+
+##### discordVoiceChannelId?
+
+```ts
+optional discordVoiceChannelId?: string;
+```
+
+##### discordVoiceChannelUrl?
+
+```ts
+optional discordVoiceChannelUrl?: string;
 ```
 
 ##### enabled
@@ -916,24 +943,6 @@ webAppUrl: string;
 
 #### Properties
 
-##### connectedMessage?
-
-```ts
-optional connectedMessage?: (input) => string;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | \{ `conversationId`: `string`; `conversationUrl`: `string`; \} |
-| `input.conversationId` | `string` |
-| `input.conversationUrl` | `string` |
-
-###### Returns
-
-`string`
-
 ##### promptFallbackMessage?
 
 ```ts
@@ -977,6 +986,34 @@ optional turnFailureMessage?: (input) => string;
 | `input` | \{ `conversationUrl`: `string`; `discordThreadId`: `string`; \} |
 | `input.conversationUrl` | `string` |
 | `input.discordThreadId` | `string` |
+
+###### Returns
+
+`string`
+
+##### voiceChannelNamePrefix?
+
+```ts
+optional voiceChannelNamePrefix?: string;
+```
+
+##### voiceHandoffMessage?
+
+```ts
+optional voiceHandoffMessage?: (input) => string;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | \{ `conversationId`: `string`; `conversationUrl`: `string`; `discordThreadId`: `string`; `discordThreadUrl`: `string`; `discordVoiceChannelId`: `string`; `discordVoiceChannelUrl`: `string`; \} |
+| `input.conversationId` | `string` |
+| `input.conversationUrl` | `string` |
+| `input.discordThreadId` | `string` |
+| `input.discordThreadUrl` | `string` |
+| `input.discordVoiceChannelId` | `string` |
+| `input.discordVoiceChannelUrl` | `string` |
 
 ###### Returns
 
@@ -1236,10 +1273,12 @@ upsertBinding(input): Promise<DiscordThreadBinding>;
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | \{ `active?`: `boolean`; `conversationId`: `string`; `discordThreadId`: `string`; `guildId`: `string`; `parentChannelId`: `string`; `starterUserId?`: `string`; `threadName?`: `string`; \} |
+| `input` | \{ `active?`: `boolean`; `conversationId`: `string`; `discordThreadId`: `string`; `discordVoiceChannelId?`: `string`; `discordVoiceChannelName?`: `string`; `guildId`: `string`; `parentChannelId`: `string`; `starterUserId?`: `string`; `threadName?`: `string`; \} |
 | `input.active?` | `boolean` |
 | `input.conversationId` | `string` |
 | `input.discordThreadId` | `string` |
+| `input.discordVoiceChannelId?` | `string` |
+| `input.discordVoiceChannelName?` | `string` |
 | `input.guildId` | `string` |
 | `input.parentChannelId` | `string` |
 | `input.starterUserId?` | `string` |
@@ -1459,10 +1498,10 @@ optional apiVersion?: string;
 optional applicationId?: string;
 ```
 
-##### botToken
+##### botToken?
 
 ```ts
-botToken: string;
+optional botToken?: string;
 ```
 
 ###### Inherited from
@@ -1480,57 +1519,6 @@ optional channelId?: string;
 ```ts
 optional client?: Pick<DiscordMessagingClient, "getCurrentBot" | "getCurrentApplication" | "getGuild" | "getChannel">;
 ```
-
-##### fetch?
-
-```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
-```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Inherited from
-
-[`DiscordMessagingClientOptions`](#discordmessagingclientoptions).[`fetch`](#fetch-1)
 
 ##### guildId?
 
@@ -1910,58 +1898,11 @@ optional apiBaseUrl?: string;
 optional apiVersion?: string;
 ```
 
-##### botToken
+##### botToken?
 
 ```ts
-botToken: string;
+optional botToken?: string;
 ```
-
-##### fetch?
-
-```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
-```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
 
 ##### rest?
 
@@ -2054,6 +1995,12 @@ post(route, options?): Promise<unknown>;
 ### DiscordRestOptions
 
 #### Properties
+
+##### auth?
+
+```ts
+optional auth?: boolean;
+```
 
 ##### body?
 
@@ -2229,6 +2176,18 @@ createdAt: string;
 
 ```ts
 discordThreadId: string;
+```
+
+##### discordVoiceChannelId?
+
+```ts
+optional discordVoiceChannelId?: string;
+```
+
+##### discordVoiceChannelName?
+
+```ts
+optional discordVoiceChannelName?: string;
 ```
 
 ##### guildId
@@ -2646,7 +2605,7 @@ function createDiscordMessagingIntegration(options): DefinedIntegration<{
    }, {
      audiences: ["customer-facing", "mixed"];
      capability: "send";
-     description: "Sends bot-token-authenticated Discord channel messages through discord.js REST helpers.";
+     description: "Sends bot-token-authenticated Discord channel messages through discord.js REST.post(Routes.channelMessages).";
      exposesSensitiveData: true;
      label: "Send Discord channel messages";
      providerObjects: [{
@@ -2691,11 +2650,11 @@ function createDiscordMessagingIntegration(options): DefinedIntegration<{
         label: "Discord channel/thread endpoints";
         url: "https://docs.discord.com/developers/resources/channel";
      }];
-     notes: ["Coverage is a Cognidesk support workflow adapter backed by discord.js, selected discord.js REST helpers, and an optional discord.js Gateway service for live support-thread handoff.", "Typed operations cover channel messages, text/forum/media-channel threads, webhook execution, selected bot/application/guild/channel reads, channel message listing, and Ed25519 interaction signature verification.", "The runtime export includes a Discord Gateway service that creates or reuses Discord threads, ingests customer messages through messageCreate events, mirrors Cognidesk runtime messages into threads, and records idempotency state through the bundled SQLite store.", "This package intentionally removes the generated Discord HTTP API clone and does not claim full Discord platform coverage.", "Discord bot installation, Gateway intents policy, channel permissions, moderation policy, retention, deletion, command registration lifecycle, voice/media transport, broad moderation/admin APIs, and Discord Webhook Events subscriptions remain SDK-user-owned configuration or future package surfaces."];
+     notes: ["Coverage is a Cognidesk support workflow adapter backed by discord.js REST, discord.js Routes helpers, and an optional discord.js Gateway service for live support-thread handoff.", "Typed operations cover channel messages, text/forum/media-channel threads, webhook execution with strict Discord webhook URL validation, selected bot/application/guild/channel reads, channel message listing, and Ed25519 interaction signature verification.", "The runtime export includes a Discord Gateway service that creates or reuses Discord threads, ingests customer messages through messageCreate events, mirrors Cognidesk runtime messages into threads, and records idempotency state through the bundled SQLite store.", "This package intentionally removes the generated Discord HTTP API clone and does not claim full Discord platform coverage.", "Discord bot installation, Gateway intents policy, channel permissions, moderation policy, retention, deletion, command registration lifecycle, voice/media transport, broad moderation/admin APIs, and Discord Webhook Events subscriptions remain SDK-user-owned configuration or future package surfaces."];
      scope: "support-workflow-subset";
   };
   credentialRequirements: [{
-     description: "Server-side Discord bot token used by discord.js REST helpers for channel, guild, bot, and application calls.";
+     description: "Server-side Discord bot token used by discord.js REST and Routes SDK helpers for channel, guild, bot, and application calls.";
      id: "discord-bot-token";
      label: "Discord bot token";
      metadata: {
@@ -2732,7 +2691,7 @@ function createDiscordMessagingIntegration(options): DefinedIntegration<{
         threads: "sdk-owned-rest-create";
         voiceGatewayAndRpc: "not-covered";
         webhookEventsSubscriptions: "not-covered";
-        webhookExecution: "typed-fetch-send";
+        webhookExecution: "sdk-owned-rest-webhook-execute";
      };
      defaultApiVersion: "10";
      gatewayService: {
@@ -2740,6 +2699,30 @@ function createDiscordMessagingIntegration(options): DefinedIntegration<{
         runtimeMirror: "cognidesk-runtime-event-list";
         sourceId: "discord-gateway";
         store: "bundled-libsql-sqlite-binding-store";
+     };
+     implementation: {
+        operationMethodMap: {
+           discord.application.read: "REST.get(Routes.oauth2CurrentApplication)";
+           discord.bot.read: "REST.get(Routes.user)";
+           discord.channel-messages.list: "REST.get(Routes.channelMessages)";
+           discord.channel.read: "REST.get(Routes.channel)";
+           discord.forum-post.create: "REST.post(Routes.threads)";
+           discord.guild.read: "REST.get(Routes.guild)";
+           discord.interaction-signature.verify: "validateDiscordInteractionSignature";
+           discord.interaction.receive: "parseDiscordInteractionRequest";
+           discord.message.send: "REST.post(Routes.channelMessages)";
+           discord.thread.create: "REST.post(Routes.threads)";
+           discord.webhook.execute: "REST.post(Routes.webhook)";
+        };
+        sdkPackage: "discord.js";
+        sdkRuntimeSurface: "REST + Routes + Client gateway";
+        sdkVersionRange: "^14.26.4";
+        strategy: "official-sdk-support-slice";
+        strictExceptions: {
+           discord.interaction-signature.verify: "Signature verification is local Ed25519 protocol handling, not an outbound provider SDK call.";
+           discord.interaction.receive: "Interaction parsing and Ed25519 signature verification are local protocol handling, not outbound provider SDK calls.";
+           discord.webhook.execute: "Webhook URLs are validated against the configured Discord API origin, parsed into webhook id/token, dispatched through discord.js REST with auth disabled, and rejected before dispatch when the URL is not a Discord webhook execution URL.";
+        };
      };
      integrationEntryPoints: {
         manifest: "@cognidesk/integration-messaging-discord/manifest";
@@ -2773,7 +2756,7 @@ function createDiscordMessagingIntegration(options): DefinedIntegration<{
      inputSchemaName: "DiscordSendChannelMessageInput";
      outputSchemaName: "DiscordMessageResource";
      providerObject: "discordMessage";
-     providerOperation: "POST /channels/{channel.id}/messages";
+     providerOperation: "REST.post(Routes.channelMessages)";
      requiresCredential: true;
      sideEffect: true;
    }, {
@@ -2785,7 +2768,7 @@ function createDiscordMessagingIntegration(options): DefinedIntegration<{
      inputSchemaName: "DiscordCreateThreadInput";
      outputSchemaName: "DiscordChannelResource";
      providerObject: "discordThread";
-     providerOperation: "POST /channels/{channel.id}/threads";
+     providerOperation: "REST.post(Routes.threads)";
      requiresCredential: true;
      sideEffect: true;
   }];
@@ -2833,7 +2816,7 @@ function createDiscordMessagingIntegration(options): DefinedIntegration<{
    \}, \{
      `audiences`: \[`"customer-facing"`, `"mixed"`\];
      `capability`: `"send"`;
-     `description`: `"Sends bot-token-authenticated Discord channel messages through discord.js REST helpers."`;
+     `description`: `"Sends bot-token-authenticated Discord channel messages through discord.js REST.post(Routes.channelMessages)."`;
      `exposesSensitiveData`: `true`;
      `label`: `"Send Discord channel messages"`;
      `providerObjects`: \[\{
@@ -2878,11 +2861,11 @@ function createDiscordMessagingIntegration(options): DefinedIntegration<{
         `label`: `"Discord channel/thread endpoints"`;
         `url`: `"https://docs.discord.com/developers/resources/channel"`;
      \}\];
-     `notes`: \[`"Coverage is a Cognidesk support workflow adapter backed by discord.js, selected discord.js REST helpers, and an optional discord.js Gateway service for live support-thread handoff."`, `"Typed operations cover channel messages, text/forum/media-channel threads, webhook execution, selected bot/application/guild/channel reads, channel message listing, and Ed25519 interaction signature verification."`, `"The runtime export includes a Discord Gateway service that creates or reuses Discord threads, ingests customer messages through messageCreate events, mirrors Cognidesk runtime messages into threads, and records idempotency state through the bundled SQLite store."`, `"This package intentionally removes the generated Discord HTTP API clone and does not claim full Discord platform coverage."`, `"Discord bot installation, Gateway intents policy, channel permissions, moderation policy, retention, deletion, command registration lifecycle, voice/media transport, broad moderation/admin APIs, and Discord Webhook Events subscriptions remain SDK-user-owned configuration or future package surfaces."`\];
+     `notes`: \[`"Coverage is a Cognidesk support workflow adapter backed by discord.js REST, discord.js Routes helpers, and an optional discord.js Gateway service for live support-thread handoff."`, `"Typed operations cover channel messages, text/forum/media-channel threads, webhook execution with strict Discord webhook URL validation, selected bot/application/guild/channel reads, channel message listing, and Ed25519 interaction signature verification."`, `"The runtime export includes a Discord Gateway service that creates or reuses Discord threads, ingests customer messages through messageCreate events, mirrors Cognidesk runtime messages into threads, and records idempotency state through the bundled SQLite store."`, `"This package intentionally removes the generated Discord HTTP API clone and does not claim full Discord platform coverage."`, `"Discord bot installation, Gateway intents policy, channel permissions, moderation policy, retention, deletion, command registration lifecycle, voice/media transport, broad moderation/admin APIs, and Discord Webhook Events subscriptions remain SDK-user-owned configuration or future package surfaces."`\];
      `scope`: `"support-workflow-subset"`;
   \};
   `credentialRequirements`: \[\{
-     `description`: `"Server-side Discord bot token used by discord.js REST helpers for channel, guild, bot, and application calls."`;
+     `description`: `"Server-side Discord bot token used by discord.js REST and Routes SDK helpers for channel, guild, bot, and application calls."`;
      `id`: `"discord-bot-token"`;
      `label`: `"Discord bot token"`;
      `metadata`: \{
@@ -2919,7 +2902,7 @@ function createDiscordMessagingIntegration(options): DefinedIntegration<{
         `threads`: `"sdk-owned-rest-create"`;
         `voiceGatewayAndRpc`: `"not-covered"`;
         `webhookEventsSubscriptions`: `"not-covered"`;
-        `webhookExecution`: `"typed-fetch-send"`;
+        `webhookExecution`: `"sdk-owned-rest-webhook-execute"`;
      \};
      `defaultApiVersion`: `"10"`;
      `gatewayService`: \{
@@ -2927,6 +2910,30 @@ function createDiscordMessagingIntegration(options): DefinedIntegration<{
         `runtimeMirror`: `"cognidesk-runtime-event-list"`;
         `sourceId`: `"discord-gateway"`;
         `store`: `"bundled-libsql-sqlite-binding-store"`;
+     \};
+     `implementation`: \{
+        `operationMethodMap`: \{
+           `discord.application.read`: `"REST.get(Routes.oauth2CurrentApplication)"`;
+           `discord.bot.read`: `"REST.get(Routes.user)"`;
+           `discord.channel-messages.list`: `"REST.get(Routes.channelMessages)"`;
+           `discord.channel.read`: `"REST.get(Routes.channel)"`;
+           `discord.forum-post.create`: `"REST.post(Routes.threads)"`;
+           `discord.guild.read`: `"REST.get(Routes.guild)"`;
+           `discord.interaction-signature.verify`: `"validateDiscordInteractionSignature"`;
+           `discord.interaction.receive`: `"parseDiscordInteractionRequest"`;
+           `discord.message.send`: `"REST.post(Routes.channelMessages)"`;
+           `discord.thread.create`: `"REST.post(Routes.threads)"`;
+           `discord.webhook.execute`: `"REST.post(Routes.webhook)"`;
+        \};
+        `sdkPackage`: `"discord.js"`;
+        `sdkRuntimeSurface`: `"REST + Routes + Client gateway"`;
+        `sdkVersionRange`: `"^14.26.4"`;
+        `strategy`: `"official-sdk-support-slice"`;
+        `strictExceptions`: \{
+           `discord.interaction-signature.verify`: `"Signature verification is local Ed25519 protocol handling, not an outbound provider SDK call."`;
+           `discord.interaction.receive`: `"Interaction parsing and Ed25519 signature verification are local protocol handling, not outbound provider SDK calls."`;
+           `discord.webhook.execute`: `"Webhook URLs are validated against the configured Discord API origin, parsed into webhook id/token, dispatched through discord.js REST with auth disabled, and rejected before dispatch when the URL is not a Discord webhook execution URL."`;
+        \};
      \};
      `integrationEntryPoints`: \{
         `manifest`: `"@cognidesk/integration-messaging-discord/manifest"`;
@@ -2960,7 +2967,7 @@ function createDiscordMessagingIntegration(options): DefinedIntegration<{
      `inputSchemaName`: `"DiscordSendChannelMessageInput"`;
      `outputSchemaName`: `"DiscordMessageResource"`;
      `providerObject`: `"discordMessage"`;
-     `providerOperation`: `"POST /channels/{channel.id}/messages"`;
+     `providerOperation`: `"REST.post(Routes.channelMessages)"`;
      `requiresCredential`: `true`;
      `sideEffect`: `true`;
    \}, \{
@@ -2972,7 +2979,7 @@ function createDiscordMessagingIntegration(options): DefinedIntegration<{
      `inputSchemaName`: `"DiscordCreateThreadInput"`;
      `outputSchemaName`: `"DiscordChannelResource"`;
      `providerObject`: `"discordThread"`;
-     `providerOperation`: `"POST /channels/{channel.id}/threads"`;
+     `providerOperation`: `"REST.post(Routes.threads)"`;
      `requiresCredential`: `true`;
      `sideEffect`: `true`;
   \}\];

@@ -14,9 +14,21 @@ Re-exports [AircallClientOptions](../dist.md#aircallclientoptions)
 
 ***
 
-### AircallOperationInput
+### AircallDispatchingStrategy
 
-Re-exports [AircallOperationInput](../dist.md#aircalloperationinput)
+Re-exports [AircallDispatchingStrategy](../dist.md#aircalldispatchingstrategy)
+
+***
+
+### AircallIntegrationOptions
+
+Re-exports [AircallIntegrationOptions](../dist.md#aircallintegrationoptions)
+
+***
+
+### aircallOperationAliases
+
+Re-exports [aircallOperationAliases](manifest.md#aircalloperationaliases)
 
 ***
 
@@ -32,9 +44,33 @@ Re-exports [aircallProviderManifestInput](manifest.md#aircallprovidermanifestinp
 
 ***
 
+### AircallRawClient
+
+Re-exports [AircallRawClient](../dist.md#aircallrawclient)
+
+***
+
+### AircallReadinessInput
+
+Re-exports [AircallReadinessInput](../dist.md#aircallreadinessinput)
+
+***
+
+### aircallRestSupportSlice
+
+Re-exports [aircallRestSupportSlice](manifest.md#aircallrestsupportslice)
+
+***
+
 ### aircallSupportSlice
 
 Re-exports [aircallSupportSlice](manifest.md#aircallsupportslice)
+
+***
+
+### AircallTransferCallInput
+
+Re-exports [AircallTransferCallInput](../dist.md#aircalltransfercallinput)
 
 ***
 
@@ -56,12 +92,18 @@ Re-exports [createAircallIntegration](../dist.md#createaircallintegration)
 
 ***
 
-### ProviderExtensionRequestInput
+### createAircallOperationHandlers
 
-Re-exports [ProviderExtensionRequestInput](../dist.md#providerextensionrequestinput)
+Re-exports [createAircallOperationHandlers](../dist.md#createaircalloperationhandlers)
 
 ***
 
 ### ProviderJsonObject
 
 Re-exports [ProviderJsonObject](../dist.md#providerjsonobject)
+
+***
+
+### ProviderRestRetryOptions
+
+Re-exports [ProviderRestRetryOptions](../dist.md#providerrestretryoptions)

@@ -8,6 +8,18 @@ Re-exports [buildSipAddress](../dist.md#buildsipaddress)
 
 ***
 
+### createDrachtioSipStackGateway
+
+Re-exports [createDrachtioSipStackGateway](../dist.md#createdrachtiosipstackgateway)
+
+***
+
+### createDrachtioSrfSipStackGateway
+
+Renames and re-exports [createDrachtioSipStackGateway](../dist.md#createdrachtiosipstackgateway)
+
+***
+
 ### createSipVoiceClient
 
 Re-exports [createSipVoiceClient](../dist.md#createsipvoiceclient)
@@ -23,6 +35,18 @@ Re-exports [createSipVoiceIntegration](../dist.md#createsipvoiceintegration)
 ### createSipVoiceLiveChecks
 
 Re-exports [createSipVoiceLiveChecks](../dist.md#createsipvoicelivechecks)
+
+***
+
+### DrachtioSrfSipGateway
+
+Re-exports [DrachtioSrfSipGateway](../dist.md#drachtiosrfsipgateway)
+
+***
+
+### DrachtioSrfSipStackGatewayOptions
+
+Re-exports [DrachtioSrfSipStackGatewayOptions](../dist.md#drachtiosrfsipstackgatewayoptions)
 
 ***
 

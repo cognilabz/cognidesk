@@ -35,6 +35,36 @@ optional orgId?: string;
 
 ***
 
+### ZohoDeskJsonRetryOptions
+
+#### Properties
+
+##### attempts?
+
+```ts
+optional attempts?: number;
+```
+
+##### baseDelayMs?
+
+```ts
+optional baseDelayMs?: number;
+```
+
+##### maxDelayMs?
+
+```ts
+optional maxDelayMs?: number;
+```
+
+##### statusCodes?
+
+```ts
+optional statusCodes?: readonly number[];
+```
+
+***
+
 ### ZohoDeskLiveCheckOptions
 
 #### Extends
@@ -68,6 +98,16 @@ optional apiBaseUrl?: string;
 ```ts
 optional client?: Pick<ZohoDeskTicketingClient, "readiness">;
 ```
+
+##### dataCenter?
+
+```ts
+optional dataCenter?: string;
+```
+
+###### Inherited from
+
+[`ZohoDeskTicketingClientOptions`](#zohodeskticketingclientoptions).[`dataCenter`](#datacenter-1)
 
 ##### fetch?
 
@@ -120,15 +160,214 @@ optional fetch?: {
 
 [`ZohoDeskTicketingClientOptions`](#zohodeskticketingclientoptions).[`fetch`](#fetch-1)
 
-##### orgId
+##### headers?
 
 ```ts
-orgId: string;
+optional headers?: Record<string, string>;
+```
+
+###### Inherited from
+
+[`ZohoDeskTicketingClientOptions`](#zohodeskticketingclientoptions).[`headers`](#headers-1)
+
+##### orgId?
+
+```ts
+optional orgId?: string;
 ```
 
 ###### Inherited from
 
 [`ZohoDeskTicketingClientOptions`](#zohodeskticketingclientoptions).[`orgId`](#orgid-2)
+
+##### providerClient?
+
+```ts
+optional providerClient?: ZohoDeskProviderClient;
+```
+
+###### Inherited from
+
+[`ZohoDeskTicketingClientOptions`](#zohodeskticketingclientoptions).[`providerClient`](#providerclient-2)
+
+##### retry?
+
+```ts
+optional retry?: number | ZohoDeskJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`ZohoDeskTicketingClientOptions`](#zohodeskticketingclientoptions).[`retry`](#retry-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`ZohoDeskTicketingClientOptions`](#zohodeskticketingclientoptions).[`signal`](#signal-1)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`ZohoDeskTicketingClientOptions`](#zohodeskticketingclientoptions).[`timeoutMs`](#timeoutms-1)
+
+***
+
+### ZohoDeskProviderClient
+
+#### Methods
+
+##### createTicket()
+
+```ts
+createTicket(input): Promise<ZohoDeskProviderResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ZohoDeskProviderPayload`](#zohodeskproviderpayload) |
+
+###### Returns
+
+`Promise`\<[`ZohoDeskProviderResponse`](#zohodeskproviderresponse)\>
+
+##### createTicketComment()
+
+```ts
+createTicketComment(ticketId, body): Promise<ZohoDeskProviderResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `ticketId` | `string` |
+| `body` | [`ZohoDeskProviderPayload`](#zohodeskproviderpayload) |
+
+###### Returns
+
+`Promise`\<[`ZohoDeskProviderResponse`](#zohodeskproviderresponse)\>
+
+##### getTicket()
+
+```ts
+getTicket(ticketId): Promise<ZohoDeskProviderResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `ticketId` | `string` |
+
+###### Returns
+
+`Promise`\<[`ZohoDeskProviderResponse`](#zohodeskproviderresponse)\>
+
+##### listTicketComments()
+
+```ts
+listTicketComments(ticketId, query?): Promise<ZohoDeskProviderResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `ticketId` | `string` |
+| `query?` | [`ZohoDeskProviderQuery`](#zohodeskproviderquery) |
+
+###### Returns
+
+`Promise`\<[`ZohoDeskProviderResponse`](#zohodeskproviderresponse)\>
+
+##### listTickets()
+
+```ts
+listTickets(query?): Promise<ZohoDeskProviderResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `query?` | [`ZohoDeskProviderQuery`](#zohodeskproviderquery) |
+
+###### Returns
+
+`Promise`\<[`ZohoDeskProviderResponse`](#zohodeskproviderresponse)\>
+
+##### listTicketThreads()
+
+```ts
+listTicketThreads(ticketId, query?): Promise<ZohoDeskProviderResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `ticketId` | `string` |
+| `query?` | [`ZohoDeskProviderQuery`](#zohodeskproviderquery) |
+
+###### Returns
+
+`Promise`\<[`ZohoDeskProviderResponse`](#zohodeskproviderresponse)\>
+
+##### readiness()
+
+```ts
+readiness(): Promise<ZohoDeskProviderResponse>;
+```
+
+###### Returns
+
+`Promise`\<[`ZohoDeskProviderResponse`](#zohodeskproviderresponse)\>
+
+##### sendTicketReply()
+
+```ts
+sendTicketReply(ticketId, body): Promise<ZohoDeskProviderResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `ticketId` | `string` |
+| `body` | [`ZohoDeskProviderPayload`](#zohodeskproviderpayload) |
+
+###### Returns
+
+`Promise`\<[`ZohoDeskProviderResponse`](#zohodeskproviderresponse)\>
+
+##### updateTicket()
+
+```ts
+updateTicket(ticketId, patch): Promise<ZohoDeskProviderResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `ticketId` | `string` |
+| `patch` | [`ZohoDeskProviderPayload`](#zohodeskproviderpayload) |
+
+###### Returns
+
+`Promise`\<[`ZohoDeskProviderResponse`](#zohodeskproviderresponse)\>
 
 ***
 
@@ -161,6 +400,14 @@ orgId: string;
 ***
 
 ### ZohoDeskTicketingClient
+
+#### Properties
+
+##### providerClient
+
+```ts
+providerClient: ZohoDeskProviderClient;
+```
 
 #### Methods
 
@@ -224,7 +471,7 @@ listTicketComments(ticketId, query?): Promise<ZohoDeskProviderResponse>;
 | Parameter | Type |
 | ------ | ------ |
 | `ticketId` | `string` |
-| `query?` | `Record`\<`string`, `string` \| `number` \| `boolean`\> |
+| `query?` | [`ZohoDeskProviderQuery`](#zohodeskproviderquery) |
 
 ###### Returns
 
@@ -240,7 +487,7 @@ listTickets(query?): Promise<ZohoDeskProviderResponse>;
 
 | Parameter | Type |
 | ------ | ------ |
-| `query?` | `Record`\<`string`, `string` \| `number` \| `boolean`\> |
+| `query?` | [`ZohoDeskProviderQuery`](#zohodeskproviderquery) |
 
 ###### Returns
 
@@ -257,7 +504,7 @@ listTicketThreads(ticketId, query?): Promise<ZohoDeskProviderResponse>;
 | Parameter | Type |
 | ------ | ------ |
 | `ticketId` | `string` |
-| `query?` | `Record`\<`string`, `string` \| `number` \| `boolean`\> |
+| `query?` | [`ZohoDeskProviderQuery`](#zohodeskproviderquery) |
 
 ###### Returns
 
@@ -329,6 +576,12 @@ optional accessToken?: string;
 optional apiBaseUrl?: string;
 ```
 
+##### dataCenter?
+
+```ts
+optional dataCenter?: string;
+```
+
 ##### fetch?
 
 ```ts
@@ -376,10 +629,40 @@ optional fetch?: {
 
 `Promise`\<`Response`\>
 
-##### orgId
+##### headers?
 
 ```ts
-orgId: string;
+optional headers?: Record<string, string>;
+```
+
+##### orgId?
+
+```ts
+optional orgId?: string;
+```
+
+##### providerClient?
+
+```ts
+optional providerClient?: ZohoDeskProviderClient;
+```
+
+##### retry?
+
+```ts
+optional retry?: number | ZohoDeskJsonRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
 ```
 
 ***
@@ -481,10 +764,22 @@ type ZohoDeskProviderQuery = Record<string, ZohoDeskProviderExtensionValue>;
 
 ## Functions
 
-### createZohoDeskTicketingClient()
+### createUnconfiguredZohoDeskProviderClient()
 
 ```ts
-function createZohoDeskTicketingClient(options): ZohoDeskTicketingClient;
+function createUnconfiguredZohoDeskProviderClient(): ZohoDeskProviderClient;
+```
+
+#### Returns
+
+[`ZohoDeskProviderClient`](#zohodeskproviderclient)
+
+***
+
+### createZohoDeskRestProviderClient()
+
+```ts
+function createZohoDeskRestProviderClient(options): ZohoDeskProviderClient;
 ```
 
 #### Parameters
@@ -495,6 +790,24 @@ function createZohoDeskTicketingClient(options): ZohoDeskTicketingClient;
 
 #### Returns
 
+[`ZohoDeskProviderClient`](#zohodeskproviderclient)
+
+***
+
+### createZohoDeskTicketingClient()
+
+```ts
+function createZohoDeskTicketingClient(options?): ZohoDeskTicketingClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`ZohoDeskTicketingClientOptions`](#zohodeskticketingclientoptions) |
+
+#### Returns
+
 [`ZohoDeskTicketingClient`](#zohodeskticketingclient)
 
 ***
@@ -502,7 +815,7 @@ function createZohoDeskTicketingClient(options): ZohoDeskTicketingClient;
 ### createZohoDeskTicketingLiveChecks()
 
 ```ts
-function createZohoDeskTicketingLiveChecks(options): {
+function createZohoDeskTicketingLiveChecks(options?): {
   description: string;
   id: string;
   requiredCredentialIds: string[];
@@ -518,7 +831,7 @@ function createZohoDeskTicketingLiveChecks(options): {
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`ZohoDeskLiveCheckOptions`](#zohodesklivecheckoptions) |
+| `options?` | [`ZohoDeskLiveCheckOptions`](#zohodesklivecheckoptions) |
 
 #### Returns
 
@@ -532,6 +845,24 @@ function createZohoDeskTicketingLiveChecks(options): {
      \};
   \}\>;
 \}[]
+
+***
+
+### zohoDeskApiBaseUrl()
+
+```ts
+function zohoDeskApiBaseUrl(options): string;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | `Pick`\<[`ZohoDeskTicketingClientOptions`](#zohodeskticketingclientoptions), `"apiBaseUrl"` \| `"dataCenter"`\> |
+
+#### Returns
+
+`string`
 
 ***
 

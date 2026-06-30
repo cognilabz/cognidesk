@@ -41,3 +41,9 @@ Re-exports [hubSpotTicketingProviderManifest](manifest.md#hubspotticketingprovid
 ### hubSpotTicketingProviderOperations
 
 Re-exports [hubSpotTicketingProviderOperations](../dist.md#hubspotticketingprovideroperations)
+
+***
+
+### HubSpotTicketingRawClient
+
+Re-exports [HubSpotTicketingRawClient](../dist.md#hubspotticketingrawclient)

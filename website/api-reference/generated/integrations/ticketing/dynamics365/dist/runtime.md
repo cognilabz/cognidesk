@@ -2,15 +2,33 @@
 
 ## References
 
+### createDynamics365RawClient
+
+Re-exports [createDynamics365RawClient](../dist.md#createdynamics365rawclient)
+
+***
+
 ### createDynamics365TicketingClient
 
 Re-exports [createDynamics365TicketingClient](../dist.md#createdynamics365ticketingclient)
 
 ***
 
+### createDynamics365TicketingIntegration
+
+Re-exports [createDynamics365TicketingIntegration](../dist.md#createdynamics365ticketingintegration)
+
+***
+
 ### createDynamics365TicketingLiveChecks
 
 Re-exports [createDynamics365TicketingLiveChecks](../dist.md#createdynamics365ticketinglivechecks)
+
+***
+
+### createDynamics365TicketingOperationHandlers
+
+Re-exports [createDynamics365TicketingOperationHandlers](../dist.md#createdynamics365ticketingoperationhandlers)
 
 ***
 
@@ -98,6 +116,12 @@ Re-exports [Dynamics365ProviderResponse](../dist.md#dynamics365providerresponse)
 
 ***
 
+### Dynamics365RawClient
+
+Re-exports [Dynamics365RawClient](../dist.md#dynamics365rawclient)
+
+***
+
 ### Dynamics365SearchInput
 
 Re-exports [Dynamics365SearchInput](../dist.md#dynamics365searchinput)
@@ -122,6 +146,30 @@ Re-exports [dynamics365TicketingCredentialStatuses](../dist.md#dynamics365ticket
 
 ***
 
+### Dynamics365TicketingIntegrationOptions
+
+Re-exports [Dynamics365TicketingIntegrationOptions](../dist.md#dynamics365ticketingintegrationoptions)
+
+***
+
+### Dynamics365TicketingOperationAlias
+
+Re-exports [Dynamics365TicketingOperationAlias](../dist.md#dynamics365ticketingoperationalias)
+
+***
+
+### Dynamics365TicketingOperationsClient
+
+Re-exports [Dynamics365TicketingOperationsClient](../dist.md#dynamics365ticketingoperationsclient)
+
+***
+
 ### dynamics365TicketingProviderManifest
 
 Re-exports [dynamics365TicketingProviderManifest](manifest.md#dynamics365ticketingprovidermanifest)
+
+***
+
+### dynamics365TicketingProviderOperations
+
+Re-exports [dynamics365TicketingProviderOperations](../dist.md#dynamics365ticketingprovideroperations)

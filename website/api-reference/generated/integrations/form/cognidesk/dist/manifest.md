@@ -165,6 +165,24 @@ const cognideskFormsProviderManifest: {
         formWebhooks: "typed-validate-parse";
         thirdPartyFormsProviderApis: "not-covered";
      };
+     checkedProviderSdk: {
+        checkedAt: "2026-06-25";
+        packageSurfaceRuntimeSdkAvailable: false;
+        verdict: "internal-provider/local-runtime/no-provider-SDK";
+     };
+     implementation: {
+        checkedAt: "2026-06-25";
+        checkedSurface: "package.json dependencies and src runtime imports";
+        externalProviderSdk: "not-applicable-internal-provider";
+        guardrails: readonly ["Keep form definitions behind the SDK-user-configured registry until a named external forms provider package is introduced.", "Do not report third-party form hosting, submission storage, analytics, or provider webhook administration as covered by this package.", "If an external forms provider SDK is adopted later, route runtime operations through it and add a normal package.json runtime dependency."];
+        integrationKitStatus: "implemented";
+        manifestImport: "no-sdk-client-initialization";
+        protocolSource: "Cognidesk local form submission protocol";
+        providerSdkDecision: "internal-provider/local-runtime/no-provider-SDK";
+        reason: "Cognidesk Forms is an internal intake protocol package; it validates SDK-user-defined forms and signed webhook payloads rather than wrapping a named external forms provider SDK.";
+        runtime: "SDK-user-configured Cognidesk form registry and signed webhook parser";
+        strategy: "protocol-local-runtime";
+     };
   };
   name: "Cognidesk Forms";
   operations: readonly [{
@@ -238,12 +256,28 @@ const cognideskFormsProviderManifest: {
 | `id` | `"form.cognidesk"` |
 | `limitations` | readonly \[`"Field definitions, required fields, accepted options, intake routing, retention, and automation policy are owned by SDK user configuration."`, `"Validation is structural and explicit; this package does not infer customer intent or classify free text."`\] |
 | `maintainers` | readonly \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
-| `metadata` | \{ `channelCoverage`: \{ `formDefinitions`: `"typed-read-validate"`; `formSubmissions`: `"typed-validate-normalize"`; `formWebhooks`: `"typed-validate-parse"`; `thirdPartyFormsProviderApis`: `"not-covered"`; \}; \} |
+| `metadata` | \{ `channelCoverage`: \{ `formDefinitions`: `"typed-read-validate"`; `formSubmissions`: `"typed-validate-normalize"`; `formWebhooks`: `"typed-validate-parse"`; `thirdPartyFormsProviderApis`: `"not-covered"`; \}; `checkedProviderSdk`: \{ `checkedAt`: `"2026-06-25"`; `packageSurfaceRuntimeSdkAvailable`: `false`; `verdict`: `"internal-provider/local-runtime/no-provider-SDK"`; \}; `implementation`: \{ `checkedAt`: `"2026-06-25"`; `checkedSurface`: `"package.json dependencies and src runtime imports"`; `externalProviderSdk`: `"not-applicable-internal-provider"`; `guardrails`: readonly \[`"Keep form definitions behind the SDK-user-configured registry until a named external forms provider package is introduced."`, `"Do not report third-party form hosting, submission storage, analytics, or provider webhook administration as covered by this package."`, `"If an external forms provider SDK is adopted later, route runtime operations through it and add a normal package.json runtime dependency."`\]; `integrationKitStatus`: `"implemented"`; `manifestImport`: `"no-sdk-client-initialization"`; `protocolSource`: `"Cognidesk local form submission protocol"`; `providerSdkDecision`: `"internal-provider/local-runtime/no-provider-SDK"`; `reason`: `"Cognidesk Forms is an internal intake protocol package; it validates SDK-user-defined forms and signed webhook payloads rather than wrapping a named external forms provider SDK."`; `runtime`: `"SDK-user-configured Cognidesk form registry and signed webhook parser"`; `strategy`: `"protocol-local-runtime"`; \}; \} |
 | `metadata.channelCoverage` | \{ `formDefinitions`: `"typed-read-validate"`; `formSubmissions`: `"typed-validate-normalize"`; `formWebhooks`: `"typed-validate-parse"`; `thirdPartyFormsProviderApis`: `"not-covered"`; \} |
 | `metadata.channelCoverage.formDefinitions` | `"typed-read-validate"` |
 | `metadata.channelCoverage.formSubmissions` | `"typed-validate-normalize"` |
 | `metadata.channelCoverage.formWebhooks` | `"typed-validate-parse"` |
 | `metadata.channelCoverage.thirdPartyFormsProviderApis` | `"not-covered"` |
+| `metadata.checkedProviderSdk` | \{ `checkedAt`: `"2026-06-25"`; `packageSurfaceRuntimeSdkAvailable`: `false`; `verdict`: `"internal-provider/local-runtime/no-provider-SDK"`; \} |
+| `metadata.checkedProviderSdk.checkedAt` | `"2026-06-25"` |
+| `metadata.checkedProviderSdk.packageSurfaceRuntimeSdkAvailable` | `false` |
+| `metadata.checkedProviderSdk.verdict` | `"internal-provider/local-runtime/no-provider-SDK"` |
+| `metadata.implementation` | \{ `checkedAt`: `"2026-06-25"`; `checkedSurface`: `"package.json dependencies and src runtime imports"`; `externalProviderSdk`: `"not-applicable-internal-provider"`; `guardrails`: readonly \[`"Keep form definitions behind the SDK-user-configured registry until a named external forms provider package is introduced."`, `"Do not report third-party form hosting, submission storage, analytics, or provider webhook administration as covered by this package."`, `"If an external forms provider SDK is adopted later, route runtime operations through it and add a normal package.json runtime dependency."`\]; `integrationKitStatus`: `"implemented"`; `manifestImport`: `"no-sdk-client-initialization"`; `protocolSource`: `"Cognidesk local form submission protocol"`; `providerSdkDecision`: `"internal-provider/local-runtime/no-provider-SDK"`; `reason`: `"Cognidesk Forms is an internal intake protocol package; it validates SDK-user-defined forms and signed webhook payloads rather than wrapping a named external forms provider SDK."`; `runtime`: `"SDK-user-configured Cognidesk form registry and signed webhook parser"`; `strategy`: `"protocol-local-runtime"`; \} |
+| `metadata.implementation.checkedAt` | `"2026-06-25"` |
+| `metadata.implementation.checkedSurface` | `"package.json dependencies and src runtime imports"` |
+| `metadata.implementation.externalProviderSdk` | `"not-applicable-internal-provider"` |
+| `metadata.implementation.guardrails` | readonly \[`"Keep form definitions behind the SDK-user-configured registry until a named external forms provider package is introduced."`, `"Do not report third-party form hosting, submission storage, analytics, or provider webhook administration as covered by this package."`, `"If an external forms provider SDK is adopted later, route runtime operations through it and add a normal package.json runtime dependency."`\] |
+| `metadata.implementation.integrationKitStatus` | `"implemented"` |
+| `metadata.implementation.manifestImport` | `"no-sdk-client-initialization"` |
+| `metadata.implementation.protocolSource` | `"Cognidesk local form submission protocol"` |
+| `metadata.implementation.providerSdkDecision` | `"internal-provider/local-runtime/no-provider-SDK"` |
+| `metadata.implementation.reason` | `"Cognidesk Forms is an internal intake protocol package; it validates SDK-user-defined forms and signed webhook payloads rather than wrapping a named external forms provider SDK."` |
+| `metadata.implementation.runtime` | `"SDK-user-configured Cognidesk form registry and signed webhook parser"` |
+| `metadata.implementation.strategy` | `"protocol-local-runtime"` |
 | `name` | `"Cognidesk Forms"` |
 | `operations` | readonly \[\{ `alias`: `"cognidesk.form.definition.validate"`; `capability`: `"read-provider-object"`; `extension`: `true`; `label`: `"Validate form definition"`; `providerObject`: `"formDefinition"`; `requiresCredential`: `true`; \}, \{ `alias`: `"cognidesk.form.submission.normalize"`; `capability`: `"receive"`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Normalize form submission"`; `providerObject`: `"formSubmission"`; `requiresCredential`: `true`; \}, \{ `alias`: `"cognidesk.form.webhook.parse"`; `capability`: `"form.webhook-signature"`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Parse form webhook"`; `providerObject`: `"signedFormWebhook"`; `requiresCredential`: `true`; \}\] |
 | `packageName` | `"@cognidesk/integration-form-cognidesk"` |

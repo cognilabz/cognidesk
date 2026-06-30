@@ -2,6 +2,93 @@
 
 ## Interfaces
 
+### CreateHelpCenterClientOptions
+
+#### Extended by
+
+- [`CognideskHelpCenterIntegrationOptions`](../dist.md#cognideskhelpcenterintegrationoptions)
+
+#### Properties
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+##### providerClient?
+
+```ts
+optional providerClient?: HelpCenterProviderClient;
+```
+
+##### retry?
+
+```ts
+optional retry?: number | ProviderJsonRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### sourceClientFactory?
+
+```ts
+optional sourceClientFactory?: HelpCenterSourceClientFactory;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+***
+
 ### HelpCenterArticle
 
 #### Properties
@@ -63,6 +150,10 @@ optional url?: string;
 ***
 
 ### HelpCenterClient
+
+#### Extended by
+
+- [`HelpCenterProviderClient`](#helpcenterproviderclient)
 
 #### Methods
 
@@ -130,6 +221,36 @@ optional sourceConfigured?: boolean;
 
 ```ts
 optional webhookSecretConfigured?: boolean;
+```
+
+***
+
+### HelpCenterHttpEndpoints
+
+#### Properties
+
+##### article?
+
+```ts
+optional article?: string;
+```
+
+##### readiness?
+
+```ts
+optional readiness?: string;
+```
+
+##### search?
+
+```ts
+optional search?: string;
+```
+
+##### searchMethod?
+
+```ts
+optional searchMethod?: HelpCenterHttpMethod;
 ```
 
 ***
@@ -450,6 +571,70 @@ type: "channel.help-center.article.ingested";
 ```ts
 [key: string]: HelpCenterProviderExtensionValue
 ```
+
+***
+
+### HelpCenterProviderClient
+
+#### Extends
+
+- [`HelpCenterClient`](#helpcenterclient)
+
+#### Methods
+
+##### fetchArticle()
+
+```ts
+fetchArticle(articleId): Promise<HelpCenterArticle>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `articleId` | `string` |
+
+###### Returns
+
+`Promise`\<[`HelpCenterArticle`](#helpcenterarticle)\>
+
+###### Inherited from
+
+[`HelpCenterClient`](#helpcenterclient).[`fetchArticle`](#fetcharticle)
+
+##### readiness()
+
+```ts
+readiness(): Promise<HelpCenterProviderResponse>;
+```
+
+###### Returns
+
+`Promise`\<[`HelpCenterProviderResponse`](#helpcenterproviderresponse)\>
+
+###### Inherited from
+
+[`HelpCenterClient`](#helpcenterclient).[`readiness`](#readiness)
+
+##### search()
+
+```ts
+search(input): Promise<HelpCenterSearchResult>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`HelpCenterSearchInput`](#helpcentersearchinput) |
+
+###### Returns
+
+`Promise`\<[`HelpCenterSearchResult`](#helpcentersearchresult)\>
+
+###### Inherited from
+
+[`HelpCenterClient`](#helpcenterclient).[`search`](#search)
 
 ***
 
@@ -879,38 +1064,28 @@ optional sourceId?: string;
 
 #### Properties
 
-##### baseUrl
+##### accessToken?
 
 ```ts
-baseUrl: string;
+optional accessToken?: string;
+```
+
+##### apiKey?
+
+```ts
+optional apiKey?: string;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
 ```
 
 ##### endpoints?
 
 ```ts
-optional endpoints?: {
-  article?: string;
-  readiness?: string;
-  search?: string;
-};
-```
-
-###### article?
-
-```ts
-optional article?: string;
-```
-
-###### readiness?
-
-```ts
-optional readiness?: string;
-```
-
-###### search?
-
-```ts
-optional search?: string;
+optional endpoints?: HelpCenterHttpEndpoints;
 ```
 
 ##### fetch?
@@ -970,6 +1145,18 @@ optional headers?: Record<string, string>;
 
 ```ts
 id: string;
+```
+
+##### metadata?
+
+```ts
+optional metadata?: HelpCenterProviderExtensionFields;
+```
+
+##### providerClient?
+
+```ts
+optional providerClient?: HelpCenterProviderClient;
 ```
 
 ##### type
@@ -1032,7 +1219,45 @@ optional secret?: string;
 optional signatureHeader?: string;
 ```
 
+***
+
+### ProviderJsonRetryOptions
+
+#### Properties
+
+##### attempts?
+
+```ts
+optional attempts?: number;
+```
+
+##### baseDelayMs?
+
+```ts
+optional baseDelayMs?: number;
+```
+
+##### maxDelayMs?
+
+```ts
+optional maxDelayMs?: number;
+```
+
+##### statusCodes?
+
+```ts
+optional statusCodes?: readonly number[];
+```
+
 ## Type Aliases
+
+### HelpCenterHttpMethod
+
+```ts
+type HelpCenterHttpMethod = "GET" | "POST";
+```
+
+***
 
 ### HelpCenterJsonPrimitive
 
@@ -1085,12 +1310,49 @@ type HelpCenterSource =
   | HttpHelpCenterSource;
 ```
 
+***
+
+### HelpCenterSourceClientFactory
+
+```ts
+type HelpCenterSourceClientFactory = (source) => HelpCenterProviderClient | undefined;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `source` | [`HttpHelpCenterSource`](#httphelpcentersource) |
+
+#### Returns
+
+[`HelpCenterProviderClient`](#helpcenterproviderclient) \| `undefined`
+
 ## Functions
+
+### createDefaultHelpCenterSourceClient()
+
+```ts
+function createDefaultHelpCenterSourceClient(source, options?): HelpCenterProviderClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `source` | [`HttpHelpCenterSource`](#httphelpcentersource) |
+| `options?` | `Pick`\<[`CreateHelpCenterClientOptions`](#createhelpcenterclientoptions), `"fetch"` \| `"signal"` \| `"timeoutMs"` \| `"retry"`\> |
+
+#### Returns
+
+[`HelpCenterProviderClient`](#helpcenterproviderclient)
+
+***
 
 ### createHelpCenterClient()
 
 ```ts
-function createHelpCenterClient(sourceInput): HelpCenterClient;
+function createHelpCenterClient(sourceInput, options?): HelpCenterClient;
 ```
 
 #### Parameters
@@ -1098,10 +1360,66 @@ function createHelpCenterClient(sourceInput): HelpCenterClient;
 | Parameter | Type |
 | ------ | ------ |
 | `sourceInput` | [`HelpCenterSource`](#helpcentersource) |
+| `options?` | [`CreateHelpCenterClientOptions`](#createhelpcenterclientoptions) |
 
 #### Returns
 
 [`HelpCenterClient`](#helpcenterclient)
+
+***
+
+### createHelpCenterSourceClientFactory()
+
+```ts
+function createHelpCenterSourceClientFactory(options?): HelpCenterSourceClientFactory;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | `Pick`\<[`CreateHelpCenterClientOptions`](#createhelpcenterclientoptions), `"fetch"` \| `"signal"` \| `"timeoutMs"` \| `"retry"`\> |
+
+#### Returns
+
+[`HelpCenterSourceClientFactory`](#helpcentersourceclientfactory)
+
+***
+
+### createHttpHelpCenterSourceClient()
+
+```ts
+function createHttpHelpCenterSourceClient(source, options?): HelpCenterProviderClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `source` | [`HttpHelpCenterSource`](#httphelpcentersource) |
+| `options?` | `Pick`\<[`CreateHelpCenterClientOptions`](#createhelpcenterclientoptions), `"fetch"` \| `"signal"` \| `"timeoutMs"` \| `"retry"`\> |
+
+#### Returns
+
+[`HelpCenterProviderClient`](#helpcenterproviderclient)
+
+***
+
+### createUnconfiguredHelpCenterProviderClient()
+
+```ts
+function createUnconfiguredHelpCenterProviderClient(sourceId?): HelpCenterProviderClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `sourceId?` | `string` |
+
+#### Returns
+
+[`HelpCenterProviderClient`](#helpcenterproviderclient)
 
 ***
 
@@ -1120,6 +1438,60 @@ function defineHelpCenterSource(source): HelpCenterSource;
 #### Returns
 
 [`HelpCenterSource`](#helpcentersource)
+
+***
+
+### guardHelpCenterFetch()
+
+```ts
+function guardHelpCenterFetch(fetchImpl, sourceId): {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `fetchImpl` | \{ (`input`, `init?`): `Promise`\<`Response`\>; (`input`, `init?`): `Promise`\<`Response`\>; \} |
+| `sourceId` | `string` |
+
+#### Returns
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+##### Returns
+
+`Promise`\<`Response`\>
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+##### Returns
+
+`Promise`\<`Response`\>
 
 ***
 

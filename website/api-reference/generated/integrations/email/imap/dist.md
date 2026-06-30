@@ -99,6 +99,10 @@ searchMessages(input): Promise<number[]>;
 
 ### ImapEmailClientOptions
 
+#### Extended by
+
+- [`ImapEmailIntegrationOptions`](#imapemailintegrationoptions)
+
 #### Properties
 
 ##### connection
@@ -130,6 +134,72 @@ optional rawClient?: ImapRawClient;
 ```ts
 optional rawClientConnected?: boolean;
 ```
+
+***
+
+### ImapEmailIntegrationOptions
+
+#### Extends
+
+- [`ImapEmailClientOptions`](#imapemailclientoptions)
+
+#### Properties
+
+##### connection
+
+```ts
+connection: ImapFlowOptions;
+```
+
+###### Inherited from
+
+[`ImapEmailClientOptions`](#imapemailclientoptions).[`connection`](#connection)
+
+##### emailClient?
+
+```ts
+optional emailClient?: ImapEmailClient;
+```
+
+##### leaveOpen?
+
+```ts
+optional leaveOpen?: boolean;
+```
+
+###### Inherited from
+
+[`ImapEmailClientOptions`](#imapemailclientoptions).[`leaveOpen`](#leaveopen)
+
+##### mailbox?
+
+```ts
+optional mailbox?: string;
+```
+
+###### Inherited from
+
+[`ImapEmailClientOptions`](#imapemailclientoptions).[`mailbox`](#mailbox)
+
+##### rawClient?
+
+```ts
+optional rawClient?: ImapRawClient;
+```
+
+###### Inherited from
+
+[`ImapEmailClientOptions`](#imapemailclientoptions).[`rawClient`](#rawclient-1)
+
+##### rawClientConnected?
+
+```ts
+optional rawClientConnected?: boolean;
+```
+
+###### Inherited from
+
+[`ImapEmailClientOptions`](#imapemailclientoptions).[`rawClientConnected`](#rawclientconnected)
 
 ***
 
@@ -541,7 +611,7 @@ function createImapEmailIntegration(options): {
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`ImapEmailClientOptions`](#imapemailclientoptions) |
+| `options` | [`ImapEmailIntegrationOptions`](#imapemailintegrationoptions) |
 
 #### Returns
 
@@ -790,6 +860,40 @@ function createImapEmailIntegration(options): {
 | `getOperationHandler()` | (`alias`) => \{ `email.thread.read`: (`input`) => `Promise`\<`unknown`[]\>; `email.thread.search`: (`input`) => `Promise`\<`number`[]\>; `imap.mailbox.check`: () => `Promise`\<[`ImapMailboxReadiness`](#imapmailboxreadiness)\>; \}\[`Alias`\] |
 | `requireOperationHandler()` | (`alias`) => \{ `email.thread.read`: (`input`) => `Promise`\<`unknown`[]\>; `email.thread.search`: (`input`) => `Promise`\<`number`[]\>; `imap.mailbox.check`: () => `Promise`\<[`ImapMailboxReadiness`](#imapmailboxreadiness)\>; \}\[`Alias`\] |
 | `run()` | ( `alias`, `input`, `context?`) => `Promise`\<`Awaited`\<`ReturnType`\<\{ `email.thread.read`: (`input`) => `Promise`\<`unknown`[]\>; `email.thread.search`: (`input`) => `Promise`\<`number`[]\>; `imap.mailbox.check`: () => `Promise`\<[`ImapMailboxReadiness`](#imapmailboxreadiness)\>; \}\[`Alias`\]\>\>\> |
+
+***
+
+### createImapEmailIntegrationOperationHandlers()
+
+```ts
+function createImapEmailIntegrationOperationHandlers(client): {
+  email.thread.read: (input) => Promise<unknown[]>;
+  email.thread.search: (input) => Promise<number[]>;
+  imap.mailbox.check: () => Promise<ImapMailboxReadiness>;
+};
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `client` | [`ImapEmailClient`](#imapemailclient) |
+
+#### Returns
+
+```ts
+{
+  email.thread.read: (input) => Promise<unknown[]>;
+  email.thread.search: (input) => Promise<number[]>;
+  imap.mailbox.check: () => Promise<ImapMailboxReadiness>;
+}
+```
+
+| Name | Type |
+| ------ | ------ |
+| `email.thread.read()` | (`input`) => `Promise`\<`unknown`[]\> |
+| `email.thread.search()` | (`input`) => `Promise`\<`number`[]\> |
+| `imap.mailbox.check()` | () => `Promise`\<[`ImapMailboxReadiness`](#imapmailboxreadiness)\> |
 
 ***
 

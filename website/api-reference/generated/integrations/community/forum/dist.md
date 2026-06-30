@@ -112,26 +112,32 @@ search(input): Promise<ForumCommunityProviderResponse>;
 
 #### Extended by
 
-- [`ForumLiveCheckOptions`](#forumlivecheckoptions)
+- [`ForumCommunityIntegrationOptions`](#forumcommunityintegrationoptions)
 
 #### Properties
 
-##### apiKey
+##### apiKey?
 
 ```ts
-apiKey: string;
+optional apiKey?: string;
 ```
 
-##### apiUsername
+##### apiUsername?
 
 ```ts
-apiUsername: string;
+optional apiUsername?: string;
 ```
 
-##### baseUrl
+##### baseUrl?
 
 ```ts
-baseUrl: string;
+optional baseUrl?: string;
+```
+
+##### client?
+
+```ts
+optional client?: ForumCommunityClient;
 ```
 
 ##### fetch?
@@ -181,11 +187,69 @@ optional fetch?: {
 
 `Promise`\<`Response`\>
 
+##### providerClient?
+
+```ts
+optional providerClient?: ForumCommunityClient;
+```
+
+##### retry?
+
+```ts
+optional retry?: number | ProviderJsonRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
 ***
 
 ### ForumCommunityIntegrationOptions
 
+#### Extends
+
+- [`ForumCommunityClientOptions`](#forumcommunityclientoptions)
+
 #### Properties
+
+##### apiKey?
+
+```ts
+optional apiKey?: string;
+```
+
+###### Inherited from
+
+[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`apiKey`](#apikey)
+
+##### apiUsername?
+
+```ts
+optional apiUsername?: string;
+```
+
+###### Inherited from
+
+[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`apiUsername`](#apiusername)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`baseUrl`](#baseurl)
 
 ##### client?
 
@@ -193,10 +257,105 @@ optional fetch?: {
 optional client?: ForumCommunityClient;
 ```
 
-##### clientOptions?
+###### Inherited from
+
+[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`client`](#client)
+
+##### fetch?
 
 ```ts
-optional clientOptions?: ForumCommunityClientOptions;
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Inherited from
+
+[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`fetch`](#fetch)
+
+##### providerClient?
+
+```ts
+optional providerClient?: ForumCommunityClient;
+```
+
+###### Inherited from
+
+[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`providerClient`](#providerclient)
+
+##### retry?
+
+```ts
+optional retry?: number | ProviderJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`retry`](#retry)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`signal`](#signal)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`timeoutMs`](#timeoutms)
+
+##### unavailableReason?
+
+```ts
+optional unavailableReason?: string;
 ```
 
 ***
@@ -348,41 +507,7 @@ optional webhookSecretConfigured?: boolean;
 
 ### ForumLiveCheckOptions
 
-#### Extends
-
-- [`ForumCommunityClientOptions`](#forumcommunityclientoptions)
-
 #### Properties
-
-##### apiKey
-
-```ts
-apiKey: string;
-```
-
-###### Inherited from
-
-[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`apiKey`](#apikey)
-
-##### apiUsername
-
-```ts
-apiUsername: string;
-```
-
-###### Inherited from
-
-[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`apiUsername`](#apiusername)
-
-##### baseUrl
-
-```ts
-baseUrl: string;
-```
-
-###### Inherited from
-
-[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`baseUrl`](#baseurl)
 
 ##### client?
 
@@ -390,56 +515,11 @@ baseUrl: string;
 optional client?: Pick<ForumCommunityClient, "getCurrentUser" | "latest">;
 ```
 
-##### fetch?
+##### unavailableReason?
 
 ```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
+optional unavailableReason?: string;
 ```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Inherited from
-
-[`ForumCommunityClientOptions`](#forumcommunityclientoptions).[`fetch`](#fetch)
 
 ***
 
@@ -543,6 +623,36 @@ optional requireSignature?: boolean;
 optional secret?: string;
 ```
 
+***
+
+### ProviderJsonRetryOptions
+
+#### Properties
+
+##### attempts?
+
+```ts
+optional attempts?: number;
+```
+
+##### baseDelayMs?
+
+```ts
+optional baseDelayMs?: number;
+```
+
+##### maxDelayMs?
+
+```ts
+optional maxDelayMs?: number;
+```
+
+##### statusCodes?
+
+```ts
+optional statusCodes?: readonly number[];
+```
+
 ## Type Aliases
 
 ### ForumCommunityJsonPrimitive
@@ -560,6 +670,14 @@ type ForumCommunityJsonValue =
   | ForumCommunityJsonPrimitive
   | ForumCommunityJsonObject
   | readonly ForumCommunityJsonValue[];
+```
+
+***
+
+### ForumCommunityProviderClient
+
+```ts
+type ForumCommunityProviderClient = ForumCommunityClient;
 ```
 
 ***
@@ -594,14 +712,14 @@ type ForumCommunityProviderQuery = Record<string, ForumCommunityProviderExtensio
 ### createForumCommunityClient()
 
 ```ts
-function createForumCommunityClient(options): ForumCommunityClient;
+function createForumCommunityClient(options?): ForumCommunityClient;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`ForumCommunityClientOptions`](#forumcommunityclientoptions) |
+| `options?` | [`ForumCommunityClientOptions`](#forumcommunityclientoptions) |
 
 #### Returns
 
@@ -612,14 +730,14 @@ function createForumCommunityClient(options): ForumCommunityClient;
 ### createForumCommunityIntegration()
 
 ```ts
-function createForumCommunityIntegration(options): DefinedIntegration<never, unknown, never>;
+function createForumCommunityIntegration(options?): DefinedIntegration<never, unknown, never>;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`ForumCommunityIntegrationOptions`](#forumcommunityintegrationoptions) |
+| `options?` | [`ForumCommunityIntegrationOptions`](#forumcommunityintegrationoptions) |
 
 #### Returns
 
@@ -630,7 +748,7 @@ function createForumCommunityIntegration(options): DefinedIntegration<never, unk
 ### createForumCommunityLiveChecks()
 
 ```ts
-function createForumCommunityLiveChecks(options): {
+function createForumCommunityLiveChecks(options?): {
   description: string;
   id: string;
   requiredCredentialIds: string[];
@@ -647,7 +765,7 @@ function createForumCommunityLiveChecks(options): {
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`ForumLiveCheckOptions`](#forumlivecheckoptions) |
+| `options?` | [`ForumLiveCheckOptions`](#forumlivecheckoptions) |
 
 #### Returns
 
@@ -662,6 +780,24 @@ function createForumCommunityLiveChecks(options): {
      \};
   \}\>;
 \}[]
+
+***
+
+### createForumCommunityUnavailableClient()
+
+```ts
+function createForumCommunityUnavailableClient(reason?): ForumCommunityClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `reason?` | `string` |
+
+#### Returns
+
+[`ForumCommunityClient`](#forumcommunityclient)
 
 ***
 

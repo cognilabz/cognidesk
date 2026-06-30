@@ -8,9 +8,21 @@ Re-exports [createGooglePlayReviewsClient](../dist.md#creategoogleplayreviewscli
 
 ***
 
+### createGooglePlayReviewsIntegration
+
+Re-exports [createGooglePlayReviewsIntegration](../dist.md#creategoogleplayreviewsintegration)
+
+***
+
 ### createGooglePlayReviewsLiveChecks
 
 Re-exports [createGooglePlayReviewsLiveChecks](../dist.md#creategoogleplayreviewslivechecks)
+
+***
+
+### createGooglePlayReviewsOperationHandlers
+
+Re-exports [createGooglePlayReviewsOperationHandlers](../dist.md#creategoogleplayreviewsoperationhandlers)
 
 ***
 
@@ -89,6 +101,42 @@ Re-exports [GooglePlayReviewsListResponse](../dist.md#googleplayreviewslistrespo
 ### GooglePlayReviewsLiveCheckOptions
 
 Re-exports [GooglePlayReviewsLiveCheckOptions](../dist.md#googleplayreviewslivecheckoptions)
+
+***
+
+### GooglePlayReviewsOperationAlias
+
+Re-exports [GooglePlayReviewsOperationAlias](../dist.md#googleplayreviewsoperationalias)
+
+***
+
+### GooglePlayReviewsOperationHandler
+
+Re-exports [GooglePlayReviewsOperationHandler](../dist.md#googleplayreviewsoperationhandler)
+
+***
+
+### googlePlayReviewsOperationHandlers
+
+Re-exports [googlePlayReviewsOperationHandlers](../dist.md#googleplayreviewsoperationhandlers-1)
+
+***
+
+### GooglePlayReviewsOperationHandlers
+
+Re-exports [GooglePlayReviewsOperationHandlers](../dist.md#googleplayreviewsoperationhandlers)
+
+***
+
+### GooglePlayReviewsOperationInputMap
+
+Re-exports [GooglePlayReviewsOperationInputMap](../dist.md#googleplayreviewsoperationinputmap)
+
+***
+
+### GooglePlayReviewsOperationOutputMap
+
+Re-exports [GooglePlayReviewsOperationOutputMap](../dist.md#googleplayreviewsoperationoutputmap)
 
 ***
 

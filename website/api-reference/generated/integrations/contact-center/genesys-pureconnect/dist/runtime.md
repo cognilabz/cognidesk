@@ -20,6 +20,12 @@ Re-exports [createGenesysPureConnectIntegration](../dist.md#creategenesyspurecon
 
 ***
 
+### createGenesysPureConnectIntegrationOperationHandlers
+
+Re-exports [createGenesysPureConnectIntegrationOperationHandlers](../dist.md#creategenesyspureconnectintegrationoperationhandlers)
+
+***
+
 ### GenesysPureConnectClient
 
 Re-exports [GenesysPureConnectClient](../dist.md#genesyspureconnectclient)
@@ -32,9 +38,21 @@ Re-exports [GenesysPureConnectClientOptions](../dist.md#genesyspureconnectclient
 
 ***
 
+### GenesysPureConnectIntegrationOptions
+
+Re-exports [GenesysPureConnectIntegrationOptions](../dist.md#genesyspureconnectintegrationoptions)
+
+***
+
 ### GenesysPureConnectOperationInput
 
 Re-exports [GenesysPureConnectOperationInput](../dist.md#genesyspureconnectoperationinput)
+
+***
+
+### GenesysPureConnectProviderClient
+
+Re-exports [GenesysPureConnectProviderClient](../dist.md#genesyspureconnectproviderclient)
 
 ***
 
@@ -65,3 +83,9 @@ Re-exports [ProviderExtensionRequestInput](../dist.md#providerextensionrequestin
 ### ProviderJsonObject
 
 Re-exports [ProviderJsonObject](../dist.md#providerjsonobject)
+
+***
+
+### ProviderRestRetryOptions
+
+Re-exports [ProviderRestRetryOptions](../dist.md#providerrestretryoptions)

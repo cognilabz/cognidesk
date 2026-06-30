@@ -2,6 +2,18 @@
 
 ## References
 
+### createGorgiasIntegration
+
+Re-exports [createGorgiasIntegration](../dist.md#creategorgiasintegration)
+
+***
+
+### createGorgiasIntegrationOperationHandlers
+
+Re-exports [createGorgiasIntegrationOperationHandlers](../dist.md#creategorgiasintegrationoperationhandlers)
+
+***
+
 ### createGorgiasTicketingClient
 
 Re-exports [createGorgiasTicketingClient](../dist.md#creategorgiasticketingclient)
@@ -14,9 +26,27 @@ Re-exports [createGorgiasTicketingIntegration](../dist.md#creategorgiasticketing
 
 ***
 
+### createGorgiasTicketingOperationHandlers
+
+Re-exports [createGorgiasTicketingOperationHandlers](../dist.md#creategorgiasticketingoperationhandlers)
+
+***
+
 ### GorgiasTicketingClientOptions
 
 Re-exports [GorgiasTicketingClientOptions](../dist.md#gorgiasticketingclientoptions)
+
+***
+
+### GorgiasTicketingIntegrationOptions
+
+Re-exports [GorgiasTicketingIntegrationOptions](../dist.md#gorgiasticketingintegrationoptions)
+
+***
+
+### GorgiasTicketingProviderClient
+
+Re-exports [GorgiasTicketingProviderClient](../dist.md#gorgiasticketingproviderclient)
 
 ***
 
@@ -41,3 +71,9 @@ Re-exports [JsonPrimitive](../dist.md#jsonprimitive)
 ### JsonValue
 
 Re-exports [JsonValue](../dist.md#jsonvalue)
+
+***
+
+### ProviderJsonRetryOptions
+
+Re-exports [ProviderJsonRetryOptions](../dist.md#providerjsonretryoptions)

@@ -240,7 +240,7 @@ const vonageVoiceProviderManifest: {
      changesWorkflow: true;
      label: "Transfer call";
      providerObject: "vonageCall";
-     providerOperation: "updateCall";
+     providerOperation: "transferCallWithURL";
      sideEffect: true;
   }];
   packageName: "@cognidesk/integration-voice-vonage";
@@ -301,7 +301,7 @@ const vonageVoiceProviderManifest: {
 | `metadata.rawClient.coverage` | `"upstream-sdk"` |
 | `metadata.rawClient.export` | `"getRawClient"` |
 | `name` | `"Vonage Voice"` |
-| `operations` | readonly \[\{ `alias`: `"voice.call.answer"`; `audiences`: readonly \[`"customer-facing"`\]; `capability`: `"receive"`; `exposesSensitiveData`: `true`; `label`: `"Receive voice webhook"`; `providerObject`: `"vonageCall"`; `providerOperation`: `"parseWebhook"`; \}, \{ `alias`: `"voice.call.start"`; `audiences`: readonly \[`"customer-facing"`\]; `capability`: `"send"`; `exposesSensitiveData`: `true`; `externallyVisible`: `true`; `label`: `"Create outbound call"`; `providerObject`: `"vonageCall"`; `providerOperation`: `"createOutboundCall"`; `requiresApproval`: `true`; `sideEffect`: `true`; \}, \{ `alias`: `"voice.call.transfer"`; `audiences`: readonly \[`"internal-support"`\]; `capability`: `"transfer"`; `changesWorkflow`: `true`; `label`: `"Transfer call"`; `providerObject`: `"vonageCall"`; `providerOperation`: `"updateCall"`; `sideEffect`: `true`; \}\] |
+| `operations` | readonly \[\{ `alias`: `"voice.call.answer"`; `audiences`: readonly \[`"customer-facing"`\]; `capability`: `"receive"`; `exposesSensitiveData`: `true`; `label`: `"Receive voice webhook"`; `providerObject`: `"vonageCall"`; `providerOperation`: `"parseWebhook"`; \}, \{ `alias`: `"voice.call.start"`; `audiences`: readonly \[`"customer-facing"`\]; `capability`: `"send"`; `exposesSensitiveData`: `true`; `externallyVisible`: `true`; `label`: `"Create outbound call"`; `providerObject`: `"vonageCall"`; `providerOperation`: `"createOutboundCall"`; `requiresApproval`: `true`; `sideEffect`: `true`; \}, \{ `alias`: `"voice.call.transfer"`; `audiences`: readonly \[`"internal-support"`\]; `capability`: `"transfer"`; `changesWorkflow`: `true`; `label`: `"Transfer call"`; `providerObject`: `"vonageCall"`; `providerOperation`: `"transferCallWithURL"`; `sideEffect`: `true`; \}\] |
 | `packageName` | `"@cognidesk/integration-voice-vonage"` |
 | `privacyNotes` | readonly \[`"Phone numbers, call metadata, webhook parameters, NCCO URLs, and conversation identifiers can contain customer data and are exchanged with Vonage."`, `"Vonage credentials stay server-side and are never issued to browsers by this package."`\] |
 | `provider` | `"vonage"` |

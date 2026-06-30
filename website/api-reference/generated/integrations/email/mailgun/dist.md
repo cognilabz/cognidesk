@@ -377,27 +377,10 @@ get(domain, query?): Promise<unknown>;
 
 ```ts
 messages: {
-  retrieveStoredEmail?: (domain, storageKey) => Promise<unknown>;
   create: Promise<unknown>;
+  retrieveStoredEmail: Promise<unknown>;
 };
 ```
-
-###### retrieveStoredEmail?
-
-```ts
-optional retrieveStoredEmail?: (domain, storageKey) => Promise<unknown>;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `domain` | `string` |
-| `storageKey` | `string` |
-
-###### Returns
-
-`Promise`\<`unknown`\>
 
 ###### create()
 
@@ -411,6 +394,23 @@ create(domain, data): Promise<unknown>;
 | ------ | ------ |
 | `domain` | `string` |
 | `data` | `Record`\<`string`, `unknown`\> |
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+###### retrieveStoredEmail()
+
+```ts
+retrieveStoredEmail(domain, storageKey): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `domain` | `string` |
+| `storageKey` | `string` |
 
 ###### Returns
 

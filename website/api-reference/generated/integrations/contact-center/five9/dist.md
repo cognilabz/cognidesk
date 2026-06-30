@@ -28,19 +28,33 @@ optional query?: Record<string, ProviderQueryValue>;
 
 ### Five9Client
 
+#### Properties
+
+##### providerClient
+
+```ts
+providerClient: Five9RawClient;
+```
+
+##### rawClient
+
+```ts
+rawClient: Five9RawClient;
+```
+
 #### Methods
 
 ##### createHandoff()
 
 ```ts
-createHandoff(input): Promise<ProviderJsonObject>;
+createHandoff(input?): Promise<ProviderJsonObject>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | [`ConfiguredHandoffInput`](#configuredhandoffinput) |
+| `input?` | [`ConfiguredHandoffInput`](#configuredhandoffinput) |
 
 ###### Returns
 
@@ -49,8 +63,14 @@ createHandoff(input): Promise<ProviderJsonObject>;
 ##### readiness()
 
 ```ts
-readiness(): Promise<ProviderJsonObject>;
+readiness(input?): Promise<ProviderJsonObject>;
 ```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`Five9ReadinessInput`](#five9readinessinput) |
 
 ###### Returns
 
@@ -60,6 +80,10 @@ readiness(): Promise<ProviderJsonObject>;
 
 ### Five9ClientOptions
 
+#### Extended by
+
+- [`Five9IntegrationOptions`](#five9integrationoptions)
+
 #### Properties
 
 ##### accessToken?
@@ -68,10 +92,10 @@ readiness(): Promise<ProviderJsonObject>;
 optional accessToken?: string;
 ```
 
-##### apiBaseUrl
+##### apiBaseUrl?
 
 ```ts
-apiBaseUrl: string;
+optional apiBaseUrl?: string;
 ```
 
 ##### apiKey?
@@ -90,6 +114,12 @@ optional apiKeyHeaderName?: string;
 
 ```ts
 optional authorizationHeader?: string;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
 ```
 
 ##### defaultHandoffPath?
@@ -145,143 +175,328 @@ optional fetch?: {
 
 `Promise`\<`Response`\>
 
+##### providerClient?
+
+```ts
+optional providerClient?: Five9RawClient;
+```
+
+##### rawClient?
+
+```ts
+optional rawClient?: Five9RawClient;
+```
+
 ##### readinessPath?
 
 ```ts
 optional readinessPath?: string;
 ```
 
-***
-
-### Five9OperationInput
-
-#### Extended by
-
-- [`ProviderExtensionRequestInput`](#providerextensionrequestinput)
-
-#### Properties
-
-##### body?
+##### retry?
 
 ```ts
-optional body?: unknown;
+optional retry?: number | ProviderRestRetryOptions;
 ```
 
-##### headers?
+##### signal?
 
 ```ts
-optional headers?: Record<string, string>;
+optional signal?: AbortSignal;
 ```
 
-##### idempotencyKey?
+##### timeoutMs?
 
 ```ts
-optional idempotencyKey?: string;
-```
-
-##### pathParams?
-
-```ts
-optional pathParams?: Record<string, string | number | boolean>;
-```
-
-##### query?
-
-```ts
-optional query?: Record<string, ProviderQueryValue>;
+optional timeoutMs?: number;
 ```
 
 ***
 
-### ProviderExtensionRequestInput
+### Five9IntegrationOptions
 
 #### Extends
 
-- [`Five9OperationInput`](#five9operationinput)
+- [`Five9ClientOptions`](#five9clientoptions)
 
 #### Properties
 
-##### allowMutation?
+##### accessToken?
 
 ```ts
-optional allowMutation?: boolean;
-```
-
-##### body?
-
-```ts
-optional body?: unknown;
+optional accessToken?: string;
 ```
 
 ###### Inherited from
 
-[`Five9OperationInput`](#five9operationinput).[`body`](#body)
+[`Five9ClientOptions`](#five9clientoptions).[`accessToken`](#accesstoken)
 
-##### classification?
-
-```ts
-optional classification?: string;
-```
-
-##### headers?
+##### apiBaseUrl?
 
 ```ts
-optional headers?: Record<string, string>;
+optional apiBaseUrl?: string;
 ```
 
 ###### Inherited from
 
-[`Five9OperationInput`](#five9operationinput).[`headers`](#headers)
+[`Five9ClientOptions`](#five9clientoptions).[`apiBaseUrl`](#apibaseurl)
 
-##### idempotencyKey?
+##### apiKey?
 
 ```ts
-optional idempotencyKey?: string;
+optional apiKey?: string;
 ```
 
 ###### Inherited from
 
-[`Five9OperationInput`](#five9operationinput).[`idempotencyKey`](#idempotencykey-1)
+[`Five9ClientOptions`](#five9clientoptions).[`apiKey`](#apikey)
 
-##### method?
-
-```ts
-optional method?: ProviderHttpMethod;
-```
-
-##### operationId?
+##### apiKeyHeaderName?
 
 ```ts
-optional operationId?: string;
-```
-
-##### path?
-
-```ts
-optional path?: string;
-```
-
-##### pathParams?
-
-```ts
-optional pathParams?: Record<string, string | number | boolean>;
+optional apiKeyHeaderName?: string;
 ```
 
 ###### Inherited from
 
-[`Five9OperationInput`](#five9operationinput).[`pathParams`](#pathparams)
+[`Five9ClientOptions`](#five9clientoptions).[`apiKeyHeaderName`](#apikeyheadername)
 
-##### query?
+##### authorizationHeader?
 
 ```ts
-optional query?: Record<string, ProviderQueryValue>;
+optional authorizationHeader?: string;
 ```
 
 ###### Inherited from
 
-[`Five9OperationInput`](#five9operationinput).[`query`](#query-1)
+[`Five9ClientOptions`](#five9clientoptions).[`authorizationHeader`](#authorizationheader)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`Five9ClientOptions`](#five9clientoptions).[`baseUrl`](#baseurl)
+
+##### client?
+
+```ts
+optional client?: Five9Client;
+```
+
+##### defaultHandoffPath?
+
+```ts
+optional defaultHandoffPath?: string;
+```
+
+###### Inherited from
+
+[`Five9ClientOptions`](#five9clientoptions).[`defaultHandoffPath`](#defaulthandoffpath)
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Inherited from
+
+[`Five9ClientOptions`](#five9clientoptions).[`fetch`](#fetch)
+
+##### providerClient?
+
+```ts
+optional providerClient?: Five9RawClient;
+```
+
+###### Inherited from
+
+[`Five9ClientOptions`](#five9clientoptions).[`providerClient`](#providerclient-1)
+
+##### rawClient?
+
+```ts
+optional rawClient?: Five9RawClient;
+```
+
+###### Inherited from
+
+[`Five9ClientOptions`](#five9clientoptions).[`rawClient`](#rawclient-1)
+
+##### readinessPath?
+
+```ts
+optional readinessPath?: string;
+```
+
+###### Inherited from
+
+[`Five9ClientOptions`](#five9clientoptions).[`readinessPath`](#readinesspath)
+
+##### retry?
+
+```ts
+optional retry?: number | ProviderRestRetryOptions;
+```
+
+###### Inherited from
+
+[`Five9ClientOptions`](#five9clientoptions).[`retry`](#retry)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`Five9ClientOptions`](#five9clientoptions).[`signal`](#signal)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`Five9ClientOptions`](#five9clientoptions).[`timeoutMs`](#timeoutms)
+
+***
+
+### Five9RawClient
+
+#### Methods
+
+##### createHandoff()
+
+```ts
+createHandoff(input?): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`ConfiguredHandoffInput`](#configuredhandoffinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+##### readiness()?
+
+```ts
+optional readiness(input?): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`Five9ReadinessInput`](#five9readinessinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+***
+
+### Five9ReadinessInput
+
+#### Properties
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+***
+
+### ProviderRestRetryOptions
+
+#### Properties
+
+##### attempts?
+
+```ts
+optional attempts?: number;
+```
+
+##### baseDelayMs?
+
+```ts
+optional baseDelayMs?: number;
+```
+
+##### maxDelayMs?
+
+```ts
+optional maxDelayMs?: number;
+```
+
+##### statusCodes?
+
+```ts
+optional statusCodes?: readonly number[];
+```
 
 ## Type Aliases
+
+### Five9ProviderClient
+
+```ts
+type Five9ProviderClient = Five9RawClient;
+```
+
+***
 
 ### ProviderJsonObject
 
@@ -294,14 +509,14 @@ type ProviderJsonObject = Record<string, unknown>;
 ### createFive9Client()
 
 ```ts
-function createFive9Client(options): Five9Client;
+function createFive9Client(options?): Five9Client;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`Five9ClientOptions`](#five9clientoptions) |
+| `options?` | [`Five9ClientOptions`](#five9clientoptions) |
 
 #### Returns
 
@@ -312,7 +527,7 @@ function createFive9Client(options): Five9Client;
 ### createFive9Integration()
 
 ```ts
-function createFive9Integration(options): DefinedIntegration<{
+function createFive9Integration(options?): DefinedIntegration<{
   capabilities: readonly [{
      capability: "handoff";
      exposesSensitiveData: true;
@@ -330,10 +545,13 @@ function createFive9Integration(options): DefinedIntegration<{
         label: "Five9 Contact Center APIs and SDKs";
         url: "https://www.five9.com/products/capabilities/call-center-apis-and-sdks";
       }, {
-        label: "Five9 development program";
-        url: "https://www.five9.com/development";
+        label: "Five9 CRM SDK JSDoc";
+        url: "https://cdn.prod.us.five9.net/stable/crm-sdk-lib/doc/index.html";
+      }, {
+        label: "npm five9 package";
+        url: "https://www.npmjs.com/package/five9";
      }];
-     notes: readonly ["No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented."];
+     notes: readonly ["No suitable official backend JavaScript/TypeScript SDK was verified.", "Runtime calls use a built-in REST adapter only when baseUrl/API credentials and host-configured operation paths are supplied, with Five9ProviderClient available as a typed host-client override."];
      scope: "support-workflow-subset";
   };
   credentialRequirements: readonly [{
@@ -356,20 +574,122 @@ function createFive9Integration(options): DefinedIntegration<{
      type: "official";
   }];
   metadata: {
+     checkedProviderSdk: {
+        candidates: readonly [{
+           checkedVersion: "0.1.3";
+           package: "five9";
+           reason: "The npm package is a third-party Node module last published in 2017, not an official maintained Five9 backend SDK.";
+           result: "third-party-stale";
+           source: "https://www.npmjs.com/package/five9";
+         }, {
+           checkedVersion: "7.2.0";
+           package: "uniphore-five9-messaging-api-client-library";
+           reason: "The npm package is maintained by Uniphore and targets a messaging API client surface rather than an official Five9 contact-center runtime SDK.";
+           result: "third-party-messaging-specific";
+           source: "https://www.npmjs.com/package/uniphore-five9-messaging-api-client-library";
+         }, {
+           package: "Five9 CRM SDK";
+           reason: "Five9's JavaScript CRM SDK is loaded from Five9's CDN and integrates browser pages with Agent Desktop Toolkit through window.Five9.CrmSdk.";
+           result: "not-backend-runtime-sdk";
+           source: "https://cdn.prod.us.five9.net/stable/crm-sdk-lib/doc/index.html";
+        }];
+        checkedAt: "2026-06-25";
+        officialRuntimeSdkAvailable: false;
+        verdict: "no-official-sdk-rest-adapter";
+     };
      implementation: {
+        adapterKind: "no-official-sdk-rest-adapter";
         allowedOperations: readonly [{
            alias: "contact-center.handoff.request";
            checksum: "not-applicable-host-configured";
            id: "configuredHandoff";
            method: "POST";
            path: "host-configured";
-           source: "host-configured";
+           source: "provider-rest-adapter";
         }];
-        implementationStrategy: "direct-http-support-slice";
-        sdkDecision: "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented.";
-        verifiedAt: "2026-06-21";
+        defaultClientPolicy: "configured-rest-default-with-host-client-override";
+        failClosedWithoutHostConfig: true;
+        implementationStrategy: "provider-rest-adapter";
+        officialRuntimeSdkAvailable: false;
+        providerClientInterface: "Five9ProviderClient";
+        providerSdkDecision: {
+           checkedAt: "2026-06-25";
+           checkedPackages: readonly [{
+              checkedVersion: "0.1.3";
+              package: "five9";
+              reason: "Third-party package last published years ago, not an official maintained Five9 runtime SDK.";
+              result: "third-party-stale-node-module";
+            }, {
+              checkedVersion: "7.2.0";
+              license: "ISC";
+              package: "uniphore-five9-messaging-api-client-library";
+              reason: "Uniphore-maintained messaging client, not an official Five9 contact-center runtime SDK for the declared handoff surface.";
+              result: "third-party-messaging-specific-client";
+            }, {
+              package: "Five9 CRM SDK";
+              reason: "Five9 JavaScript CRM SDK is loaded from Five9 CDN for browser pages integrated with Agent Desktop Toolkit.";
+              result: "browser-agent-desktop-cdn-sdk-not-node-runtime";
+           }];
+           defaultRestPolicy: "fail-closed-configured-rest-adapter-with-typed-provider-client-override";
+           result: "no-suitable-official-server-side-sdk";
+           typedClientOverride: "Five9ProviderClient";
+        };
+        sdkDecision: "No suitable official backend JavaScript/TypeScript SDK was verified; five9@0.1.3 is third-party and stale, Uniphore's package is third-party and messaging-specific, and Five9 CRM SDK is browser/ADT-oriented.";
+        verifiedAt: "2026-06-25";
      };
      manifestOnlySafe: true;
+     providerClient: {
+        defaultClientPolicy: "configured-rest-default-with-host-client-override";
+        importPolicy: "runtime-entrypoint-only";
+        interface: "Five9ProviderClient";
+        package: "built-in-provider-rest-adapter";
+        rawClientAlias: "Five9RawClient";
+        sdkDecision: {
+           checkedAt: "2026-06-25";
+           result: "no-official-sdk-rest-adapter";
+        };
+     };
+     providerRestAdapter: {
+        adapterKind: "no-official-sdk-rest-adapter";
+        defaultClientPolicy: "configured-rest-default-with-host-client-override";
+        failClosedWithoutBaseUrl: true;
+        failClosedWithoutConfiguredPath: true;
+        providerClientOverride: "Five9ProviderClient";
+        rawClientOverride: "Five9RawClient";
+        strategy: "provider-rest-adapter";
+     };
+     providerRestAdapterException: {
+        adapterKind: "no-official-sdk-rest-adapter";
+        allowedDefaultRuntime: "built-in-rest-adapter";
+        failClosed: true;
+        guardrails: readonly ["Keep Five9 calls behind Five9ProviderClient or the built-in REST adapter until an official maintained Node/TypeScript Five9 runtime SDK exists.", "Require baseUrl and host-configured operation paths before the built-in REST adapter can call fetch.", "If an official maintained runtime SDK is adopted later, switch implementationStrategy away from provider-rest-adapter and add a normal package.json runtime dependency."];
+        hostSdkPath: "Five9ProviderClient";
+        reason: "No maintained official Five9 Node/TypeScript backend runtime SDK was verified for the declared contact-center handoff workflow; documented Five9 JavaScript SDK surfaces are browser/ADT-oriented.";
+        reviewedAt: "2026-06-25";
+        status: "accepted";
+     };
+     providerSdkDecision: {
+        checkedAt: "2026-06-25";
+        checkedPackages: readonly [{
+           checkedVersion: "0.1.3";
+           package: "five9";
+           reason: "Third-party package last published years ago, not an official maintained Five9 runtime SDK.";
+           result: "third-party-stale-node-module";
+         }, {
+           checkedVersion: "7.2.0";
+           license: "ISC";
+           package: "uniphore-five9-messaging-api-client-library";
+           reason: "Uniphore-maintained messaging client, not an official Five9 contact-center runtime SDK for the declared handoff surface.";
+           result: "third-party-messaging-specific-client";
+         }, {
+           package: "Five9 CRM SDK";
+           reason: "Five9 JavaScript CRM SDK is loaded from Five9 CDN for browser pages integrated with Agent Desktop Toolkit.";
+           result: "browser-agent-desktop-cdn-sdk-not-node-runtime";
+        }];
+        defaultRestPolicy: "fail-closed-configured-rest-adapter-with-typed-provider-client-override";
+        result: "no-suitable-official-server-side-sdk";
+        typedClientOverride: "Five9ProviderClient";
+     };
   };
   name: "Five9";
   operations: readonly [{
@@ -389,7 +709,7 @@ function createFive9Integration(options): DefinedIntegration<{
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`Five9ClientOptions`](#five9clientoptions) |
+| `options?` | [`Five9IntegrationOptions`](#five9integrationoptions) |
 
 #### Returns
 
@@ -411,10 +731,13 @@ function createFive9Integration(options): DefinedIntegration<{
         `label`: `"Five9 Contact Center APIs and SDKs"`;
         `url`: `"https://www.five9.com/products/capabilities/call-center-apis-and-sdks"`;
       \}, \{
-        `label`: `"Five9 development program"`;
-        `url`: `"https://www.five9.com/development"`;
+        `label`: `"Five9 CRM SDK JSDoc"`;
+        `url`: `"https://cdn.prod.us.five9.net/stable/crm-sdk-lib/doc/index.html"`;
+      \}, \{
+        `label`: `"npm five9 package"`;
+        `url`: `"https://www.npmjs.com/package/five9"`;
      \}\];
-     `notes`: readonly \[`"No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented."`\];
+     `notes`: readonly \[`"No suitable official backend JavaScript/TypeScript SDK was verified."`, `"Runtime calls use a built-in REST adapter only when baseUrl/API credentials and host-configured operation paths are supplied, with Five9ProviderClient available as a typed host-client override."`\];
      `scope`: `"support-workflow-subset"`;
   \};
   `credentialRequirements`: readonly \[\{
@@ -437,20 +760,122 @@ function createFive9Integration(options): DefinedIntegration<{
      `type`: `"official"`;
   \}\];
   `metadata`: \{
+     `checkedProviderSdk`: \{
+        `candidates`: readonly \[\{
+           `checkedVersion`: `"0.1.3"`;
+           `package`: `"five9"`;
+           `reason`: `"The npm package is a third-party Node module last published in 2017, not an official maintained Five9 backend SDK."`;
+           `result`: `"third-party-stale"`;
+           `source`: `"https://www.npmjs.com/package/five9"`;
+         \}, \{
+           `checkedVersion`: `"7.2.0"`;
+           `package`: `"uniphore-five9-messaging-api-client-library"`;
+           `reason`: `"The npm package is maintained by Uniphore and targets a messaging API client surface rather than an official Five9 contact-center runtime SDK."`;
+           `result`: `"third-party-messaging-specific"`;
+           `source`: `"https://www.npmjs.com/package/uniphore-five9-messaging-api-client-library"`;
+         \}, \{
+           `package`: `"Five9 CRM SDK"`;
+           `reason`: `"Five9's JavaScript CRM SDK is loaded from Five9's CDN and integrates browser pages with Agent Desktop Toolkit through window.Five9.CrmSdk."`;
+           `result`: `"not-backend-runtime-sdk"`;
+           `source`: `"https://cdn.prod.us.five9.net/stable/crm-sdk-lib/doc/index.html"`;
+        \}\];
+        `checkedAt`: `"2026-06-25"`;
+        `officialRuntimeSdkAvailable`: `false`;
+        `verdict`: `"no-official-sdk-rest-adapter"`;
+     \};
      `implementation`: \{
+        `adapterKind`: `"no-official-sdk-rest-adapter"`;
         `allowedOperations`: readonly \[\{
            `alias`: `"contact-center.handoff.request"`;
            `checksum`: `"not-applicable-host-configured"`;
            `id`: `"configuredHandoff"`;
            `method`: `"POST"`;
            `path`: `"host-configured"`;
-           `source`: `"host-configured"`;
+           `source`: `"provider-rest-adapter"`;
         \}\];
-        `implementationStrategy`: `"direct-http-support-slice"`;
-        `sdkDecision`: `"No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented."`;
-        `verifiedAt`: `"2026-06-21"`;
+        `defaultClientPolicy`: `"configured-rest-default-with-host-client-override"`;
+        `failClosedWithoutHostConfig`: `true`;
+        `implementationStrategy`: `"provider-rest-adapter"`;
+        `officialRuntimeSdkAvailable`: `false`;
+        `providerClientInterface`: `"Five9ProviderClient"`;
+        `providerSdkDecision`: \{
+           `checkedAt`: `"2026-06-25"`;
+           `checkedPackages`: readonly \[\{
+              `checkedVersion`: `"0.1.3"`;
+              `package`: `"five9"`;
+              `reason`: `"Third-party package last published years ago, not an official maintained Five9 runtime SDK."`;
+              `result`: `"third-party-stale-node-module"`;
+            \}, \{
+              `checkedVersion`: `"7.2.0"`;
+              `license`: `"ISC"`;
+              `package`: `"uniphore-five9-messaging-api-client-library"`;
+              `reason`: `"Uniphore-maintained messaging client, not an official Five9 contact-center runtime SDK for the declared handoff surface."`;
+              `result`: `"third-party-messaging-specific-client"`;
+            \}, \{
+              `package`: `"Five9 CRM SDK"`;
+              `reason`: `"Five9 JavaScript CRM SDK is loaded from Five9 CDN for browser pages integrated with Agent Desktop Toolkit."`;
+              `result`: `"browser-agent-desktop-cdn-sdk-not-node-runtime"`;
+           \}\];
+           `defaultRestPolicy`: `"fail-closed-configured-rest-adapter-with-typed-provider-client-override"`;
+           `result`: `"no-suitable-official-server-side-sdk"`;
+           `typedClientOverride`: `"Five9ProviderClient"`;
+        \};
+        `sdkDecision`: `"No suitable official backend JavaScript/TypeScript SDK was verified; five9@0.1.3 is third-party and stale, Uniphore's package is third-party and messaging-specific, and Five9 CRM SDK is browser/ADT-oriented."`;
+        `verifiedAt`: `"2026-06-25"`;
      \};
      `manifestOnlySafe`: `true`;
+     `providerClient`: \{
+        `defaultClientPolicy`: `"configured-rest-default-with-host-client-override"`;
+        `importPolicy`: `"runtime-entrypoint-only"`;
+        `interface`: `"Five9ProviderClient"`;
+        `package`: `"built-in-provider-rest-adapter"`;
+        `rawClientAlias`: `"Five9RawClient"`;
+        `sdkDecision`: \{
+           `checkedAt`: `"2026-06-25"`;
+           `result`: `"no-official-sdk-rest-adapter"`;
+        \};
+     \};
+     `providerRestAdapter`: \{
+        `adapterKind`: `"no-official-sdk-rest-adapter"`;
+        `defaultClientPolicy`: `"configured-rest-default-with-host-client-override"`;
+        `failClosedWithoutBaseUrl`: `true`;
+        `failClosedWithoutConfiguredPath`: `true`;
+        `providerClientOverride`: `"Five9ProviderClient"`;
+        `rawClientOverride`: `"Five9RawClient"`;
+        `strategy`: `"provider-rest-adapter"`;
+     \};
+     `providerRestAdapterException`: \{
+        `adapterKind`: `"no-official-sdk-rest-adapter"`;
+        `allowedDefaultRuntime`: `"built-in-rest-adapter"`;
+        `failClosed`: `true`;
+        `guardrails`: readonly \[`"Keep Five9 calls behind Five9ProviderClient or the built-in REST adapter until an official maintained Node/TypeScript Five9 runtime SDK exists."`, `"Require baseUrl and host-configured operation paths before the built-in REST adapter can call fetch."`, `"If an official maintained runtime SDK is adopted later, switch implementationStrategy away from provider-rest-adapter and add a normal package.json runtime dependency."`\];
+        `hostSdkPath`: `"Five9ProviderClient"`;
+        `reason`: `"No maintained official Five9 Node/TypeScript backend runtime SDK was verified for the declared contact-center handoff workflow; documented Five9 JavaScript SDK surfaces are browser/ADT-oriented."`;
+        `reviewedAt`: `"2026-06-25"`;
+        `status`: `"accepted"`;
+     \};
+     `providerSdkDecision`: \{
+        `checkedAt`: `"2026-06-25"`;
+        `checkedPackages`: readonly \[\{
+           `checkedVersion`: `"0.1.3"`;
+           `package`: `"five9"`;
+           `reason`: `"Third-party package last published years ago, not an official maintained Five9 runtime SDK."`;
+           `result`: `"third-party-stale-node-module"`;
+         \}, \{
+           `checkedVersion`: `"7.2.0"`;
+           `license`: `"ISC"`;
+           `package`: `"uniphore-five9-messaging-api-client-library"`;
+           `reason`: `"Uniphore-maintained messaging client, not an official Five9 contact-center runtime SDK for the declared handoff surface."`;
+           `result`: `"third-party-messaging-specific-client"`;
+         \}, \{
+           `package`: `"Five9 CRM SDK"`;
+           `reason`: `"Five9 JavaScript CRM SDK is loaded from Five9 CDN for browser pages integrated with Agent Desktop Toolkit."`;
+           `result`: `"browser-agent-desktop-cdn-sdk-not-node-runtime"`;
+        \}\];
+        `defaultRestPolicy`: `"fail-closed-configured-rest-adapter-with-typed-provider-client-override"`;
+        `result`: `"no-suitable-official-server-side-sdk"`;
+        `typedClientOverride`: `"Five9ProviderClient"`;
+     \};
   \};
   `name`: `"Five9"`;
   `operations`: readonly \[\{
@@ -465,7 +890,41 @@ function createFive9Integration(options): DefinedIntegration<{
   `contact-center.handoff.request`: (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>;
 \}\>
 
+***
+
+### createFive9OperationHandlers()
+
+```ts
+function createFive9OperationHandlers(options?): {
+  contact-center.handoff.request: (input) => Promise<ProviderJsonObject>;
+};
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`Five9IntegrationOptions`](#five9integrationoptions) |
+
+#### Returns
+
+```ts
+{
+  contact-center.handoff.request: (input) => Promise<ProviderJsonObject>;
+}
+```
+
+| Name | Type |
+| ------ | ------ |
+| `contact-center.handoff.request()` | (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\> |
+
 ## References
+
+### five9CheckedProviderSdk
+
+Re-exports [five9CheckedProviderSdk](dist/manifest.md#five9checkedprovidersdk)
+
+***
 
 ### five9ProviderManifest
 
@@ -479,6 +938,6 @@ Re-exports [five9ProviderManifestInput](dist/manifest.md#five9providermanifestin
 
 ***
 
-### five9SupportSlice
+### five9RestSupportSlice
 
-Re-exports [five9SupportSlice](dist/manifest.md#five9supportslice)
+Re-exports [five9RestSupportSlice](dist/manifest.md#five9restsupportslice)

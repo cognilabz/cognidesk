@@ -20,6 +20,12 @@ Re-exports [createForumCommunityLiveChecks](../dist.md#createforumcommunitylivec
 
 ***
 
+### createForumCommunityUnavailableClient
+
+Re-exports [createForumCommunityUnavailableClient](../dist.md#createforumcommunityunavailableclient)
+
+***
+
 ### ForumCommunityClient
 
 Re-exports [ForumCommunityClient](../dist.md#forumcommunityclient)
@@ -59,6 +65,12 @@ Re-exports [ForumCommunityJsonPrimitive](../dist.md#forumcommunityjsonprimitive)
 ### ForumCommunityJsonValue
 
 Re-exports [ForumCommunityJsonValue](../dist.md#forumcommunityjsonvalue)
+
+***
+
+### ForumCommunityProviderClient
+
+Re-exports [ForumCommunityProviderClient](../dist.md#forumcommunityproviderclient)
 
 ***
 
@@ -149,6 +161,12 @@ Re-exports [ParseForumWebhookOperationInput](../dist.md#parseforumwebhookoperati
 ### ParseForumWebhookOptions
 
 Re-exports [ParseForumWebhookOptions](../dist.md#parseforumwebhookoptions)
+
+***
+
+### ProviderJsonRetryOptions
+
+Re-exports [ProviderJsonRetryOptions](../dist.md#providerjsonretryoptions)
 
 ***
 

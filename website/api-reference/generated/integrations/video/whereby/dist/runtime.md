@@ -241,6 +241,12 @@ recordingId: string;
 
 #### Properties
 
+##### apiAccessConfigured?
+
+```ts
+optional apiAccessConfigured?: boolean;
+```
+
 ##### apiKey?
 
 ```ts
@@ -251,6 +257,12 @@ optional apiKey?: string;
 
 ```ts
 optional organizationId?: string;
+```
+
+##### providerClientConfigured?
+
+```ts
+optional providerClientConfigured?: boolean;
 ```
 
 ##### roomTemplateConfigured?
@@ -3403,25 +3415,25 @@ results: WherebyTranscriptionResource[];
 
 #### Properties
 
-##### apiBaseUrl?
+##### apiKey?
 
 ```ts
-optional apiBaseUrl?: string;
-```
-
-###### Inherited from
-
-[`WherebyVideoClientOptions`](#wherebyvideoclientoptions).[`apiBaseUrl`](#apibaseurl-1)
-
-##### apiKey
-
-```ts
-apiKey: string;
+optional apiKey?: string;
 ```
 
 ###### Inherited from
 
 [`WherebyVideoClientOptions`](#wherebyvideoclientoptions).[`apiKey`](#apikey-2)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`WherebyVideoClientOptions`](#wherebyvideoclientoptions).[`baseUrl`](#baseurl-1)
 
 ##### client?
 
@@ -3479,6 +3491,48 @@ optional fetch?: {
 ###### Inherited from
 
 [`WherebyVideoClientOptions`](#wherebyvideoclientoptions).[`fetch`](#fetch-1)
+
+##### providerClient?
+
+```ts
+optional providerClient?: WherebyVideoProviderClient;
+```
+
+###### Inherited from
+
+[`WherebyVideoClientOptions`](#wherebyvideoclientoptions).[`providerClient`](#providerclient-2)
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | WherebyProviderJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`WherebyVideoClientOptions`](#wherebyvideoclientoptions).[`retry`](#retry-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`WherebyVideoClientOptions`](#wherebyvideoclientoptions).[`signal`](#signal-1)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`WherebyVideoClientOptions`](#wherebyvideoclientoptions).[`timeoutMs`](#timeoutms-1)
 
 ***
 
@@ -3657,6 +3711,36 @@ optional sortBy?: string;
 ###### Inherited from
 
 [`WherebyInsightsQueryInput`](#wherebyinsightsqueryinput).[`sortBy`](#sortby)
+
+***
+
+### WherebyProviderJsonRetryOptions
+
+#### Properties
+
+##### attempts?
+
+```ts
+optional attempts?: number;
+```
+
+##### baseDelayMs?
+
+```ts
+optional baseDelayMs?: number;
+```
+
+##### maxDelayMs?
+
+```ts
+optional maxDelayMs?: number;
+```
+
+##### statusCodes?
+
+```ts
+optional statusCodes?: readonly number[];
+```
 
 ***
 
@@ -4153,6 +4237,12 @@ optional type?: "LIVE_TRANSCRIPTION" | "RECORDING_TRANSCRIPTION";
 fullApi: WherebyFullApiGeneratedClient;
 ```
 
+##### providerClient
+
+```ts
+providerClient: WherebyVideoProviderClient;
+```
+
 ##### requestOperation
 
 ```ts
@@ -4610,16 +4700,16 @@ setRoomThemeTokens(roomName, input): Promise<Record<string, never>>;
 
 #### Properties
 
-##### apiBaseUrl?
+##### apiKey?
 
 ```ts
-optional apiBaseUrl?: string;
+optional apiKey?: string;
 ```
 
-##### apiKey
+##### baseUrl?
 
 ```ts
-apiKey: string;
+optional baseUrl?: string;
 ```
 
 ##### fetch?
@@ -4669,6 +4759,32 @@ optional fetch?: {
 
 `Promise`\<`Response`\>
 
+##### providerClient?
+
+```ts
+optional providerClient?: WherebyVideoProviderClient;
+```
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | WherebyProviderJsonRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
 ***
 
 ### WherebyVideoJsonObject
@@ -4683,6 +4799,29 @@ optional fetch?: {
 ```ts
 [key: string]: WherebyVideoProviderExtensionValue
 ```
+
+***
+
+### WherebyVideoProviderClient
+
+#### Methods
+
+##### requestOperation()
+
+```ts
+requestOperation(operationKey, input?): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `operationKey` | `WherebyFullApiOperationKey` |
+| `input?` | [`WherebyOperationRequestInput`](#wherebyoperationrequestinput) |
+
+###### Returns
+
+`Promise`\<`unknown`\>
 
 ***
 
@@ -5366,7 +5505,7 @@ const wherebyVideoIntegration: DefinedIntegration<{
   limitations: string[];
   maintainers: {
      name: string;
-     type: "official" | "community" | "unknown" | "partner";
+     type: "unknown" | "official" | "community" | "partner";
      url?: string;
   }[];
   metadata?: Record<string, unknown>;
@@ -5542,11 +5681,16 @@ const wherebyVideoIntegration: DefinedIntegration<{
         label: "Whereby webhooks reference";
         url: "https://docs.whereby.com/reference/webhooks-reference";
      }];
-     notes: readonly ["Coverage includes generated per-operation functions for every operation in Whereby's official public REST OpenAPI spec.", "Typed convenience helpers remain available for meetings, room theme tokens/media, recordings, transcriptions, beta summaries, insights, signed webhook parsing, and live readiness checks.", "This support slice is limited to the Whereby REST API surface; browser/mobile SDK behavior, live media transport, embedded UI control, assistants, web-component APIs, React/React Native SDKs, camera effects, customer S3 policy, and webhook event catalogs are separate Whereby surfaces.", "The SDK user owns consent, recording/transcription/summarization eligibility, data retention, host/viewer URL distribution, room branding policy, and feature-gated beta availability decisions."];
+     notes: readonly ["Coverage includes generated per-operation types/functions for every operation in Whereby's official public REST OpenAPI spec; runtime calls default to a package-owned REST adapter when apiKey/baseUrl/fetch options are provided.", "Typed convenience helpers remain available for meetings, room theme tokens/media, recordings, transcriptions, beta summaries, insights, signed webhook parsing, and live readiness checks with host-injected providerClient override support.", "This support slice is limited to the Whereby REST API surface; browser/mobile SDK behavior, live media transport, embedded UI control, assistants, web-component APIs, React/React Native SDKs, camera effects, customer S3 policy, and webhook event catalogs are separate Whereby surfaces.", "The SDK user owns consent, recording/transcription/summarization eligibility, data retention, host/viewer URL distribution, room branding policy, and feature-gated beta availability decisions."];
      scope: "provider-api-subset";
   };
   credentialRequirements: readonly [{
-     description: "Server-side API key used as a bearer token for Whereby Embedded REST API calls.";
+     description: "Optional host-injected client implementing WherebyVideoProviderClient.requestOperation when the SDK user wants to override the built-in REST adapter.";
+     id: "whereby-provider-client";
+     label: "Optional Whereby provider client override";
+     required: false;
+   }, {
+     description: "Server-side Whereby Embedded API key used by the built-in REST adapter.";
      id: "whereby-api-key";
      label: "Whereby API key";
      required: true;
@@ -5568,7 +5712,7 @@ const wherebyVideoIntegration: DefinedIntegration<{
   }];
   directions: readonly ["inbound-only", "outbound-only", "bidirectional"];
   id: "video.whereby";
-  limitations: readonly ["Whereby meetings are transient rooms controlled by the SDK user's Embedded account, API key, plan, dashboard configuration, and current Whereby feature availability.", "Whereby's documented meeting API supports create, list, get, and delete; meeting mutation is limited by Whereby to the documented room theme endpoints.", "This package provides REST and webhook primitives only; it does not decide channel eligibility, consent, recording/transcription policy, handoff timing, or which users receive host/viewer URLs."];
+  limitations: readonly ["Whereby meetings are transient rooms controlled by the SDK user's Embedded account, API key, plan, dashboard configuration, and current Whereby feature availability.", "Whereby's documented meeting API supports create, list, get, and delete; meeting mutation is limited by Whereby to the documented room theme endpoints.", "This package provides a built-in REST adapter plus host-provider-client override and webhook primitives; it does not decide channel eligibility, consent, recording/transcription policy, handoff timing, or which users receive host/viewer URLs."];
   maintainers: readonly [{
      name: "Cognidesk";
      type: "official";
@@ -5578,8 +5722,9 @@ const wherebyVideoIntegration: DefinedIntegration<{
         browserSdkLiveMediaEmbeddedUiAssistants: "provider-supported-not-typed-separate-surface";
         insights: "typed-list-read";
         meetings: "typed-create-list-read-delete";
+        providerOperations: "generated-typed-rest-adapter-or-host-client-override";
+        providerRestAdapter: "typed-built-in-rest-json";
         recordings: "typed-list-read-access-link-delete";
-        restApiOperations: "generated-constrained-support-slice";
         roomTheme: "typed-update";
         summaries: "typed-create-list-read-delete";
         transcriptions: "typed-create-list-read-access-link-delete";
@@ -5603,8 +5748,107 @@ const wherebyVideoIntegration: DefinedIntegration<{
         unimplementedOperationCount: 0;
         verifiedAt: "2026-06-21";
      };
+     implementation: {
+        defaultClientPolicy: "built-in-rest-with-api-key";
+        implementationStrategy: "no-official-sdk-rest-adapter";
+        providerClientInterface: "WherebyVideoProviderClient";
+        restAdapterException: {
+           checkedAt: "2026-06-25";
+           defaultClientPolicy: "built-in-whereby-rest-adapter-with-api-key";
+           missingServerRestSdkPackages: readonly [{
+              npmStatus: "404";
+              packageName: "@whereby.com/rest-sdk";
+            }, {
+              npmStatus: "404";
+              packageName: "whereby";
+            }, {
+              npmStatus: "404";
+              packageName: "whereby-api";
+           }];
+           reason: "Whereby's official npm SDK packages are browser/WebRTC, React Native, or headless assistant clients; none provide the server-side REST resource management client needed for meetings, recordings, transcriptions, summaries, insights, room theme operations, and webhooks.";
+           rejectedSdkPackages: readonly [{
+              checkedVersion: "3.26.0";
+              license: "MIT";
+              packageName: "@whereby.com/browser-sdk";
+              reason: "Official browser SDK for embedded/custom video UI, not a server REST API client.";
+            }, {
+              checkedVersion: "1.15.0";
+              license: "MIT";
+              packageName: "@whereby.com/core";
+              reason: "Official low-level browser/WebRTC core SDK; exported RoomService covers claimed-room/client state operations, not Embedded REST resources such as meetings, recordings, transcriptions, summaries, insights, or webhooks.";
+            }, {
+              checkedVersion: "1.2.89";
+              license: "MIT";
+              packageName: "@whereby.com/assistant-sdk";
+              reason: "Official Node assistant/media SDK for joining rooms headlessly, not REST resource management.";
+            }, {
+              checkedVersion: "0.8.113";
+              license: "MIT";
+              packageName: "@whereby.com/react-native-sdk";
+              reason: "Official React Native SDK for mobile video experiences, not server REST operations.";
+            }, {
+              checkedVersion: "9.2.6";
+              license: "MIT";
+              packageName: "@whereby.com/media";
+              reason: "Official WebRTC media library used by Whereby room clients; it does not expose server-side Embedded REST resource management operations.";
+           }];
+           result: "no-official-maintained-server-rest-sdk";
+           typedClientOverride: "WherebyVideoProviderClient";
+        };
+        sdkDecision: "No viable official maintained server-side Whereby REST SDK was verified; browser/core SDKs target live media/browser runtimes and the assistant SDK targets headless assistants, so provider operations default to this package's REST adapter.";
+        verifiedAt: "2026-06-25";
+     };
+     providerClient: {
+        defaultClientPolicy: "built-in-rest-with-api-key";
+        importPolicy: "optional-host-override";
+        interface: "WherebyVideoProviderClient";
+        package: "host-provided";
+     };
+     providerRestAdapterException: {
+        checkedAt: "2026-06-25";
+        defaultClientPolicy: "built-in-whereby-rest-adapter-with-api-key";
+        missingServerRestSdkPackages: readonly [{
+           npmStatus: "404";
+           packageName: "@whereby.com/rest-sdk";
+         }, {
+           npmStatus: "404";
+           packageName: "whereby";
+         }, {
+           npmStatus: "404";
+           packageName: "whereby-api";
+        }];
+        reason: "Whereby's official npm SDK packages are browser/WebRTC, React Native, or headless assistant clients; none provide the server-side REST resource management client needed for meetings, recordings, transcriptions, summaries, insights, room theme operations, and webhooks.";
+        rejectedSdkPackages: readonly [{
+           checkedVersion: "3.26.0";
+           license: "MIT";
+           packageName: "@whereby.com/browser-sdk";
+           reason: "Official browser SDK for embedded/custom video UI, not a server REST API client.";
+         }, {
+           checkedVersion: "1.15.0";
+           license: "MIT";
+           packageName: "@whereby.com/core";
+           reason: "Official low-level browser/WebRTC core SDK; exported RoomService covers claimed-room/client state operations, not Embedded REST resources such as meetings, recordings, transcriptions, summaries, insights, or webhooks.";
+         }, {
+           checkedVersion: "1.2.89";
+           license: "MIT";
+           packageName: "@whereby.com/assistant-sdk";
+           reason: "Official Node assistant/media SDK for joining rooms headlessly, not REST resource management.";
+         }, {
+           checkedVersion: "0.8.113";
+           license: "MIT";
+           packageName: "@whereby.com/react-native-sdk";
+           reason: "Official React Native SDK for mobile video experiences, not server REST operations.";
+         }, {
+           checkedVersion: "9.2.6";
+           license: "MIT";
+           packageName: "@whereby.com/media";
+           reason: "Official WebRTC media library used by Whereby room clients; it does not expose server-side Embedded REST resource management operations.";
+        }];
+        result: "no-official-maintained-server-rest-sdk";
+        typedClientOverride: "WherebyVideoProviderClient";
+     };
      sdkViability: {
-        checkedAt: "2026-06-21";
+        checkedAt: "2026-06-25";
         decision: "no-official-maintained-server-rest-sdk-found";
         rejectedSdkPackages: readonly [{
            packageName: "@whereby.com/browser-sdk";
@@ -5651,13 +5895,14 @@ const wherebyVideoIntegration: DefinedIntegration<{
      providerObject: "wherebyRoomTheme";
      sideEffect: true;
    }, {
-     alias: "whereby.rest.request";
+     alias: "whereby.provider-operation.invoke";
      capability: "read-provider-object";
      extension: true;
      metadata: {
         supportSliceEscapeHatch: true;
+        transport: "provider-rest-adapter-or-host-provider-client";
      };
-     providerObject: "wherebyRestOperation";
+     providerObject: "wherebyProviderOperation";
    }, {
      alias: "whereby.webhook.parse";
      capability: "receive";
@@ -5674,7 +5919,7 @@ const wherebyVideoIntegration: DefinedIntegration<{
   video.meeting.delete: (input, context) => Promise<Record<string, never>>;
   video.meeting.list: (input, context) => Promise<WherebyListMeetingsResponse>;
   video.meeting.read: (input, context) => Promise<WherebyMeetingResource>;
-  whereby.rest.request: <OperationKey>(input, context) => Promise<WherebyFullApiOperationResponseMap[OperationKey]>;
+  whereby.provider-operation.invoke: <OperationKey>(input, context) => Promise<WherebyFullApiOperationResponseMap[OperationKey]>;
   whereby.room-theme.update: (input, context) => Promise<Record<string, never>>;
   whereby.webhook.parse: (input) => Promise<WherebySignedWebhookRequest>;
 }>;
@@ -5690,7 +5935,7 @@ const wherebyVideoOperationHandlers: {
   video.meeting.delete: (input, context) => Promise<Record<string, never>>;
   video.meeting.list: (input, context) => Promise<WherebyListMeetingsResponse>;
   video.meeting.read: (input, context) => Promise<WherebyMeetingResource>;
-  whereby.rest.request: <OperationKey>(input, context) => Promise<WherebyFullApiOperationResponseMap[OperationKey]>;
+  whereby.provider-operation.invoke: <OperationKey>(input, context) => Promise<WherebyFullApiOperationResponseMap[OperationKey]>;
   whereby.room-theme.update: (input, context) => Promise<Record<string, never>>;
   whereby.webhook.parse: (input) => Promise<WherebySignedWebhookRequest>;
 };
@@ -5704,11 +5949,23 @@ const wherebyVideoOperationHandlers: {
 | <a id="property-videomeetingdelete"></a> `video.meeting.delete()` | (`input`, `context`) => `Promise`\<`Record`\<`string`, `never`\>\> |
 | <a id="property-videomeetinglist"></a> `video.meeting.list()` | (`input`, `context`) => `Promise`\<[`WherebyListMeetingsResponse`](#wherebylistmeetingsresponse)\> |
 | <a id="property-videomeetingread"></a> `video.meeting.read()` | (`input`, `context`) => `Promise`\<[`WherebyMeetingResource`](#wherebymeetingresource)\> |
-| <a id="property-wherebyrestrequest"></a> `whereby.rest.request()` | \<`OperationKey`\>(`input`, `context`) => `Promise`\<[`WherebyFullApiOperationResponseMap`](#wherebyfullapioperationresponsemap)\[`OperationKey`\]\> |
+| <a id="property-wherebyprovider-operationinvoke"></a> `whereby.provider-operation.invoke()` | \<`OperationKey`\>(`input`, `context`) => `Promise`\<[`WherebyFullApiOperationResponseMap`](#wherebyfullapioperationresponsemap)\[`OperationKey`\]\> |
 | <a id="property-wherebyroom-themeupdate"></a> `whereby.room-theme.update()` | (`input`, `context`) => `Promise`\<`Record`\<`string`, `never`\>\> |
 | <a id="property-wherebywebhookparse"></a> `whereby.webhook.parse()` | (`input`) => `Promise`\<[`WherebySignedWebhookRequest`](#wherebysignedwebhookrequest)\> |
 
 ## Functions
+
+### createUnconfiguredWherebyVideoProviderClient()
+
+```ts
+function createUnconfiguredWherebyVideoProviderClient(): WherebyVideoProviderClient;
+```
+
+#### Returns
+
+[`WherebyVideoProviderClient`](#wherebyvideoproviderclient)
+
+***
 
 ### createWherebyFullApiGeneratedClient()
 
@@ -5728,17 +5985,35 @@ function createWherebyFullApiGeneratedClient(callOperation): WherebyFullApiGener
 
 ***
 
-### createWherebyVideoClient()
+### createWherebyRestProviderClient()
 
 ```ts
-function createWherebyVideoClient(options): WherebyVideoClient;
+function createWherebyRestProviderClient(options): WherebyVideoProviderClient;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`WherebyVideoClientOptions`](#wherebyvideoclientoptions) |
+| `options` | `Omit`\<[`WherebyVideoClientOptions`](#wherebyvideoclientoptions), `"providerClient"`\> |
+
+#### Returns
+
+[`WherebyVideoProviderClient`](#wherebyvideoproviderclient)
+
+***
+
+### createWherebyVideoClient()
+
+```ts
+function createWherebyVideoClient(options?): WherebyVideoClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`WherebyVideoClientOptions`](#wherebyvideoclientoptions) |
 
 #### Returns
 

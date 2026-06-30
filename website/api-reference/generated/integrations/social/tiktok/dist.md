@@ -48,6 +48,12 @@ optional toleranceSeconds?: number;
 
 #### Properties
 
+##### code?
+
+```ts
+optional code?: string | number;
+```
+
 ##### data?
 
 ```ts
@@ -80,6 +86,18 @@ optional log_id?: string;
 
 ```ts
 optional message?: string;
+```
+
+##### message?
+
+```ts
+optional message?: string;
+```
+
+##### request\_id?
+
+```ts
+optional request_id?: string;
 ```
 
 ***
@@ -362,15 +380,25 @@ supported: false;
 
 #### Properties
 
-##### accessToken
+##### accessToken?
 
 ```ts
-accessToken: string;
+optional accessToken?: string;
 ```
 
 ###### Inherited from
 
 [`TikTokSocialClientOptions`](#tiktoksocialclientoptions).[`accessToken`](#accesstoken-2)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`TikTokSocialClientOptions`](#tiktoksocialclientoptions).[`baseUrl`](#baseurl-1)
 
 ##### businessApiBaseUrl?
 
@@ -498,6 +526,48 @@ optional openId?: string;
 ###### Inherited from
 
 [`TikTokSocialClientOptions`](#tiktoksocialclientoptions).[`openId`](#openid-2)
+
+##### providerClient?
+
+```ts
+optional providerClient?: TikTokSocialProviderClient;
+```
+
+###### Inherited from
+
+[`TikTokSocialClientOptions`](#tiktoksocialclientoptions).[`providerClient`](#providerclient-2)
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`TikTokSocialClientOptions`](#tiktoksocialclientoptions).[`retry`](#retry-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`TikTokSocialClientOptions`](#tiktoksocialclientoptions).[`signal`](#signal-1)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`TikTokSocialClientOptions`](#tiktoksocialclientoptions).[`timeoutMs`](#timeoutms-1)
 
 ***
 
@@ -651,6 +721,340 @@ optional timestamp?: number;
 
 ### TikTokSocialClient
 
+#### Extends
+
+- [`TikTokSocialProviderClient`](#tiktoksocialproviderclient)
+
+#### Properties
+
+##### providerClient
+
+```ts
+providerClient: TikTokSocialProviderClient;
+```
+
+#### Methods
+
+##### createBusinessComment()
+
+```ts
+createBusinessComment(input): Promise<TikTokApiResponse<TikTokSocialJsonObject>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `Omit`\<[`TikTokCommentReplyInput`](#tiktokcommentreplyinput), `"commentId"`\> |
+
+###### Returns
+
+`Promise`\<[`TikTokApiResponse`](#tiktokapiresponse)\<[`TikTokSocialJsonObject`](#tiktoksocialjsonobject)\>\>
+
+###### Inherited from
+
+[`TikTokSocialProviderClient`](#tiktoksocialproviderclient).[`createBusinessComment`](#createbusinesscomment-1)
+
+##### fetchPostStatus()
+
+```ts
+fetchPostStatus(input): Promise<TikTokApiResponse<TikTokSocialJsonObject>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`TikTokPostStatusInput`](#tiktokpoststatusinput) |
+
+###### Returns
+
+`Promise`\<[`TikTokApiResponse`](#tiktokapiresponse)\<[`TikTokSocialJsonObject`](#tiktoksocialjsonobject)\>\>
+
+###### Inherited from
+
+[`TikTokSocialProviderClient`](#tiktoksocialproviderclient).[`fetchPostStatus`](#fetchpoststatus-1)
+
+##### getUserInfo()
+
+```ts
+getUserInfo(fields?): Promise<TikTokApiResponse<TikTokUserInfo>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `fields?` | `string`[] |
+
+###### Returns
+
+`Promise`\<[`TikTokApiResponse`](#tiktokapiresponse)\<[`TikTokUserInfo`](#tiktokuserinfo)\>\>
+
+###### Inherited from
+
+[`TikTokSocialProviderClient`](#tiktoksocialproviderclient).[`getUserInfo`](#getuserinfo-1)
+
+##### listBusinessComments()
+
+```ts
+listBusinessComments(input): Promise<TikTokApiResponse<TikTokCommentList>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`TikTokBusinessCommentListInput`](#tiktokbusinesscommentlistinput) |
+
+###### Returns
+
+`Promise`\<[`TikTokApiResponse`](#tiktokapiresponse)\<[`TikTokCommentList`](#tiktokcommentlist)\>\>
+
+###### Inherited from
+
+[`TikTokSocialProviderClient`](#tiktoksocialproviderclient).[`listBusinessComments`](#listbusinesscomments-1)
+
+##### listBusinessVideos()
+
+```ts
+listBusinessVideos(input?): Promise<TikTokApiResponse<TikTokSocialJsonObject>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`TikTokBusinessVideoListInput`](#tiktokbusinessvideolistinput) |
+
+###### Returns
+
+`Promise`\<[`TikTokApiResponse`](#tiktokapiresponse)\<[`TikTokSocialJsonObject`](#tiktoksocialjsonobject)\>\>
+
+###### Inherited from
+
+[`TikTokSocialProviderClient`](#tiktoksocialproviderclient).[`listBusinessVideos`](#listbusinessvideos-1)
+
+##### listVideos()
+
+```ts
+listVideos(input?): Promise<TikTokApiResponse<TikTokVideoList>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`TikTokVideoListInput`](#tiktokvideolistinput) |
+
+###### Returns
+
+`Promise`\<[`TikTokApiResponse`](#tiktokapiresponse)\<[`TikTokVideoList`](#tiktokvideolist)\>\>
+
+###### Inherited from
+
+[`TikTokSocialProviderClient`](#tiktoksocialproviderclient).[`listVideos`](#listvideos-1)
+
+##### queryResearchVideoComments()
+
+```ts
+queryResearchVideoComments(input): Promise<TikTokApiResponse<TikTokCommentList>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`TikTokResearchCommentListInput`](#tiktokresearchcommentlistinput) |
+
+###### Returns
+
+`Promise`\<[`TikTokApiResponse`](#tiktokapiresponse)\<[`TikTokCommentList`](#tiktokcommentlist)\>\>
+
+###### Inherited from
+
+[`TikTokSocialProviderClient`](#tiktoksocialproviderclient).[`queryResearchVideoComments`](#queryresearchvideocomments-1)
+
+##### replyToBusinessComment()
+
+```ts
+replyToBusinessComment(input): Promise<TikTokApiResponse<TikTokSocialJsonObject>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`TikTokCommentReplyInput`](#tiktokcommentreplyinput) |
+
+###### Returns
+
+`Promise`\<[`TikTokApiResponse`](#tiktokapiresponse)\<[`TikTokSocialJsonObject`](#tiktoksocialjsonobject)\>\>
+
+###### Inherited from
+
+[`TikTokSocialProviderClient`](#tiktoksocialproviderclient).[`replyToBusinessComment`](#replytobusinesscomment-1)
+
+***
+
+### TikTokSocialClientOptions
+
+#### Extended by
+
+- [`TikTokLiveCheckOptions`](#tiktoklivecheckoptions)
+
+#### Properties
+
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+##### businessApiBaseUrl?
+
+```ts
+optional businessApiBaseUrl?: string;
+```
+
+##### businessApiVersion?
+
+```ts
+optional businessApiVersion?: string;
+```
+
+##### businessId?
+
+```ts
+optional businessId?: string;
+```
+
+##### clientKey?
+
+```ts
+optional clientKey?: string;
+```
+
+##### clientSecret?
+
+```ts
+optional clientSecret?: string;
+```
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+##### openApiBaseUrl?
+
+```ts
+optional openApiBaseUrl?: string;
+```
+
+##### openId?
+
+```ts
+optional openId?: string;
+```
+
+##### providerClient?
+
+```ts
+optional providerClient?: TikTokSocialProviderClient;
+```
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+***
+
+### TikTokSocialJsonObject
+
+#### Extended by
+
+- [`TikTokSocialProviderExtensionFields`](#tiktoksocialproviderextensionfields)
+- [`TikTokSocialProviderResponse`](#tiktoksocialproviderresponse)
+
+#### Indexable
+
+```ts
+[key: string]: TikTokSocialProviderExtensionValue
+```
+
+***
+
+### TikTokSocialProviderClient
+
+#### Extended by
+
+- [`TikTokSocialClient`](#tiktoksocialclient)
+
 #### Methods
 
 ##### createBusinessComment()
@@ -780,126 +1184,6 @@ replyToBusinessComment(input): Promise<TikTokApiResponse<TikTokSocialJsonObject>
 ###### Returns
 
 `Promise`\<[`TikTokApiResponse`](#tiktokapiresponse)\<[`TikTokSocialJsonObject`](#tiktoksocialjsonobject)\>\>
-
-***
-
-### TikTokSocialClientOptions
-
-#### Extended by
-
-- [`TikTokLiveCheckOptions`](#tiktoklivecheckoptions)
-
-#### Properties
-
-##### accessToken
-
-```ts
-accessToken: string;
-```
-
-##### businessApiBaseUrl?
-
-```ts
-optional businessApiBaseUrl?: string;
-```
-
-##### businessApiVersion?
-
-```ts
-optional businessApiVersion?: string;
-```
-
-##### businessId?
-
-```ts
-optional businessId?: string;
-```
-
-##### clientKey?
-
-```ts
-optional clientKey?: string;
-```
-
-##### clientSecret?
-
-```ts
-optional clientSecret?: string;
-```
-
-##### fetch?
-
-```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
-```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-##### openApiBaseUrl?
-
-```ts
-optional openApiBaseUrl?: string;
-```
-
-##### openId?
-
-```ts
-optional openId?: string;
-```
-
-***
-
-### TikTokSocialJsonObject
-
-#### Extended by
-
-- [`TikTokSocialProviderExtensionFields`](#tiktoksocialproviderextensionfields)
-- [`TikTokSocialProviderResponse`](#tiktoksocialproviderresponse)
-
-#### Indexable
-
-```ts
-[key: string]: TikTokSocialProviderExtensionValue
-```
 
 ***
 
@@ -1350,21 +1634,51 @@ type TikTokSocialProviderQuery = Record<string, TikTokSocialProviderExtensionVal
 
 ## Variables
 
-### TIKTOK\_DIRECT\_SLICE\_METADATA
+### TIKTOK\_HOST\_CLIENT\_SUPPORT\_SLICE
 
 ```ts
-const TIKTOK_DIRECT_SLICE_METADATA: {
-  allowlistChecksum: string;
-  allowlistChecksumAlgorithm: "sha256";
+const TIKTOK_HOST_CLIENT_SUPPORT_SLICE: {
+  allowedOperations: {
+     alias: string;
+     id: string;
+     providerApi:   | "tiktok-open.v2.display"
+        | "tiktok-open.v2.content-posting"
+        | "tiktok-open.v2.research"
+        | "tiktok-business.v1.3";
+     providerPath: string;
+     source: string;
+     sourceUrl: string;
+     target: string;
+  }[];
   apiCoverage: {
-     checkedAt: "2026-06-21";
+     checkedAt: "2026-06-25";
      operationCatalog: "package:src/selected-operations.ts";
   };
-  checkedAt: "2026-06-21";
+  checkedAt: "2026-06-25";
+  implementationStrategy: "no-official-sdk-rest-adapter";
+  providerRestAdapterException: {
+     checkedAt: "2026-06-25";
+     checkedVersion: "1.1.3";
+     defaultClientPolicy: "built-in-tiktok-rest-adapter";
+     license: "Unlicense";
+     reason: "The official JavaScript SDK only targets TikTok Business API generated clients. Its CommentsApi exposes the Business comment list/post surface, but it does not cover TikTok Developers Open API Display reads, Research API comment reads, Content Posting status reads, webhook verification, or the full mixed selected support surface required by this package.";
+     result: "sdk-not-suitable-for-mixed-social-surface";
+     sdkPackage: "tiktok-business-api-sdk-official";
+     typedClientOverride: "TikTokSocialProviderClient";
+  };
   sdkDecision: {
-     notes: readonly ["No official maintained JavaScript/TypeScript SDK was found for the mixed Display API, Research API, Content Posting status, webhook, and Business comment surface.", "tiktok-business-api-sdk-official@1.1.3 is a broad Swagger Codegen Business API bundle; it does not cover TikTok Developers Open API, Research API, Content Posting status, or webhooks, and its comment endpoints do not match this adapter's selected /business/comment/* paths."];
+     auditedPackages: readonly [{
+        package: "tiktok-business-api-sdk-official";
+        reason: "CommentsApi covers a Business comment surface, but the package does not expose the full mixed TikTok Developers/Business support surface selected by this adapter.";
+        source: "npm + tiktok/tiktok-business-api-sdk";
+        status: "not-suitable";
+        version: "1.1.3";
+     }];
+     notes: readonly ["TikTok OpenSDK is an official mobile Login/Share Kit, not a server-side JavaScript/TypeScript client for this selected support surface.", "The official TikTok Business API SDK is a broad Business API package with comment helpers, but it does not cover TikTok Developers Open API Display, Research API, Content Posting status, or webhook verification for this mixed adapter surface.", "This package therefore ships a built-in REST adapter for the selected operations and still accepts an injected TikTok provider client override."];
      viableOfficialSdk: false;
   };
+  selectedOperationChecksum: string;
+  selectedOperationChecksumAlgorithm: "sha256";
   selectedOperations: (
      | {
      api: "tiktok-open.v2.display";
@@ -1415,8 +1729,7 @@ const TIKTOK_DIRECT_SLICE_METADATA: {
      uid: string;
   })[];
   source: "official TikTok Developers and TikTok Business API docs";
-  sourceVersion: "TikTok Open API v2 + Business API v1.3 public docs checked 2026-06-21";
-  strategy: "direct-http-support-slice";
+  sourceVersion: "TikTok Open API v2 + Business API v1.3 public docs checked 2026-06-25";
 };
 ```
 
@@ -1424,19 +1737,30 @@ const TIKTOK_DIRECT_SLICE_METADATA: {
 
 | Name | Type |
 | ------ | ------ |
-| <a id="property-allowlistchecksum"></a> `allowlistChecksum` | `string` |
-| <a id="property-allowlistchecksumalgorithm"></a> `allowlistChecksumAlgorithm` | `"sha256"` |
-| <a id="property-apicoverage"></a> `apiCoverage` | \{ `checkedAt`: `"2026-06-21"`; `operationCatalog`: `"package:src/selected-operations.ts"`; \} |
-| `apiCoverage.checkedAt` | `"2026-06-21"` |
+| <a id="property-allowedoperations"></a> `allowedOperations` | \{ `alias`: `string`; `id`: `string`; `providerApi`: \| `"tiktok-open.v2.display"` \| `"tiktok-open.v2.content-posting"` \| `"tiktok-open.v2.research"` \| `"tiktok-business.v1.3"`; `providerPath`: `string`; `source`: `string`; `sourceUrl`: `string`; `target`: `string`; \}[] |
+| <a id="property-apicoverage"></a> `apiCoverage` | \{ `checkedAt`: `"2026-06-25"`; `operationCatalog`: `"package:src/selected-operations.ts"`; \} |
+| `apiCoverage.checkedAt` | `"2026-06-25"` |
 | `apiCoverage.operationCatalog` | `"package:src/selected-operations.ts"` |
-| <a id="property-checkedat"></a> `checkedAt` | `"2026-06-21"` |
-| <a id="property-sdkdecision"></a> `sdkDecision` | \{ `notes`: readonly \[`"No official maintained JavaScript/TypeScript SDK was found for the mixed Display API, Research API, Content Posting status, webhook, and Business comment surface."`, `"tiktok-business-api-sdk-official@1.1.3 is a broad Swagger Codegen Business API bundle; it does not cover TikTok Developers Open API, Research API, Content Posting status, or webhooks, and its comment endpoints do not match this adapter's selected /business/comment/* paths."`\]; `viableOfficialSdk`: `false`; \} |
-| `sdkDecision.notes` | readonly \[`"No official maintained JavaScript/TypeScript SDK was found for the mixed Display API, Research API, Content Posting status, webhook, and Business comment surface."`, `"tiktok-business-api-sdk-official@1.1.3 is a broad Swagger Codegen Business API bundle; it does not cover TikTok Developers Open API, Research API, Content Posting status, or webhooks, and its comment endpoints do not match this adapter's selected /business/comment/* paths."`\] |
+| <a id="property-checkedat"></a> `checkedAt` | `"2026-06-25"` |
+| <a id="property-implementationstrategy"></a> `implementationStrategy` | `"no-official-sdk-rest-adapter"` |
+| <a id="property-providerrestadapterexception"></a> `providerRestAdapterException` | \{ `checkedAt`: `"2026-06-25"`; `checkedVersion`: `"1.1.3"`; `defaultClientPolicy`: `"built-in-tiktok-rest-adapter"`; `license`: `"Unlicense"`; `reason`: `"The official JavaScript SDK only targets TikTok Business API generated clients. Its CommentsApi exposes the Business comment list/post surface, but it does not cover TikTok Developers Open API Display reads, Research API comment reads, Content Posting status reads, webhook verification, or the full mixed selected support surface required by this package."`; `result`: `"sdk-not-suitable-for-mixed-social-surface"`; `sdkPackage`: `"tiktok-business-api-sdk-official"`; `typedClientOverride`: `"TikTokSocialProviderClient"`; \} |
+| `providerRestAdapterException.checkedAt` | `"2026-06-25"` |
+| `providerRestAdapterException.checkedVersion` | `"1.1.3"` |
+| `providerRestAdapterException.defaultClientPolicy` | `"built-in-tiktok-rest-adapter"` |
+| `providerRestAdapterException.license` | `"Unlicense"` |
+| `providerRestAdapterException.reason` | `"The official JavaScript SDK only targets TikTok Business API generated clients. Its CommentsApi exposes the Business comment list/post surface, but it does not cover TikTok Developers Open API Display reads, Research API comment reads, Content Posting status reads, webhook verification, or the full mixed selected support surface required by this package."` |
+| `providerRestAdapterException.result` | `"sdk-not-suitable-for-mixed-social-surface"` |
+| `providerRestAdapterException.sdkPackage` | `"tiktok-business-api-sdk-official"` |
+| `providerRestAdapterException.typedClientOverride` | `"TikTokSocialProviderClient"` |
+| <a id="property-sdkdecision"></a> `sdkDecision` | \{ `auditedPackages`: readonly \[\{ `package`: `"tiktok-business-api-sdk-official"`; `reason`: `"CommentsApi covers a Business comment surface, but the package does not expose the full mixed TikTok Developers/Business support surface selected by this adapter."`; `source`: `"npm + tiktok/tiktok-business-api-sdk"`; `status`: `"not-suitable"`; `version`: `"1.1.3"`; \}\]; `notes`: readonly \[`"TikTok OpenSDK is an official mobile Login/Share Kit, not a server-side JavaScript/TypeScript client for this selected support surface."`, `"The official TikTok Business API SDK is a broad Business API package with comment helpers, but it does not cover TikTok Developers Open API Display, Research API, Content Posting status, or webhook verification for this mixed adapter surface."`, `"This package therefore ships a built-in REST adapter for the selected operations and still accepts an injected TikTok provider client override."`\]; `viableOfficialSdk`: `false`; \} |
+| `sdkDecision.auditedPackages` | readonly \[\{ `package`: `"tiktok-business-api-sdk-official"`; `reason`: `"CommentsApi covers a Business comment surface, but the package does not expose the full mixed TikTok Developers/Business support surface selected by this adapter."`; `source`: `"npm + tiktok/tiktok-business-api-sdk"`; `status`: `"not-suitable"`; `version`: `"1.1.3"`; \}\] |
+| `sdkDecision.notes` | readonly \[`"TikTok OpenSDK is an official mobile Login/Share Kit, not a server-side JavaScript/TypeScript client for this selected support surface."`, `"The official TikTok Business API SDK is a broad Business API package with comment helpers, but it does not cover TikTok Developers Open API Display, Research API, Content Posting status, or webhook verification for this mixed adapter surface."`, `"This package therefore ships a built-in REST adapter for the selected operations and still accepts an injected TikTok provider client override."`\] |
 | `sdkDecision.viableOfficialSdk` | `false` |
+| <a id="property-selectedoperationchecksum"></a> `selectedOperationChecksum` | `string` |
+| <a id="property-selectedoperationchecksumalgorithm"></a> `selectedOperationChecksumAlgorithm` | `"sha256"` |
 | <a id="property-selectedoperations"></a> `selectedOperations` | ( \| \{ `api`: `"tiktok-open.v2.display"`; `functionName`: `string`; `method`: `"GET"`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"tiktok-open.v2.display"`; `functionName`: `string`; `method`: `"POST"`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"tiktok-open.v2.content-posting"`; `functionName`: `string`; `method`: `"POST"`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"tiktok-open.v2.research"`; `functionName`: `string`; `method`: `"POST"`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"tiktok-business.v1.3"`; `functionName`: `string`; `method`: `"GET"`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"tiktok-business.v1.3"`; `functionName`: `string`; `method`: `"POST"`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \})[] |
 | <a id="property-source"></a> `source` | `"official TikTok Developers and TikTok Business API docs"` |
-| <a id="property-sourceversion"></a> `sourceVersion` | `"TikTok Open API v2 + Business API v1.3 public docs checked 2026-06-21"` |
-| <a id="property-strategy"></a> `strategy` | `"direct-http-support-slice"` |
+| <a id="property-sourceversion"></a> `sourceVersion` | `"TikTok Open API v2 + Business API v1.3 public docs checked 2026-06-25"` |
 
 ***
 
@@ -1502,6 +1826,136 @@ const TIKTOK_SELECTED_OPERATIONS: (
 })[];
 ```
 
+***
+
+### TIKTOK\_SUPPORT\_SLICE
+
+```ts
+const TIKTOK_SUPPORT_SLICE: {
+  allowedOperations: {
+     alias: string;
+     id: string;
+     providerApi:   | "tiktok-open.v2.display"
+        | "tiktok-open.v2.content-posting"
+        | "tiktok-open.v2.research"
+        | "tiktok-business.v1.3";
+     providerPath: string;
+     source: string;
+     sourceUrl: string;
+     target: string;
+  }[];
+  apiCoverage: {
+     checkedAt: "2026-06-25";
+     operationCatalog: "package:src/selected-operations.ts";
+  };
+  checkedAt: "2026-06-25";
+  implementationStrategy: "no-official-sdk-rest-adapter";
+  providerRestAdapterException: {
+     checkedAt: "2026-06-25";
+     checkedVersion: "1.1.3";
+     defaultClientPolicy: "built-in-tiktok-rest-adapter";
+     license: "Unlicense";
+     reason: "The official JavaScript SDK only targets TikTok Business API generated clients. Its CommentsApi exposes the Business comment list/post surface, but it does not cover TikTok Developers Open API Display reads, Research API comment reads, Content Posting status reads, webhook verification, or the full mixed selected support surface required by this package.";
+     result: "sdk-not-suitable-for-mixed-social-surface";
+     sdkPackage: "tiktok-business-api-sdk-official";
+     typedClientOverride: "TikTokSocialProviderClient";
+  };
+  sdkDecision: {
+     auditedPackages: readonly [{
+        package: "tiktok-business-api-sdk-official";
+        reason: "CommentsApi covers a Business comment surface, but the package does not expose the full mixed TikTok Developers/Business support surface selected by this adapter.";
+        source: "npm + tiktok/tiktok-business-api-sdk";
+        status: "not-suitable";
+        version: "1.1.3";
+     }];
+     notes: readonly ["TikTok OpenSDK is an official mobile Login/Share Kit, not a server-side JavaScript/TypeScript client for this selected support surface.", "The official TikTok Business API SDK is a broad Business API package with comment helpers, but it does not cover TikTok Developers Open API Display, Research API, Content Posting status, or webhook verification for this mixed adapter surface.", "This package therefore ships a built-in REST adapter for the selected operations and still accepts an injected TikTok provider client override."];
+     viableOfficialSdk: false;
+  };
+  selectedOperationChecksum: string;
+  selectedOperationChecksumAlgorithm: "sha256";
+  selectedOperations: (
+     | {
+     api: "tiktok-open.v2.display";
+     functionName: string;
+     method: "GET";
+     path: string;
+     sourceUrl: string;
+     uid: string;
+   }
+     | {
+     api: "tiktok-open.v2.display";
+     functionName: string;
+     method: "POST";
+     path: string;
+     sourceUrl: string;
+     uid: string;
+   }
+     | {
+     api: "tiktok-open.v2.content-posting";
+     functionName: string;
+     method: "POST";
+     path: string;
+     sourceUrl: string;
+     uid: string;
+   }
+     | {
+     api: "tiktok-open.v2.research";
+     functionName: string;
+     method: "POST";
+     path: string;
+     sourceUrl: string;
+     uid: string;
+   }
+     | {
+     api: "tiktok-business.v1.3";
+     functionName: string;
+     method: "GET";
+     path: string;
+     sourceUrl: string;
+     uid: string;
+   }
+     | {
+     api: "tiktok-business.v1.3";
+     functionName: string;
+     method: "POST";
+     path: string;
+     sourceUrl: string;
+     uid: string;
+  })[];
+  source: "official TikTok Developers and TikTok Business API docs";
+  sourceVersion: "TikTok Open API v2 + Business API v1.3 public docs checked 2026-06-25";
+};
+```
+
+#### Type Declaration
+
+| Name | Type |
+| ------ | ------ |
+| <a id="property-allowedoperations-1"></a> `allowedOperations` | \{ `alias`: `string`; `id`: `string`; `providerApi`: \| `"tiktok-open.v2.display"` \| `"tiktok-open.v2.content-posting"` \| `"tiktok-open.v2.research"` \| `"tiktok-business.v1.3"`; `providerPath`: `string`; `source`: `string`; `sourceUrl`: `string`; `target`: `string`; \}[] |
+| <a id="property-apicoverage-1"></a> `apiCoverage` | \{ `checkedAt`: `"2026-06-25"`; `operationCatalog`: `"package:src/selected-operations.ts"`; \} |
+| `apiCoverage.checkedAt` | `"2026-06-25"` |
+| `apiCoverage.operationCatalog` | `"package:src/selected-operations.ts"` |
+| <a id="property-checkedat-1"></a> `checkedAt` | `"2026-06-25"` |
+| <a id="property-implementationstrategy-1"></a> `implementationStrategy` | `"no-official-sdk-rest-adapter"` |
+| <a id="property-providerrestadapterexception-1"></a> `providerRestAdapterException` | \{ `checkedAt`: `"2026-06-25"`; `checkedVersion`: `"1.1.3"`; `defaultClientPolicy`: `"built-in-tiktok-rest-adapter"`; `license`: `"Unlicense"`; `reason`: `"The official JavaScript SDK only targets TikTok Business API generated clients. Its CommentsApi exposes the Business comment list/post surface, but it does not cover TikTok Developers Open API Display reads, Research API comment reads, Content Posting status reads, webhook verification, or the full mixed selected support surface required by this package."`; `result`: `"sdk-not-suitable-for-mixed-social-surface"`; `sdkPackage`: `"tiktok-business-api-sdk-official"`; `typedClientOverride`: `"TikTokSocialProviderClient"`; \} |
+| `providerRestAdapterException.checkedAt` | `"2026-06-25"` |
+| `providerRestAdapterException.checkedVersion` | `"1.1.3"` |
+| `providerRestAdapterException.defaultClientPolicy` | `"built-in-tiktok-rest-adapter"` |
+| `providerRestAdapterException.license` | `"Unlicense"` |
+| `providerRestAdapterException.reason` | `"The official JavaScript SDK only targets TikTok Business API generated clients. Its CommentsApi exposes the Business comment list/post surface, but it does not cover TikTok Developers Open API Display reads, Research API comment reads, Content Posting status reads, webhook verification, or the full mixed selected support surface required by this package."` |
+| `providerRestAdapterException.result` | `"sdk-not-suitable-for-mixed-social-surface"` |
+| `providerRestAdapterException.sdkPackage` | `"tiktok-business-api-sdk-official"` |
+| `providerRestAdapterException.typedClientOverride` | `"TikTokSocialProviderClient"` |
+| <a id="property-sdkdecision-1"></a> `sdkDecision` | \{ `auditedPackages`: readonly \[\{ `package`: `"tiktok-business-api-sdk-official"`; `reason`: `"CommentsApi covers a Business comment surface, but the package does not expose the full mixed TikTok Developers/Business support surface selected by this adapter."`; `source`: `"npm + tiktok/tiktok-business-api-sdk"`; `status`: `"not-suitable"`; `version`: `"1.1.3"`; \}\]; `notes`: readonly \[`"TikTok OpenSDK is an official mobile Login/Share Kit, not a server-side JavaScript/TypeScript client for this selected support surface."`, `"The official TikTok Business API SDK is a broad Business API package with comment helpers, but it does not cover TikTok Developers Open API Display, Research API, Content Posting status, or webhook verification for this mixed adapter surface."`, `"This package therefore ships a built-in REST adapter for the selected operations and still accepts an injected TikTok provider client override."`\]; `viableOfficialSdk`: `false`; \} |
+| `sdkDecision.auditedPackages` | readonly \[\{ `package`: `"tiktok-business-api-sdk-official"`; `reason`: `"CommentsApi covers a Business comment surface, but the package does not expose the full mixed TikTok Developers/Business support surface selected by this adapter."`; `source`: `"npm + tiktok/tiktok-business-api-sdk"`; `status`: `"not-suitable"`; `version`: `"1.1.3"`; \}\] |
+| `sdkDecision.notes` | readonly \[`"TikTok OpenSDK is an official mobile Login/Share Kit, not a server-side JavaScript/TypeScript client for this selected support surface."`, `"The official TikTok Business API SDK is a broad Business API package with comment helpers, but it does not cover TikTok Developers Open API Display, Research API, Content Posting status, or webhook verification for this mixed adapter surface."`, `"This package therefore ships a built-in REST adapter for the selected operations and still accepts an injected TikTok provider client override."`\] |
+| `sdkDecision.viableOfficialSdk` | `false` |
+| <a id="property-selectedoperationchecksum-1"></a> `selectedOperationChecksum` | `string` |
+| <a id="property-selectedoperationchecksumalgorithm-1"></a> `selectedOperationChecksumAlgorithm` | `"sha256"` |
+| <a id="property-selectedoperations-1"></a> `selectedOperations` | ( \| \{ `api`: `"tiktok-open.v2.display"`; `functionName`: `string`; `method`: `"GET"`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"tiktok-open.v2.display"`; `functionName`: `string`; `method`: `"POST"`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"tiktok-open.v2.content-posting"`; `functionName`: `string`; `method`: `"POST"`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"tiktok-open.v2.research"`; `functionName`: `string`; `method`: `"POST"`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"tiktok-business.v1.3"`; `functionName`: `string`; `method`: `"GET"`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \} \| \{ `api`: `"tiktok-business.v1.3"`; `functionName`: `string`; `method`: `"POST"`; `path`: `string`; `sourceUrl`: `string`; `uid`: `string`; \})[] |
+| <a id="property-source-1"></a> `source` | `"official TikTok Developers and TikTok Business API docs"` |
+| <a id="property-sourceversion-1"></a> `sourceVersion` | `"TikTok Open API v2 + Business API v1.3 public docs checked 2026-06-25"` |
+
 ## Functions
 
 ### createTikTokBusinessCommentReply()
@@ -1529,10 +1983,10 @@ function createTikTokBusinessCommentReply(input, defaultBusinessId?): {
 
 ***
 
-### createTikTokSocialClient()
+### createTikTokRestProviderClient()
 
 ```ts
-function createTikTokSocialClient(options): TikTokSocialClient;
+function createTikTokRestProviderClient(options): TikTokSocialProviderClient;
 ```
 
 #### Parameters
@@ -1540,6 +1994,24 @@ function createTikTokSocialClient(options): TikTokSocialClient;
 | Parameter | Type |
 | ------ | ------ |
 | `options` | [`TikTokSocialClientOptions`](#tiktoksocialclientoptions) |
+
+#### Returns
+
+[`TikTokSocialProviderClient`](#tiktoksocialproviderclient)
+
+***
+
+### createTikTokSocialClient()
+
+```ts
+function createTikTokSocialClient(options?): TikTokSocialClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`TikTokSocialClientOptions`](#tiktoksocialclientoptions) |
 
 #### Returns
 

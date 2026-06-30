@@ -1401,6 +1401,54 @@ optional providerName?: string;
 optional query?: Record<string, ProviderQueryValue>;
 ```
 
+##### retry?
+
+```ts
+optional retry?: number | ProviderJsonRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+***
+
+### ProviderJsonRetryOptions
+
+#### Properties
+
+##### attempts?
+
+```ts
+optional attempts?: number;
+```
+
+##### baseDelayMs?
+
+```ts
+optional baseDelayMs?: number;
+```
+
+##### maxDelayMs?
+
+```ts
+optional maxDelayMs?: number;
+```
+
+##### statusCodes?
+
+```ts
+optional statusCodes?: readonly number[];
+```
+
 ***
 
 ### ProviderManifestAuthorInput

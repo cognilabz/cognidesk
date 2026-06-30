@@ -15,7 +15,7 @@ optional idempotencyKey?: string;
 ##### payload?
 
 ```ts
-optional payload?: unknown;
+optional payload?: EightByEightProviderPayload;
 ```
 
 ##### query?
@@ -24,23 +24,71 @@ optional payload?: unknown;
 optional query?: Record<string, ProviderQueryValue>;
 ```
 
+##### routing?
+
+```ts
+optional routing?: EightByEightProviderPayload;
+```
+
+***
+
+### EightByEightAgentStatusRequest
+
+#### Extended by
+
+- [`EightByEightUpdateAgentStatusInput`](#eightbyeightupdateagentstatusinput)
+
+#### Properties
+
+##### agent-status
+
+```ts
+agent-status: EightByEightAgentStatus;
+```
+
+##### status-code-item-id?
+
+```ts
+optional status-code-item-id?: number;
+```
+
+##### status-code-item-short-code?
+
+```ts
+optional status-code-item-short-code?: string;
+```
+
+##### status-code-list-id?
+
+```ts
+optional status-code-list-id?: number;
+```
+
 ***
 
 ### EightByEightClient
+
+#### Properties
+
+##### rawClient
+
+```ts
+rawClient: EightByEightRawClient;
+```
 
 #### Methods
 
 ##### createHandoff()
 
 ```ts
-createHandoff(input): Promise<ProviderJsonObject>;
+createHandoff(input?): Promise<ProviderJsonObject>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | [`ConfiguredHandoffInput`](#configuredhandoffinput) |
+| `input?` | [`ConfiguredHandoffInput`](#configuredhandoffinput) |
 
 ###### Returns
 
@@ -49,14 +97,14 @@ createHandoff(input): Promise<ProviderJsonObject>;
 ##### endContact()
 
 ```ts
-endContact(input?): Promise<ProviderJsonObject>;
+endContact(input): Promise<ProviderJsonObject>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `input?` | [`EightByEightOperationInput`](#eightbyeightoperationinput) |
+| `input` | [`EightByEightEndContactInput`](#eightbyeightendcontactinput) |
 
 ###### Returns
 
@@ -65,8 +113,14 @@ endContact(input?): Promise<ProviderJsonObject>;
 ##### readiness()
 
 ```ts
-readiness(): Promise<ProviderJsonObject>;
+readiness(input?): Promise<ProviderJsonObject>;
 ```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`EightByEightReadinessInput`](#eightbyeightreadinessinput) |
 
 ###### Returns
 
@@ -75,14 +129,14 @@ readiness(): Promise<ProviderJsonObject>;
 ##### startContact()
 
 ```ts
-startContact(input?): Promise<ProviderJsonObject>;
+startContact(input): Promise<ProviderJsonObject>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `input?` | [`EightByEightOperationInput`](#eightbyeightoperationinput) |
+| `input` | [`EightByEightStartContactInput`](#eightbyeightstartcontactinput) |
 
 ###### Returns
 
@@ -91,14 +145,14 @@ startContact(input?): Promise<ProviderJsonObject>;
 ##### updateAgentStatus()
 
 ```ts
-updateAgentStatus(input?): Promise<ProviderJsonObject>;
+updateAgentStatus(input): Promise<ProviderJsonObject>;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `input?` | [`EightByEightOperationInput`](#eightbyeightoperationinput) |
+| `input` | [`EightByEightUpdateAgentStatusInput`](#eightbyeightupdateagentstatusinput) |
 
 ###### Returns
 
@@ -108,6 +162,10 @@ updateAgentStatus(input?): Promise<ProviderJsonObject>;
 
 ### EightByEightClientOptions
 
+#### Extended by
+
+- [`EightByEightIntegrationOptions`](#eightbyeightintegrationoptions)
+
 #### Properties
 
 ##### accessToken?
@@ -116,10 +174,10 @@ updateAgentStatus(input?): Promise<ProviderJsonObject>;
 optional accessToken?: string;
 ```
 
-##### apiBaseUrl
+##### apiBaseUrl?
 
 ```ts
-apiBaseUrl: string;
+optional apiBaseUrl?: string;
 ```
 
 ##### apiKey?
@@ -138,6 +196,12 @@ optional apiKeyHeaderName?: string;
 
 ```ts
 optional authorizationHeader?: string;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
 ```
 
 ##### defaultHandoffPath?
@@ -193,32 +257,46 @@ optional fetch?: {
 
 `Promise`\<`Response`\>
 
+##### rawClient?
+
+```ts
+optional rawClient?: EightByEightRawClient;
+```
+
 ##### readinessPath?
 
 ```ts
 optional readinessPath?: string;
 ```
 
+##### retry?
+
+```ts
+optional retry?: number | ProviderRestRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
 ***
 
-### EightByEightOperationInput
-
-#### Extended by
-
-- [`ProviderExtensionRequestInput`](#providerextensionrequestinput)
+### EightByEightEndContactInput
 
 #### Properties
 
-##### body?
+##### endPostProcessing?
 
 ```ts
-optional body?: unknown;
-```
-
-##### headers?
-
-```ts
-optional headers?: Record<string, string>;
+optional endPostProcessing?: boolean;
 ```
 
 ##### idempotencyKey?
@@ -227,59 +305,442 @@ optional headers?: Record<string, string>;
 optional idempotencyKey?: string;
 ```
 
-##### pathParams?
+##### interactionId
 
 ```ts
-optional pathParams?: Record<string, string | number | boolean>;
+interactionId: string;
 ```
 
-##### query?
+##### tenantId
 
 ```ts
-optional query?: Record<string, ProviderQueryValue>;
+tenantId: string;
 ```
 
 ***
 
-### ProviderExtensionRequestInput
+### EightByEightIntegrationOptions
 
 #### Extends
 
-- [`EightByEightOperationInput`](#eightbyeightoperationinput)
+- [`EightByEightClientOptions`](#eightbyeightclientoptions)
 
 #### Properties
 
-##### allowMutation?
+##### accessToken?
 
 ```ts
-optional allowMutation?: boolean;
-```
-
-##### body?
-
-```ts
-optional body?: unknown;
+optional accessToken?: string;
 ```
 
 ###### Inherited from
 
-[`EightByEightOperationInput`](#eightbyeightoperationinput).[`body`](#body)
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`accessToken`](#accesstoken)
 
-##### classification?
-
-```ts
-optional classification?: string;
-```
-
-##### headers?
+##### apiBaseUrl?
 
 ```ts
-optional headers?: Record<string, string>;
+optional apiBaseUrl?: string;
 ```
 
 ###### Inherited from
 
-[`EightByEightOperationInput`](#eightbyeightoperationinput).[`headers`](#headers)
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`apiBaseUrl`](#apibaseurl)
+
+##### apiKey?
+
+```ts
+optional apiKey?: string;
+```
+
+###### Inherited from
+
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`apiKey`](#apikey)
+
+##### apiKeyHeaderName?
+
+```ts
+optional apiKeyHeaderName?: string;
+```
+
+###### Inherited from
+
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`apiKeyHeaderName`](#apikeyheadername)
+
+##### authorizationHeader?
+
+```ts
+optional authorizationHeader?: string;
+```
+
+###### Inherited from
+
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`authorizationHeader`](#authorizationheader)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`baseUrl`](#baseurl)
+
+##### client?
+
+```ts
+optional client?: EightByEightClient;
+```
+
+##### defaultHandoffPath?
+
+```ts
+optional defaultHandoffPath?: string;
+```
+
+###### Inherited from
+
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`defaultHandoffPath`](#defaulthandoffpath)
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Inherited from
+
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`fetch`](#fetch)
+
+##### rawClient?
+
+```ts
+optional rawClient?: EightByEightRawClient;
+```
+
+###### Inherited from
+
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`rawClient`](#rawclient-1)
+
+##### readinessPath?
+
+```ts
+optional readinessPath?: string;
+```
+
+###### Inherited from
+
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`readinessPath`](#readinesspath)
+
+##### retry?
+
+```ts
+optional retry?: number | ProviderRestRetryOptions;
+```
+
+###### Inherited from
+
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`retry`](#retry)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`signal`](#signal)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`EightByEightClientOptions`](#eightbyeightclientoptions).[`timeoutMs`](#timeoutms)
+
+***
+
+### EightByEightPhoneInteraction
+
+#### Extended by
+
+- [`EightByEightStartContactInput`](#eightbyeightstartcontactinput)
+
+#### Properties
+
+##### agentId
+
+```ts
+agentId: string;
+```
+
+##### callerId
+
+```ts
+callerId: EightByEightPhoneNumberValue;
+```
+
+##### ctlUserData?
+
+```ts
+optional ctlUserData?: readonly EightByEightUserParam[];
+```
+
+##### dialplanId?
+
+```ts
+optional dialplanId?: EightByEightPhoneNumberValue;
+```
+
+##### extTransactionData?
+
+```ts
+optional extTransactionData?: readonly EightByEightUserParam[];
+```
+
+##### forceCall?
+
+```ts
+optional forceCall?: boolean;
+```
+
+##### number
+
+```ts
+number: EightByEightPhoneNumberValue;
+```
+
+##### prefix
+
+```ts
+prefix: EightByEightPhoneNumberValue;
+```
+
+##### queueId?
+
+```ts
+optional queueId?: EightByEightPhoneNumberValue;
+```
+
+***
+
+### EightByEightRawClient
+
+#### Methods
+
+##### createHandoff()
+
+```ts
+createHandoff(input?): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`ConfiguredHandoffInput`](#configuredhandoffinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+##### endContact()
+
+```ts
+endContact(input): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`EightByEightEndContactInput`](#eightbyeightendcontactinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+##### readiness()?
+
+```ts
+optional readiness(input?): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`EightByEightReadinessInput`](#eightbyeightreadinessinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+##### startContact()
+
+```ts
+startContact(input): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`EightByEightStartContactInput`](#eightbyeightstartcontactinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+##### updateAgentStatus()
+
+```ts
+updateAgentStatus(input): Promise<ProviderJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`EightByEightUpdateAgentStatusInput`](#eightbyeightupdateagentstatusinput) |
+
+###### Returns
+
+`Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>
+
+***
+
+### EightByEightReadinessInput
+
+#### Properties
+
+##### metadata?
+
+```ts
+optional metadata?: EightByEightProviderPayload;
+```
+
+##### probe?
+
+```ts
+optional probe?: string;
+```
+
+***
+
+### EightByEightStartContactInput
+
+#### Extends
+
+- [`EightByEightPhoneInteraction`](#eightbyeightphoneinteraction)
+
+#### Properties
+
+##### agentId
+
+```ts
+agentId: string;
+```
+
+###### Inherited from
+
+[`EightByEightPhoneInteraction`](#eightbyeightphoneinteraction).[`agentId`](#agentid)
+
+##### callerId
+
+```ts
+callerId: EightByEightPhoneNumberValue;
+```
+
+###### Inherited from
+
+[`EightByEightPhoneInteraction`](#eightbyeightphoneinteraction).[`callerId`](#callerid)
+
+##### ctlUserData?
+
+```ts
+optional ctlUserData?: readonly EightByEightUserParam[];
+```
+
+###### Inherited from
+
+[`EightByEightPhoneInteraction`](#eightbyeightphoneinteraction).[`ctlUserData`](#ctluserdata)
+
+##### dialplanId?
+
+```ts
+optional dialplanId?: EightByEightPhoneNumberValue;
+```
+
+###### Inherited from
+
+[`EightByEightPhoneInteraction`](#eightbyeightphoneinteraction).[`dialplanId`](#dialplanid)
+
+##### extTransactionData?
+
+```ts
+optional extTransactionData?: readonly EightByEightUserParam[];
+```
+
+###### Inherited from
+
+[`EightByEightPhoneInteraction`](#eightbyeightphoneinteraction).[`extTransactionData`](#exttransactiondata)
+
+##### forceCall?
+
+```ts
+optional forceCall?: boolean;
+```
+
+###### Inherited from
+
+[`EightByEightPhoneInteraction`](#eightbyeightphoneinteraction).[`forceCall`](#forcecall)
 
 ##### idempotencyKey?
 
@@ -287,49 +748,183 @@ optional headers?: Record<string, string>;
 optional idempotencyKey?: string;
 ```
 
-###### Inherited from
-
-[`EightByEightOperationInput`](#eightbyeightoperationinput).[`idempotencyKey`](#idempotencykey-1)
-
-##### method?
+##### number
 
 ```ts
-optional method?: ProviderHttpMethod;
-```
-
-##### operationId?
-
-```ts
-optional operationId?: string;
-```
-
-##### path?
-
-```ts
-optional path?: string;
-```
-
-##### pathParams?
-
-```ts
-optional pathParams?: Record<string, string | number | boolean>;
+number: EightByEightPhoneNumberValue;
 ```
 
 ###### Inherited from
 
-[`EightByEightOperationInput`](#eightbyeightoperationinput).[`pathParams`](#pathparams)
+[`EightByEightPhoneInteraction`](#eightbyeightphoneinteraction).[`number`](#number)
 
-##### query?
+##### prefix
 
 ```ts
-optional query?: Record<string, ProviderQueryValue>;
+prefix: EightByEightPhoneNumberValue;
 ```
 
 ###### Inherited from
 
-[`EightByEightOperationInput`](#eightbyeightoperationinput).[`query`](#query-1)
+[`EightByEightPhoneInteraction`](#eightbyeightphoneinteraction).[`prefix`](#prefix)
+
+##### queueId?
+
+```ts
+optional queueId?: EightByEightPhoneNumberValue;
+```
+
+###### Inherited from
+
+[`EightByEightPhoneInteraction`](#eightbyeightphoneinteraction).[`queueId`](#queueid)
+
+##### tenantId
+
+```ts
+tenantId: string;
+```
+
+***
+
+### EightByEightUpdateAgentStatusInput
+
+#### Extends
+
+- [`EightByEightAgentStatusRequest`](#eightbyeightagentstatusrequest)
+
+#### Properties
+
+##### agent-status
+
+```ts
+agent-status: EightByEightAgentStatus;
+```
+
+###### Inherited from
+
+[`EightByEightAgentStatusRequest`](#eightbyeightagentstatusrequest).[`agent-status`](#agent-status)
+
+##### agentId
+
+```ts
+agentId: string;
+```
+
+##### idempotencyKey?
+
+```ts
+optional idempotencyKey?: string;
+```
+
+##### status-code-item-id?
+
+```ts
+optional status-code-item-id?: number;
+```
+
+###### Inherited from
+
+[`EightByEightAgentStatusRequest`](#eightbyeightagentstatusrequest).[`status-code-item-id`](#status-code-item-id)
+
+##### status-code-item-short-code?
+
+```ts
+optional status-code-item-short-code?: string;
+```
+
+###### Inherited from
+
+[`EightByEightAgentStatusRequest`](#eightbyeightagentstatusrequest).[`status-code-item-short-code`](#status-code-item-short-code)
+
+##### status-code-list-id?
+
+```ts
+optional status-code-list-id?: number;
+```
+
+###### Inherited from
+
+[`EightByEightAgentStatusRequest`](#eightbyeightagentstatusrequest).[`status-code-list-id`](#status-code-list-id)
+
+##### tenantId
+
+```ts
+tenantId: string;
+```
+
+***
+
+### EightByEightUserParam
+
+#### Properties
+
+##### name
+
+```ts
+name: string;
+```
+
+##### value
+
+```ts
+value: string;
+```
+
+***
+
+### ProviderRestRetryOptions
+
+#### Properties
+
+##### attempts?
+
+```ts
+optional attempts?: number;
+```
+
+##### baseDelayMs?
+
+```ts
+optional baseDelayMs?: number;
+```
+
+##### maxDelayMs?
+
+```ts
+optional maxDelayMs?: number;
+```
+
+##### statusCodes?
+
+```ts
+optional statusCodes?: readonly number[];
+```
 
 ## Type Aliases
+
+### EightByEightAgentStatus
+
+```ts
+type EightByEightAgentStatus = 1 | 3 | 4 | 5;
+```
+
+***
+
+### EightByEightPhoneNumberValue
+
+```ts
+type EightByEightPhoneNumberValue = string | number;
+```
+
+***
+
+### EightByEightProviderPayload
+
+```ts
+type EightByEightProviderPayload = ProviderJsonObject | object | undefined;
+```
+
+***
 
 ### ProviderJsonObject
 
@@ -342,14 +937,14 @@ type ProviderJsonObject = Record<string, unknown>;
 ### createEightByEightClient()
 
 ```ts
-function createEightByEightClient(options): EightByEightClient;
+function createEightByEightClient(options?): EightByEightClient;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`EightByEightClientOptions`](#eightbyeightclientoptions) |
+| `options?` | [`EightByEightClientOptions`](#eightbyeightclientoptions) |
 
 #### Returns
 
@@ -360,7 +955,7 @@ function createEightByEightClient(options): EightByEightClient;
 ### createEightByEightIntegration()
 
 ```ts
-function createEightByEightIntegration(options): DefinedIntegration<{
+function createEightByEightIntegration(options?): DefinedIntegration<{
   capabilities: readonly [{
      capability: "handoff";
      exposesSensitiveData: true;
@@ -407,8 +1002,11 @@ function createEightByEightIntegration(options): DefinedIntegration<{
       }, {
         label: "8x8 Contact Center Agent Status OpenAPI";
         url: "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json";
+      }, {
+        label: "8x8 Partner SDK";
+        url: "https://developer.8x8.com/tech-partner/docs/partner-sdk-integration-guide";
      }];
-     notes: readonly ["No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone."];
+     notes: readonly ["No suitable official server-side JavaScript Contact Center SDK was verified.", "The official @8x8/pui-partner-comm package is a partner iframe communication SDK, not a backend Contact Center API client.", "The runtime constructs a fail-closed built-in REST adapter from baseUrl/API credentials and keeps rawClient available as an override.", "OpenAPI operation IDs are retained as the reviewed path allowlist for package-owned REST calls."];
      scope: "support-workflow-subset";
   };
   credentialRequirements: readonly [{
@@ -432,7 +1030,15 @@ function createEightByEightIntegration(options): DefinedIntegration<{
   }];
   metadata: {
      implementation: {
+        adapterKind: "no-official-sdk-rest-adapter";
         allowedOperations: readonly [{
+           alias: "contact-center.handoff.request";
+           checksum: "not-applicable-host-configured";
+           id: "configuredHandoff";
+           method: "POST";
+           path: "host-configured";
+           source: "provider-rest-adapter";
+         }, {
            alias: "contact-center.contact.start";
            checksum: "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62";
            id: "placePhoneCall";
@@ -454,11 +1060,49 @@ function createEightByEightIntegration(options): DefinedIntegration<{
            path: "/tenants/{tenantId}/agentstatus/agents/{agentId}";
            source: "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json";
         }];
-        implementationStrategy: "generated-support-slice";
-        sdkDecision: "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.";
-        verifiedAt: "2026-06-21";
+        implementationStrategy: "provider-rest-adapter";
+        providerSdkDecision: {
+           checkedAt: "2026-06-25";
+           checkedPackages: readonly [{
+              checkedVersion: "0.15.0";
+              license: "SEE LICENSE IN LICENSE.md";
+              package: "@8x8/pui-partner-comm";
+              reason: "Official package is for 8x8 platform-ui partner iframe communication and does not expose server-side Contact Center REST operations.";
+              result: "browser-partner-iframe-sdk-not-contact-center-api-client";
+           }];
+           defaultRestPolicy: "fail-closed-built-in-rest-adapter-with-typed-raw-client-override";
+           result: "no-suitable-server-side-contact-center-sdk";
+           typedClientOverride: "EightByEightRawClient";
+        };
+        runtimePolicy: {
+           defaultClient: "built-in-provider-rest-adapter";
+           failClosed: true;
+           override: "createEightByEightClient({ rawClient })";
+           requestOptions: readonly ["baseUrl", "accessToken", "authorizationHeader", "apiKey", "apiKeyHeaderName", "fetch", "signal", "timeoutMs", "retry"];
+        };
+        sdkDecision: "No suitable official server-side JavaScript Contact Center SDK was verified. The official @8x8/pui-partner-comm SDK is for iframe partner integrations, so this package provides a fail-closed REST adapter with a rawClient override.";
+        verifiedAt: "2026-06-25";
      };
      manifestOnlySafe: true;
+     providerRestAdapter: {
+        adapterKind: "no-official-sdk-rest-adapter";
+        failClosed: true;
+        rawClientOverride: "EightByEightClient.rawClient";
+        strategy: "provider-rest-adapter";
+     };
+     providerSdkDecision: {
+        checkedAt: "2026-06-25";
+        checkedPackages: readonly [{
+           checkedVersion: "0.15.0";
+           license: "SEE LICENSE IN LICENSE.md";
+           package: "@8x8/pui-partner-comm";
+           reason: "Official package is for 8x8 platform-ui partner iframe communication and does not expose server-side Contact Center REST operations.";
+           result: "browser-partner-iframe-sdk-not-contact-center-api-client";
+        }];
+        defaultRestPolicy: "fail-closed-built-in-rest-adapter-with-typed-raw-client-override";
+        result: "no-suitable-server-side-contact-center-sdk";
+        typedClientOverride: "EightByEightRawClient";
+     };
   };
   name: "8x8 Contact Center";
   operations: readonly [{
@@ -493,7 +1137,7 @@ function createEightByEightIntegration(options): DefinedIntegration<{
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`EightByEightClientOptions`](#eightbyeightclientoptions) |
+| `options?` | [`EightByEightIntegrationOptions`](#eightbyeightintegrationoptions) |
 
 #### Returns
 
@@ -544,8 +1188,11 @@ function createEightByEightIntegration(options): DefinedIntegration<{
       \}, \{
         `label`: `"8x8 Contact Center Agent Status OpenAPI"`;
         `url`: `"https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json"`;
+      \}, \{
+        `label`: `"8x8 Partner SDK"`;
+        `url`: `"https://developer.8x8.com/tech-partner/docs/partner-sdk-integration-guide"`;
      \}\];
-     `notes`: readonly \[`"No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone."`\];
+     `notes`: readonly \[`"No suitable official server-side JavaScript Contact Center SDK was verified."`, `"The official @8x8/pui-partner-comm package is a partner iframe communication SDK, not a backend Contact Center API client."`, `"The runtime constructs a fail-closed built-in REST adapter from baseUrl/API credentials and keeps rawClient available as an override."`, `"OpenAPI operation IDs are retained as the reviewed path allowlist for package-owned REST calls."`\];
      `scope`: `"support-workflow-subset"`;
   \};
   `credentialRequirements`: readonly \[\{
@@ -569,7 +1216,15 @@ function createEightByEightIntegration(options): DefinedIntegration<{
   \}\];
   `metadata`: \{
      `implementation`: \{
+        `adapterKind`: `"no-official-sdk-rest-adapter"`;
         `allowedOperations`: readonly \[\{
+           `alias`: `"contact-center.handoff.request"`;
+           `checksum`: `"not-applicable-host-configured"`;
+           `id`: `"configuredHandoff"`;
+           `method`: `"POST"`;
+           `path`: `"host-configured"`;
+           `source`: `"provider-rest-adapter"`;
+         \}, \{
            `alias`: `"contact-center.contact.start"`;
            `checksum`: `"sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62"`;
            `id`: `"placePhoneCall"`;
@@ -591,11 +1246,49 @@ function createEightByEightIntegration(options): DefinedIntegration<{
            `path`: `"/tenants/{tenantId}/agentstatus/agents/{agentId}"`;
            `source`: `"https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json"`;
         \}\];
-        `implementationStrategy`: `"generated-support-slice"`;
-        `sdkDecision`: `"No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone."`;
-        `verifiedAt`: `"2026-06-21"`;
+        `implementationStrategy`: `"provider-rest-adapter"`;
+        `providerSdkDecision`: \{
+           `checkedAt`: `"2026-06-25"`;
+           `checkedPackages`: readonly \[\{
+              `checkedVersion`: `"0.15.0"`;
+              `license`: `"SEE LICENSE IN LICENSE.md"`;
+              `package`: `"@8x8/pui-partner-comm"`;
+              `reason`: `"Official package is for 8x8 platform-ui partner iframe communication and does not expose server-side Contact Center REST operations."`;
+              `result`: `"browser-partner-iframe-sdk-not-contact-center-api-client"`;
+           \}\];
+           `defaultRestPolicy`: `"fail-closed-built-in-rest-adapter-with-typed-raw-client-override"`;
+           `result`: `"no-suitable-server-side-contact-center-sdk"`;
+           `typedClientOverride`: `"EightByEightRawClient"`;
+        \};
+        `runtimePolicy`: \{
+           `defaultClient`: `"built-in-provider-rest-adapter"`;
+           `failClosed`: `true`;
+           `override`: `"createEightByEightClient({ rawClient })"`;
+           `requestOptions`: readonly \[`"baseUrl"`, `"accessToken"`, `"authorizationHeader"`, `"apiKey"`, `"apiKeyHeaderName"`, `"fetch"`, `"signal"`, `"timeoutMs"`, `"retry"`\];
+        \};
+        `sdkDecision`: `"No suitable official server-side JavaScript Contact Center SDK was verified. The official @8x8/pui-partner-comm SDK is for iframe partner integrations, so this package provides a fail-closed REST adapter with a rawClient override."`;
+        `verifiedAt`: `"2026-06-25"`;
      \};
      `manifestOnlySafe`: `true`;
+     `providerRestAdapter`: \{
+        `adapterKind`: `"no-official-sdk-rest-adapter"`;
+        `failClosed`: `true`;
+        `rawClientOverride`: `"EightByEightClient.rawClient"`;
+        `strategy`: `"provider-rest-adapter"`;
+     \};
+     `providerSdkDecision`: \{
+        `checkedAt`: `"2026-06-25"`;
+        `checkedPackages`: readonly \[\{
+           `checkedVersion`: `"0.15.0"`;
+           `license`: `"SEE LICENSE IN LICENSE.md"`;
+           `package`: `"@8x8/pui-partner-comm"`;
+           `reason`: `"Official package is for 8x8 platform-ui partner iframe communication and does not expose server-side Contact Center REST operations."`;
+           `result`: `"browser-partner-iframe-sdk-not-contact-center-api-client"`;
+        \}\];
+        `defaultRestPolicy`: `"fail-closed-built-in-rest-adapter-with-typed-raw-client-override"`;
+        `result`: `"no-suitable-server-side-contact-center-sdk"`;
+        `typedClientOverride`: `"EightByEightRawClient"`;
+     \};
   \};
   `name`: `"8x8 Contact Center"`;
   `operations`: readonly \[\{
@@ -624,6 +1317,43 @@ function createEightByEightIntegration(options): DefinedIntegration<{
   `contact-center.contact.start`: (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>;
   `contact-center.handoff.request`: (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\>;
 \}\>
+
+***
+
+### createEightByEightOperationHandlers()
+
+```ts
+function createEightByEightOperationHandlers(options?): {
+  contact-center.agent.status.update: (input) => Promise<ProviderJsonObject>;
+  contact-center.contact.end: (input) => Promise<ProviderJsonObject>;
+  contact-center.contact.start: (input) => Promise<ProviderJsonObject>;
+  contact-center.handoff.request: (input) => Promise<ProviderJsonObject>;
+};
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`EightByEightIntegrationOptions`](#eightbyeightintegrationoptions) |
+
+#### Returns
+
+```ts
+{
+  contact-center.agent.status.update: (input) => Promise<ProviderJsonObject>;
+  contact-center.contact.end: (input) => Promise<ProviderJsonObject>;
+  contact-center.contact.start: (input) => Promise<ProviderJsonObject>;
+  contact-center.handoff.request: (input) => Promise<ProviderJsonObject>;
+}
+```
+
+| Name | Type |
+| ------ | ------ |
+| `contact-center.agent.status.update()` | (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\> |
+| `contact-center.contact.end()` | (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\> |
+| `contact-center.contact.start()` | (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\> |
+| `contact-center.handoff.request()` | (`input`) => `Promise`\<[`ProviderJsonObject`](#providerjsonobject)\> |
 
 ## References
 

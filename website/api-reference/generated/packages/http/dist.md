@@ -2799,6 +2799,12 @@ to allow, false for a default 401, or a Response for a custom denial.
 optional basePath?: string;
 ```
 
+##### chatStart?
+
+```ts
+optional chatStart?: AgentChatStartBehavior;
+```
+
 ##### cors?
 
 ```ts
@@ -2904,6 +2910,22 @@ createConversation(input): Promise<ConversationRecord<unknown>>;
 
 `Promise`\<[`ConversationRecord`](../core/dist.md#conversationrecord)\<`unknown`\>\>
 
+##### deleteConversation()?
+
+```ts
+optional deleteConversation(conversationId): Promise<boolean>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `conversationId` | `string` |
+
+###### Returns
+
+`Promise`\<`boolean`\>
+
 ##### emitCustomEvent()?
 
 ```ts
@@ -2989,6 +3011,22 @@ optional emitJourneyEvent(input): Promise<EmitJourneyEventResult>;
 ###### Returns
 
 `Promise`\<[`EmitJourneyEventResult`](../core/dist.md#emitjourneyeventresult)\>
+
+##### getConversation()?
+
+```ts
+optional getConversation(conversationId): Promise<ConversationRecord<unknown>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `conversationId` | `string` |
+
+###### Returns
+
+`Promise`\<[`ConversationRecord`](../core/dist.md#conversationrecord)\<`unknown`\>\>
 
 ##### getSnapshot()?
 
@@ -3194,6 +3232,22 @@ optional submitWidget(input): Promise<RuntimeEvent>;
 ###### Returns
 
 `Promise`\<[`RuntimeEvent`](../core/dist.md#runtimeevent)\>
+
+##### updateConversationContext()?
+
+```ts
+optional updateConversationContext(input): Promise<ConversationRecord<unknown>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`UpdateRuntimeConversationContextInput`](../core/dist.md#updateruntimeconversationcontextinput) |
+
+###### Returns
+
+`Promise`\<[`ConversationRecord`](../core/dist.md#conversationrecord)\<`unknown`\>\>
 
 ***
 

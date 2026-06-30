@@ -262,15 +262,25 @@ optional limit?: number;
 
 #### Properties
 
-##### accessToken
+##### accessToken?
 
 ```ts
-accessToken: string;
+optional accessToken?: string;
 ```
 
 ###### Inherited from
 
 [`InstagramSocialClientOptions`](#instagramsocialclientoptions).[`accessToken`](#accesstoken-1)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`InstagramSocialClientOptions`](#instagramsocialclientoptions).[`baseUrl`](#baseurl-1)
 
 ##### client?
 
@@ -359,6 +369,16 @@ optional instagramBusinessAccountId?: string;
 
 [`InstagramSocialClientOptions`](#instagramsocialclientoptions).[`instagramBusinessAccountId`](#instagrambusinessaccountid-2)
 
+##### pageAccessToken?
+
+```ts
+optional pageAccessToken?: string;
+```
+
+###### Inherited from
+
+[`InstagramSocialClientOptions`](#instagramsocialclientoptions).[`pageAccessToken`](#pageaccesstoken-2)
+
 ##### pageId?
 
 ```ts
@@ -368,6 +388,48 @@ optional pageId?: string;
 ###### Inherited from
 
 [`InstagramSocialClientOptions`](#instagramsocialclientoptions).[`pageId`](#pageid-2)
+
+##### providerClient?
+
+```ts
+optional providerClient?: InstagramMetaProviderClient;
+```
+
+###### Inherited from
+
+[`InstagramSocialClientOptions`](#instagramsocialclientoptions).[`providerClient`](#providerclient-2)
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`InstagramSocialClientOptions`](#instagramsocialclientoptions).[`retry`](#retry-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`InstagramSocialClientOptions`](#instagramsocialclientoptions).[`signal`](#signal-1)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`InstagramSocialClientOptions`](#instagramsocialclientoptions).[`timeoutMs`](#timeoutms-1)
 
 ***
 
@@ -598,6 +660,14 @@ rawBody: string;
 
 ### InstagramSocialClient
 
+#### Properties
+
+##### providerClient
+
+```ts
+providerClient: InstagramMetaProviderClient;
+```
+
 #### Methods
 
 ##### getInstagramBusinessAccount()
@@ -729,10 +799,16 @@ sendTextMessage(input): Promise<InstagramMessageResponse>;
 
 #### Properties
 
-##### accessToken
+##### accessToken?
 
 ```ts
-accessToken: string;
+optional accessToken?: string;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
 ```
 
 ##### fetch?
@@ -800,10 +876,42 @@ optional graphApiVersion?: string;
 optional instagramBusinessAccountId?: string;
 ```
 
+##### pageAccessToken?
+
+```ts
+optional pageAccessToken?: string;
+```
+
 ##### pageId?
 
 ```ts
 optional pageId?: string;
+```
+
+##### providerClient?
+
+```ts
+optional providerClient?: InstagramMetaProviderClient;
+```
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
 ```
 
 ***
@@ -1140,6 +1248,14 @@ verifyToken: string;
 
 ## Type Aliases
 
+### InstagramMetaProviderClient
+
+```ts
+type InstagramMetaProviderClient = Omit<InstagramSocialClient, "providerClient" | "sendTextMessage">;
+```
+
+***
+
 ### InstagramNormalizedEvent
 
 ```ts
@@ -1228,14 +1344,14 @@ type InstagramSocialProviderQuery = Record<string, InstagramSocialProviderExtens
 ### createInstagramSocialClient()
 
 ```ts
-function createInstagramSocialClient(options): InstagramSocialClient;
+function createInstagramSocialClient(options?): InstagramSocialClient;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`InstagramSocialClientOptions`](#instagramsocialclientoptions) |
+| `options?` | [`InstagramSocialClientOptions`](#instagramsocialclientoptions) |
 
 #### Returns
 
@@ -1425,7 +1541,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
    }, {
      audiences: readonly ["customer-facing"];
      capability: "send";
-     description: "Sends Instagram direct messages through Meta Graph API inside the 24-hour response window, or with HUMAN_AGENT human-support review where Meta permits up to 7 days.";
+     description: "Sends Instagram direct messages through the configured Meta SDK-backed Graph adapter or provider client inside policy windows selected by the SDK user.";
      exposesSensitiveData: true;
      label: "Send Instagram DM messages";
      providerObjects: readonly [{
@@ -1462,7 +1578,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
    }, {
      audiences: readonly ["internal-support", "mixed"];
      capability: "read-provider-object";
-     description: "Reads Instagram professional account, page, conversations, messages, and message details where Graph APIs support it.";
+     description: "Reads Instagram professional account, page, conversation, and message resources through the configured Meta SDK-backed Graph adapter or provider client.";
      exposesSensitiveData: true;
      label: "Read Instagram account and messages";
      providerObjects: readonly [{
@@ -1482,7 +1598,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
    }, {
      audiences: readonly ["internal-support", "mixed"];
      capability: "search-provider-object";
-     description: "Lists Instagram conversations with SDK-user-supplied fields, pagination, and Graph API limits.";
+     description: "Lists Instagram conversations with SDK-user-supplied fields and pagination through the configured Meta SDK-backed Graph adapter or provider client.";
      exposesSensitiveData: true;
      label: "List Instagram conversations";
      providerObjects: readonly [{
@@ -1518,12 +1634,15 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
       }, {
         label: "Instagram Messaging app review";
         url: "https://developers.facebook.com/documentation/business-messaging/instagram-messaging/app-review";
+      }, {
+        label: "Meta Business SDK for NodeJS";
+        url: "https://github.com/facebook/facebook-nodejs-business-sdk";
      }];
-     notes: readonly ["Coverage is limited to Instagram Messaging send payloads, conversations/messages reads, account/page reads, webhook challenge handling, and X-Hub-Signature-256 validation for SDK-user-owned support messaging.", "This package uses the Meta Business Messaging / Page access token model for Instagram Messaging; it does not implement the separate Instagram API with Instagram Login messaging surface.", "The package does not implement the broader Instagram Platform for media publishing, comments/moderation, mentions, insights, content discovery, account management, or full Graph API coverage."];
+     notes: readonly ["Coverage is limited to Instagram Messaging send payloads, conversations/messages reads, account/page reads, webhook challenge handling, and X-Hub-Signature-256 validation for SDK-user-owned support messaging.", "This package uses the Meta Business Messaging / Page access token model for Instagram Messaging; it does not implement the separate Instagram API with Instagram Login messaging surface.", "Runtime provider calls use Meta's facebook-nodejs-business-sdk when credentials are configured; hosts may inject an Instagram/Meta provider client override.", "The package does not implement the broader Instagram Platform for media publishing, comments/moderation, mentions, insights, content discovery, account management, or full Graph API coverage."];
      scope: "support-workflow-subset";
   };
   credentialRequirements: readonly [{
-     description: "Server-side Page access token used for Instagram Messaging and Graph API calls.";
+     description: "Server-side Page access token used by the Meta SDK-backed Graph adapter or an injected Instagram/Meta provider client.";
      id: "instagram-page-access-token";
      label: "Meta Page access token";
      metadata: {
@@ -1557,7 +1676,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      label: "Instagram messaging webhook subscription";
      required: false;
    }, {
-     description: "SDK-user-reviewed permissions granted to the Meta app for messaging and account access.";
+     description: "SDK-user-reviewed permissions granted to the Meta app and enforced by the configured Meta SDK-backed Graph adapter or provider client.";
      id: "instagram-permissions";
      label: "Instagram Graph permissions";
      metadata: {
@@ -1568,32 +1687,83 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
   }];
   directions: readonly ["receive-only", "send-only", "bidirectional"];
   id: "social.instagram";
-  limitations: readonly ["Available operations depend on the SDK user's Meta app review, Page ownership, Instagram professional account link, granted permissions, webhook field subscriptions, messaging windows, HUMAN_AGENT review, rate limits, and regional policy.", "Instagram does not inherit general Messenger message tags as safe defaults; SDK users must configure Instagram-specific outbound policy and HUMAN_AGENT review where needed.", "Consent, outbound-contact policy, conversation continuity across channels, human escalation, retention, redaction, and deletion behavior are SDK-user configuration.", "This package provides Graph API and webhook primitives; it does not decide when to auto-reply, start outbound outreach, join chats across channels, or expose social content to operators."];
+  limitations: readonly ["Available operations depend on the SDK user's Meta app review, Page ownership, Instagram professional account link, granted permissions, webhook field subscriptions, messaging windows, HUMAN_AGENT review, rate limits, and regional policy.", "Instagram does not inherit general Messenger message tags as safe defaults; SDK users must configure Instagram-specific outbound policy and HUMAN_AGENT review where needed.", "Consent, outbound-contact policy, conversation continuity across channels, human escalation, retention, redaction, and deletion behavior are SDK-user configuration.", "This package provides typed operation contracts, webhook primitives, and a Meta SDK-backed Graph adapter; providerClient injection remains available as an override."];
   maintainers: readonly [{
      name: "Cognidesk";
      type: "official";
   }];
   metadata: {
      apiCoverage: {
-        checkedAt: "2026-06-18";
+        checkedAt: "2026-06-25";
         fullMetaGraphCoverage: false;
         fullProviderApi: false;
         generatedFromOfficialSpec: false;
         implementedOperationCount: 6;
-        machineReadableSpecStatus: "No official public complete Instagram Messaging/Graph OpenAPI spec was found in facebook/openapi during this audit.";
+        machineReadableSpecStatus: "No official public complete Instagram Messaging/Graph OpenAPI spec or dedicated typed Instagram Messaging SDK surface was found during this audit.";
         operationCatalog: "docs/provider-coverage/instagram-messaging-graph-selected-api-2026-06-18.operations.json";
         selectedOperationCount: 6;
      };
      channelCoverage: {
-        accountPageReadiness: "typed-read";
+        accountPageReadiness: "facebook-nodejs-business-sdk-call";
         commentsPublishingInsights: "not-covered";
-        conversations: "typed-list-read";
-        directMessages: "typed-send";
+        conversations: "facebook-nodejs-business-sdk-call";
+        customTransportFallback: "package-owned-rest-adapter";
+        directMessages: "facebook-nodejs-business-sdk-call";
         humanAgentWindow: "sdk-owned-policy";
-        messageDetails: "typed-read";
+        messageDetails: "facebook-nodejs-business-sdk-call";
         webhooks: "typed-challenge-verify-parse";
      };
      docs: readonly ["https://developers.facebook.com/documentation/business-messaging/instagram-messaging/features/send-message", "https://developers.facebook.com/documentation/business-messaging/instagram-messaging/overview", "https://developers.facebook.com/documentation/business-messaging/instagram-messaging/webhooks"];
+     implementation: {
+        allowedOperations: readonly [{
+           alias: "instagram.message.send";
+           id: "sendMessage";
+           source: "provider-sdk";
+           target: "facebookBusinessSdk.FacebookAdsApi.call";
+         }, {
+           alias: "instagram.conversations.list";
+           id: "listConversations";
+           source: "provider-sdk";
+           target: "facebookBusinessSdk.FacebookAdsApi.call";
+         }, {
+           alias: "instagram.conversationMessages.list";
+           id: "listConversationMessages";
+           source: "provider-sdk";
+           target: "facebookBusinessSdk.FacebookAdsApi.call";
+         }, {
+           alias: "instagram.message.read";
+           id: "getMessage";
+           source: "provider-sdk";
+           target: "facebookBusinessSdk.FacebookAdsApi.call";
+         }, {
+           alias: "instagram.account.read";
+           id: "getInstagramBusinessAccount";
+           source: "provider-sdk";
+           target: "facebookBusinessSdk.FacebookAdsApi.call";
+         }, {
+           alias: "instagram.page.read";
+           id: "getPage";
+           source: "provider-sdk";
+           target: "facebookBusinessSdk.FacebookAdsApi.call";
+        }];
+        implementationStrategy: "provider-sdk-default-with-typed-domain-adapter";
+        providerSdk: {
+           license: "Platform License";
+           package: "facebook-nodejs-business-sdk";
+           runtimeCall: "FacebookAdsApi.call";
+           runtimeEntry: "FacebookAdsApi";
+           version: "24.0.1";
+        };
+        sdkDecision: "Meta's official facebook-nodejs-business-sdk@24.0.1 is provider-owned and exposes FacebookAdsApi.call(method, path, params). This package maps its strict Instagram Messaging support slice onto that SDK call surface by default; the package-owned REST adapter is retained only for explicit custom transport options such as fetch, graphApiBaseUrl, graphApiVersion, signal, timeoutMs, or retry.";
+        verifiedAt: "2026-06-25";
+     };
+     providerClient: {
+        customTransportFallbackPolicy: "package-owned-rest-adapter-for-fetch-base-version-signal-timeout-retry";
+        defaultClientPolicy: "facebook-nodejs-business-sdk-when-configured";
+        importPolicy: "provider-client-override-supported";
+        interface: "InstagramMetaProviderClient";
+        package: "facebook-nodejs-business-sdk-or-host-provided";
+     };
   };
   name: "Instagram Direct Messages";
   operations: readonly [{
@@ -1611,7 +1781,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      alias: "instagram.message.send";
      audiences: readonly ["customer-facing"];
      capability: "send";
-     description: "Send an Instagram Messaging direct message through the configured Page.";
+     description: "Send an Instagram Messaging direct message through the configured Meta SDK-backed Graph adapter or provider client.";
      exposesSensitiveData: true;
      extension: true;
      externallyVisible: true;
@@ -1635,7 +1805,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      alias: "instagram.conversations.list";
      audiences: readonly ["internal-support", "mixed"];
      capability: "search-provider-object";
-     description: "List Instagram conversations with SDK-user-supplied fields and pagination.";
+     description: "List Instagram conversations through the configured Meta SDK-backed Graph adapter or provider client.";
      exposesSensitiveData: true;
      extension: true;
      label: "List Instagram conversations";
@@ -1646,7 +1816,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      alias: "instagram.conversationMessages.list";
      audiences: readonly ["internal-support", "mixed"];
      capability: "read-provider-object";
-     description: "Read messages for an Instagram conversation.";
+     description: "Read messages for an Instagram conversation through the configured Meta SDK-backed Graph adapter or provider client.";
      exposesSensitiveData: true;
      extension: true;
      label: "Read Instagram conversation messages";
@@ -1657,7 +1827,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      alias: "instagram.message.read";
      audiences: readonly ["internal-support", "mixed"];
      capability: "read-provider-object";
-     description: "Read an Instagram message by provider message ID.";
+     description: "Read an Instagram message by provider message ID through the configured Meta SDK-backed Graph adapter or provider client.";
      exposesSensitiveData: true;
      extension: true;
      label: "Read Instagram message";
@@ -1668,7 +1838,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      alias: "instagram.account.read";
      audiences: readonly ["internal-support", "mixed"];
      capability: "read-provider-object";
-     description: "Read configured Instagram professional account metadata.";
+     description: "Read configured Instagram professional account metadata through the configured Meta SDK-backed Graph adapter or provider client.";
      exposesSensitiveData: true;
      extension: true;
      label: "Read Instagram account";
@@ -1679,7 +1849,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      alias: "instagram.page.read";
      audiences: readonly ["internal-support", "mixed"];
      capability: "read-provider-object";
-     description: "Read the Facebook Page connected to the Instagram professional account.";
+     description: "Read the Facebook Page connected to the Instagram professional account through the configured Meta SDK-backed Graph adapter or provider client.";
      extension: true;
      label: "Read connected Facebook Page";
      providerObject: "instagramPage";
@@ -1836,7 +2006,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
    \}, \{
      `audiences`: readonly \[`"customer-facing"`\];
      `capability`: `"send"`;
-     `description`: `"Sends Instagram direct messages through Meta Graph API inside the 24-hour response window, or with HUMAN_AGENT human-support review where Meta permits up to 7 days."`;
+     `description`: `"Sends Instagram direct messages through the configured Meta SDK-backed Graph adapter or provider client inside policy windows selected by the SDK user."`;
      `exposesSensitiveData`: `true`;
      `label`: `"Send Instagram DM messages"`;
      `providerObjects`: readonly \[\{
@@ -1873,7 +2043,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
    \}, \{
      `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
      `capability`: `"read-provider-object"`;
-     `description`: `"Reads Instagram professional account, page, conversations, messages, and message details where Graph APIs support it."`;
+     `description`: `"Reads Instagram professional account, page, conversation, and message resources through the configured Meta SDK-backed Graph adapter or provider client."`;
      `exposesSensitiveData`: `true`;
      `label`: `"Read Instagram account and messages"`;
      `providerObjects`: readonly \[\{
@@ -1893,7 +2063,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
    \}, \{
      `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
      `capability`: `"search-provider-object"`;
-     `description`: `"Lists Instagram conversations with SDK-user-supplied fields, pagination, and Graph API limits."`;
+     `description`: `"Lists Instagram conversations with SDK-user-supplied fields and pagination through the configured Meta SDK-backed Graph adapter or provider client."`;
      `exposesSensitiveData`: `true`;
      `label`: `"List Instagram conversations"`;
      `providerObjects`: readonly \[\{
@@ -1929,12 +2099,15 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
       \}, \{
         `label`: `"Instagram Messaging app review"`;
         `url`: `"https://developers.facebook.com/documentation/business-messaging/instagram-messaging/app-review"`;
+      \}, \{
+        `label`: `"Meta Business SDK for NodeJS"`;
+        `url`: `"https://github.com/facebook/facebook-nodejs-business-sdk"`;
      \}\];
-     `notes`: readonly \[`"Coverage is limited to Instagram Messaging send payloads, conversations/messages reads, account/page reads, webhook challenge handling, and X-Hub-Signature-256 validation for SDK-user-owned support messaging."`, `"This package uses the Meta Business Messaging / Page access token model for Instagram Messaging; it does not implement the separate Instagram API with Instagram Login messaging surface."`, `"The package does not implement the broader Instagram Platform for media publishing, comments/moderation, mentions, insights, content discovery, account management, or full Graph API coverage."`\];
+     `notes`: readonly \[`"Coverage is limited to Instagram Messaging send payloads, conversations/messages reads, account/page reads, webhook challenge handling, and X-Hub-Signature-256 validation for SDK-user-owned support messaging."`, `"This package uses the Meta Business Messaging / Page access token model for Instagram Messaging; it does not implement the separate Instagram API with Instagram Login messaging surface."`, `"Runtime provider calls use Meta's facebook-nodejs-business-sdk when credentials are configured; hosts may inject an Instagram/Meta provider client override."`, `"The package does not implement the broader Instagram Platform for media publishing, comments/moderation, mentions, insights, content discovery, account management, or full Graph API coverage."`\];
      `scope`: `"support-workflow-subset"`;
   \};
   `credentialRequirements`: readonly \[\{
-     `description`: `"Server-side Page access token used for Instagram Messaging and Graph API calls."`;
+     `description`: `"Server-side Page access token used by the Meta SDK-backed Graph adapter or an injected Instagram/Meta provider client."`;
      `id`: `"instagram-page-access-token"`;
      `label`: `"Meta Page access token"`;
      `metadata`: \{
@@ -1968,7 +2141,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      `label`: `"Instagram messaging webhook subscription"`;
      `required`: `false`;
    \}, \{
-     `description`: `"SDK-user-reviewed permissions granted to the Meta app for messaging and account access."`;
+     `description`: `"SDK-user-reviewed permissions granted to the Meta app and enforced by the configured Meta SDK-backed Graph adapter or provider client."`;
      `id`: `"instagram-permissions"`;
      `label`: `"Instagram Graph permissions"`;
      `metadata`: \{
@@ -1979,32 +2152,83 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
   \}\];
   `directions`: readonly \[`"receive-only"`, `"send-only"`, `"bidirectional"`\];
   `id`: `"social.instagram"`;
-  `limitations`: readonly \[`"Available operations depend on the SDK user's Meta app review, Page ownership, Instagram professional account link, granted permissions, webhook field subscriptions, messaging windows, HUMAN_AGENT review, rate limits, and regional policy."`, `"Instagram does not inherit general Messenger message tags as safe defaults; SDK users must configure Instagram-specific outbound policy and HUMAN_AGENT review where needed."`, `"Consent, outbound-contact policy, conversation continuity across channels, human escalation, retention, redaction, and deletion behavior are SDK-user configuration."`, `"This package provides Graph API and webhook primitives; it does not decide when to auto-reply, start outbound outreach, join chats across channels, or expose social content to operators."`\];
+  `limitations`: readonly \[`"Available operations depend on the SDK user's Meta app review, Page ownership, Instagram professional account link, granted permissions, webhook field subscriptions, messaging windows, HUMAN_AGENT review, rate limits, and regional policy."`, `"Instagram does not inherit general Messenger message tags as safe defaults; SDK users must configure Instagram-specific outbound policy and HUMAN_AGENT review where needed."`, `"Consent, outbound-contact policy, conversation continuity across channels, human escalation, retention, redaction, and deletion behavior are SDK-user configuration."`, `"This package provides typed operation contracts, webhook primitives, and a Meta SDK-backed Graph adapter; providerClient injection remains available as an override."`\];
   `maintainers`: readonly \[\{
      `name`: `"Cognidesk"`;
      `type`: `"official"`;
   \}\];
   `metadata`: \{
      `apiCoverage`: \{
-        `checkedAt`: `"2026-06-18"`;
+        `checkedAt`: `"2026-06-25"`;
         `fullMetaGraphCoverage`: `false`;
         `fullProviderApi`: `false`;
         `generatedFromOfficialSpec`: `false`;
         `implementedOperationCount`: `6`;
-        `machineReadableSpecStatus`: `"No official public complete Instagram Messaging/Graph OpenAPI spec was found in facebook/openapi during this audit."`;
+        `machineReadableSpecStatus`: `"No official public complete Instagram Messaging/Graph OpenAPI spec or dedicated typed Instagram Messaging SDK surface was found during this audit."`;
         `operationCatalog`: `"docs/provider-coverage/instagram-messaging-graph-selected-api-2026-06-18.operations.json"`;
         `selectedOperationCount`: `6`;
      \};
      `channelCoverage`: \{
-        `accountPageReadiness`: `"typed-read"`;
+        `accountPageReadiness`: `"facebook-nodejs-business-sdk-call"`;
         `commentsPublishingInsights`: `"not-covered"`;
-        `conversations`: `"typed-list-read"`;
-        `directMessages`: `"typed-send"`;
+        `conversations`: `"facebook-nodejs-business-sdk-call"`;
+        `customTransportFallback`: `"package-owned-rest-adapter"`;
+        `directMessages`: `"facebook-nodejs-business-sdk-call"`;
         `humanAgentWindow`: `"sdk-owned-policy"`;
-        `messageDetails`: `"typed-read"`;
+        `messageDetails`: `"facebook-nodejs-business-sdk-call"`;
         `webhooks`: `"typed-challenge-verify-parse"`;
      \};
      `docs`: readonly \[`"https://developers.facebook.com/documentation/business-messaging/instagram-messaging/features/send-message"`, `"https://developers.facebook.com/documentation/business-messaging/instagram-messaging/overview"`, `"https://developers.facebook.com/documentation/business-messaging/instagram-messaging/webhooks"`\];
+     `implementation`: \{
+        `allowedOperations`: readonly \[\{
+           `alias`: `"instagram.message.send"`;
+           `id`: `"sendMessage"`;
+           `source`: `"provider-sdk"`;
+           `target`: `"facebookBusinessSdk.FacebookAdsApi.call"`;
+         \}, \{
+           `alias`: `"instagram.conversations.list"`;
+           `id`: `"listConversations"`;
+           `source`: `"provider-sdk"`;
+           `target`: `"facebookBusinessSdk.FacebookAdsApi.call"`;
+         \}, \{
+           `alias`: `"instagram.conversationMessages.list"`;
+           `id`: `"listConversationMessages"`;
+           `source`: `"provider-sdk"`;
+           `target`: `"facebookBusinessSdk.FacebookAdsApi.call"`;
+         \}, \{
+           `alias`: `"instagram.message.read"`;
+           `id`: `"getMessage"`;
+           `source`: `"provider-sdk"`;
+           `target`: `"facebookBusinessSdk.FacebookAdsApi.call"`;
+         \}, \{
+           `alias`: `"instagram.account.read"`;
+           `id`: `"getInstagramBusinessAccount"`;
+           `source`: `"provider-sdk"`;
+           `target`: `"facebookBusinessSdk.FacebookAdsApi.call"`;
+         \}, \{
+           `alias`: `"instagram.page.read"`;
+           `id`: `"getPage"`;
+           `source`: `"provider-sdk"`;
+           `target`: `"facebookBusinessSdk.FacebookAdsApi.call"`;
+        \}\];
+        `implementationStrategy`: `"provider-sdk-default-with-typed-domain-adapter"`;
+        `providerSdk`: \{
+           `license`: `"Platform License"`;
+           `package`: `"facebook-nodejs-business-sdk"`;
+           `runtimeCall`: `"FacebookAdsApi.call"`;
+           `runtimeEntry`: `"FacebookAdsApi"`;
+           `version`: `"24.0.1"`;
+        \};
+        `sdkDecision`: `"Meta's official facebook-nodejs-business-sdk@24.0.1 is provider-owned and exposes FacebookAdsApi.call(method, path, params). This package maps its strict Instagram Messaging support slice onto that SDK call surface by default; the package-owned REST adapter is retained only for explicit custom transport options such as fetch, graphApiBaseUrl, graphApiVersion, signal, timeoutMs, or retry."`;
+        `verifiedAt`: `"2026-06-25"`;
+     \};
+     `providerClient`: \{
+        `customTransportFallbackPolicy`: `"package-owned-rest-adapter-for-fetch-base-version-signal-timeout-retry"`;
+        `defaultClientPolicy`: `"facebook-nodejs-business-sdk-when-configured"`;
+        `importPolicy`: `"provider-client-override-supported"`;
+        `interface`: `"InstagramMetaProviderClient"`;
+        `package`: `"facebook-nodejs-business-sdk-or-host-provided"`;
+     \};
   \};
   `name`: `"Instagram Direct Messages"`;
   `operations`: readonly \[\{
@@ -2022,7 +2246,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      `alias`: `"instagram.message.send"`;
      `audiences`: readonly \[`"customer-facing"`\];
      `capability`: `"send"`;
-     `description`: `"Send an Instagram Messaging direct message through the configured Page."`;
+     `description`: `"Send an Instagram Messaging direct message through the configured Meta SDK-backed Graph adapter or provider client."`;
      `exposesSensitiveData`: `true`;
      `extension`: `true`;
      `externallyVisible`: `true`;
@@ -2046,7 +2270,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      `alias`: `"instagram.conversations.list"`;
      `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
      `capability`: `"search-provider-object"`;
-     `description`: `"List Instagram conversations with SDK-user-supplied fields and pagination."`;
+     `description`: `"List Instagram conversations through the configured Meta SDK-backed Graph adapter or provider client."`;
      `exposesSensitiveData`: `true`;
      `extension`: `true`;
      `label`: `"List Instagram conversations"`;
@@ -2057,7 +2281,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      `alias`: `"instagram.conversationMessages.list"`;
      `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
      `capability`: `"read-provider-object"`;
-     `description`: `"Read messages for an Instagram conversation."`;
+     `description`: `"Read messages for an Instagram conversation through the configured Meta SDK-backed Graph adapter or provider client."`;
      `exposesSensitiveData`: `true`;
      `extension`: `true`;
      `label`: `"Read Instagram conversation messages"`;
@@ -2068,7 +2292,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      `alias`: `"instagram.message.read"`;
      `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
      `capability`: `"read-provider-object"`;
-     `description`: `"Read an Instagram message by provider message ID."`;
+     `description`: `"Read an Instagram message by provider message ID through the configured Meta SDK-backed Graph adapter or provider client."`;
      `exposesSensitiveData`: `true`;
      `extension`: `true`;
      `label`: `"Read Instagram message"`;
@@ -2079,7 +2303,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      `alias`: `"instagram.account.read"`;
      `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
      `capability`: `"read-provider-object"`;
-     `description`: `"Read configured Instagram professional account metadata."`;
+     `description`: `"Read configured Instagram professional account metadata through the configured Meta SDK-backed Graph adapter or provider client."`;
      `exposesSensitiveData`: `true`;
      `extension`: `true`;
      `label`: `"Read Instagram account"`;
@@ -2090,7 +2314,7 @@ function defineInstagramSocialIntegration(options): DefinedIntegration<{
      `alias`: `"instagram.page.read"`;
      `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
      `capability`: `"read-provider-object"`;
-     `description`: `"Read the Facebook Page connected to the Instagram professional account."`;
+     `description`: `"Read the Facebook Page connected to the Instagram professional account through the configured Meta SDK-backed Graph adapter or provider client."`;
      `extension`: `true`;
      `label`: `"Read connected Facebook Page"`;
      `providerObject`: `"instagramPage"`;
@@ -2245,6 +2469,18 @@ function verifyInstagramWebhookChallenge(input): string;
 
 ## References
 
+### instagramHostClientSupportSlice
+
+Re-exports [instagramHostClientSupportSlice](dist/manifest.md#instagramhostclientsupportslice)
+
+***
+
 ### instagramSocialProviderManifest
 
 Re-exports [instagramSocialProviderManifest](dist/manifest.md#instagramsocialprovidermanifest)
+
+***
+
+### instagramSocialSupportSlice
+
+Re-exports [instagramSocialSupportSlice](dist/manifest.md#instagramsocialsupportslice)

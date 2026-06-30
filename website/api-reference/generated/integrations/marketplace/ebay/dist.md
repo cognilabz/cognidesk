@@ -260,6 +260,12 @@ optional marketplaceId?: string;
 optional notificationVerificationTokenConfigured?: boolean;
 ```
 
+##### providerClientConfigured?
+
+```ts
+optional providerClientConfigured?: boolean;
+```
+
 ##### requireDigitalSignatureForRefunds?
 
 ```ts
@@ -348,25 +354,15 @@ optional refundItems?: EbayMarketplaceJsonObject[];
 
 #### Properties
 
-##### accessToken
+##### accessToken?
 
 ```ts
-accessToken: string;
+optional accessToken?: string;
 ```
 
 ###### Inherited from
 
 [`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`accessToken`](#accesstoken-1)
-
-##### apiBaseUrl?
-
-```ts
-optional apiBaseUrl?: string;
-```
-
-###### Inherited from
-
-[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`apiBaseUrl`](#apibaseurl-1)
 
 ##### applicationAccessToken?
 
@@ -378,21 +374,31 @@ optional applicationAccessToken?: string;
 
 [`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`applicationAccessToken`](#applicationaccesstoken-1)
 
-##### client?
+##### baseUrl?
 
 ```ts
-optional client?: Pick<EbayMarketplaceClient, "getUser">;
-```
-
-##### digitalSignature?
-
-```ts
-optional digitalSignature?: EbayDigitalSignatureOptions;
+optional baseUrl?: string;
 ```
 
 ###### Inherited from
 
-[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`digitalSignature`](#digitalsignature-1)
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`baseUrl`](#baseurl-1)
+
+##### client?
+
+```ts
+optional client?: Pick<EbayMarketplaceProviderClient, "getUser">;
+```
+
+##### environment?
+
+```ts
+optional environment?: "sandbox" | "production";
+```
+
+###### Inherited from
+
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`environment`](#environment-1)
 
 ##### fetch?
 
@@ -445,25 +451,1211 @@ optional fetch?: {
 
 [`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`fetch`](#fetch-1)
 
-##### identityApiBaseUrl?
+##### marketplaceId?
 
 ```ts
-optional identityApiBaseUrl?: string;
+optional marketplaceId?: string;
 ```
 
 ###### Inherited from
 
-[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`identityApiBaseUrl`](#identityapibaseurl-1)
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`marketplaceId`](#marketplaceid-2)
 
-##### keyManagementApiBaseUrl?
+##### providerClient?
 
 ```ts
-optional keyManagementApiBaseUrl?: string;
+optional providerClient?: EbayMarketplaceProviderClient;
 ```
 
 ###### Inherited from
 
-[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`keyManagementApiBaseUrl`](#keymanagementapibaseurl-1)
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`providerClient`](#providerclient-2)
+
+##### requestSigner?
+
+```ts
+optional requestSigner?: EbayRequestSigner;
+```
+
+###### Inherited from
+
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`requestSigner`](#requestsigner-1)
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+###### Inherited from
+
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`retry`](#retry-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`signal`](#signal-1)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`timeoutMs`](#timeoutms-1)
+
+***
+
+### EbayMarketplaceClient
+
+#### Extends
+
+- [`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient)
+
+#### Properties
+
+##### providerClient
+
+```ts
+providerClient: EbayMarketplaceProviderClient;
+```
+
+#### Methods
+
+##### acceptPaymentDispute()
+
+```ts
+acceptPaymentDispute(paymentDisputeId, input?): Promise<EbayPaymentDisputeActionResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `paymentDisputeId` | `string` |
+| `input?` | [`EbayMarketplaceJsonObject`](#ebaymarketplacejsonobject) |
+
+###### Returns
+
+`Promise`\<[`EbayPaymentDisputeActionResponse`](#ebaypaymentdisputeactionresponse)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`acceptPaymentDispute`](#acceptpaymentdispute-1)
+
+##### addPaymentDisputeEvidence()
+
+```ts
+addPaymentDisputeEvidence(paymentDisputeId, input): Promise<EbayPaymentDisputeActionResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `paymentDisputeId` | `string` |
+| `input` | [`EbayMarketplaceJsonObject`](#ebaymarketplacejsonobject) |
+
+###### Returns
+
+`Promise`\<[`EbayPaymentDisputeActionResponse`](#ebaypaymentdisputeactionresponse)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`addPaymentDisputeEvidence`](#addpaymentdisputeevidence-1)
+
+##### bulkUpdateConversations()
+
+```ts
+bulkUpdateConversations(input): Promise<{
+[providerField: string]: EbayMarketplaceJsonValue;
+  conversations?: EbayConversation[];
+}>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`EbayBulkUpdateConversationsInput`](#ebaybulkupdateconversationsinput) |
+
+###### Returns
+
+`Promise`\<\{
+\[`providerField`: `string`\]: [`EbayMarketplaceJsonValue`](#ebaymarketplacejsonvalue);
+  `conversations?`: [`EbayConversation`](#ebayconversation)[];
+\}\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`bulkUpdateConversations`](#bulkupdateconversations-1)
+
+##### contestPaymentDispute()
+
+```ts
+contestPaymentDispute(paymentDisputeId, input): Promise<EbayPaymentDisputeActionResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `paymentDisputeId` | `string` |
+| `input` | [`EbayMarketplaceJsonObject`](#ebaymarketplacejsonobject) |
+
+###### Returns
+
+`Promise`\<[`EbayPaymentDisputeActionResponse`](#ebaypaymentdisputeactionresponse)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`contestPaymentDispute`](#contestpaymentdispute-1)
+
+##### createNotificationDestination()
+
+```ts
+createNotificationDestination(input): Promise<EbayNotificationDestination>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`EbayNotificationDestinationInput`](#ebaynotificationdestinationinput) |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationDestination`](#ebaynotificationdestination)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`createNotificationDestination`](#createnotificationdestination-1)
+
+##### createNotificationSubscription()
+
+```ts
+createNotificationSubscription(input): Promise<EbayNotificationSubscription>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`EbayNotificationSubscriptionInput`](#ebaynotificationsubscriptioninput) |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationSubscription`](#ebaynotificationsubscription)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`createNotificationSubscription`](#createnotificationsubscription-1)
+
+##### createNotificationSubscriptionFilter()
+
+```ts
+createNotificationSubscriptionFilter(subscriptionId, input): Promise<EbayNotificationSubscriptionFilter>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `subscriptionId` | `string` |
+| `input` | [`EbayNotificationSubscriptionFilterInput`](#ebaynotificationsubscriptionfilterinput) |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationSubscriptionFilter`](#ebaynotificationsubscriptionfilter)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`createNotificationSubscriptionFilter`](#createnotificationsubscriptionfilter-1)
+
+##### createShippingFulfillment()
+
+```ts
+createShippingFulfillment(orderId, input): Promise<EbayShippingFulfillment>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `orderId` | `string` |
+| `input` | [`EbayShippingFulfillmentInput`](#ebayshippingfulfillmentinput) |
+
+###### Returns
+
+`Promise`\<[`EbayShippingFulfillment`](#ebayshippingfulfillment)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`createShippingFulfillment`](#createshippingfulfillment-1)
+
+##### createSigningKey()
+
+```ts
+createSigningKey(input?): Promise<EbaySigningKey>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`EbayCreateSigningKeyInput`](#ebaycreatesigningkeyinput) |
+
+###### Returns
+
+`Promise`\<[`EbaySigningKey`](#ebaysigningkey)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`createSigningKey`](#createsigningkey-1)
+
+##### deleteNotificationDestination()
+
+```ts
+deleteNotificationDestination(destinationId): Promise<Record<string, never>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `destinationId` | `string` |
+
+###### Returns
+
+`Promise`\<`Record`\<`string`, `never`\>\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`deleteNotificationDestination`](#deletenotificationdestination-1)
+
+##### deleteNotificationSubscription()
+
+```ts
+deleteNotificationSubscription(subscriptionId): Promise<Record<string, never>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `subscriptionId` | `string` |
+
+###### Returns
+
+`Promise`\<`Record`\<`string`, `never`\>\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`deleteNotificationSubscription`](#deletenotificationsubscription-1)
+
+##### deleteNotificationSubscriptionFilter()
+
+```ts
+deleteNotificationSubscriptionFilter(subscriptionId, filterId): Promise<Record<string, never>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `subscriptionId` | `string` |
+| `filterId` | `string` |
+
+###### Returns
+
+`Promise`\<`Record`\<`string`, `never`\>\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`deleteNotificationSubscriptionFilter`](#deletenotificationsubscriptionfilter-1)
+
+##### disableNotificationSubscription()
+
+```ts
+disableNotificationSubscription(subscriptionId): Promise<EbayNotificationSubscription>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `subscriptionId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationSubscription`](#ebaynotificationsubscription)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`disableNotificationSubscription`](#disablenotificationsubscription-1)
+
+##### enableNotificationSubscription()
+
+```ts
+enableNotificationSubscription(subscriptionId): Promise<EbayNotificationSubscription>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `subscriptionId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationSubscription`](#ebaynotificationsubscription)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`enableNotificationSubscription`](#enablenotificationsubscription-1)
+
+##### fetchPaymentDisputeEvidenceContent()
+
+```ts
+fetchPaymentDisputeEvidenceContent(paymentDisputeId): Promise<ArrayBuffer | EbayMarketplaceJsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `paymentDisputeId` | `string` |
+
+###### Returns
+
+`Promise`\<`ArrayBuffer` \| [`EbayMarketplaceJsonObject`](#ebaymarketplacejsonobject)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`fetchPaymentDisputeEvidenceContent`](#fetchpaymentdisputeevidencecontent-1)
+
+##### getConversation()
+
+```ts
+getConversation(conversationId): Promise<EbayConversation>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `conversationId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayConversation`](#ebayconversation)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getConversation`](#getconversation-1)
+
+##### getConversations()
+
+```ts
+getConversations(input?): Promise<EbayConversationsCollection>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`EbayConversationSearchInput`](#ebayconversationsearchinput) |
+
+###### Returns
+
+`Promise`\<[`EbayConversationsCollection`](#ebayconversationscollection)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getConversations`](#getconversations-1)
+
+##### getNotificationConfig()
+
+```ts
+getNotificationConfig(): Promise<EbayNotificationConfig>;
+```
+
+###### Returns
+
+`Promise`\<[`EbayNotificationConfig`](#ebaynotificationconfig)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getNotificationConfig`](#getnotificationconfig-1)
+
+##### getNotificationDestination()
+
+```ts
+getNotificationDestination(destinationId): Promise<EbayNotificationDestination>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `destinationId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationDestination`](#ebaynotificationdestination)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getNotificationDestination`](#getnotificationdestination-1)
+
+##### getNotificationDestinations()
+
+```ts
+getNotificationDestinations(): Promise<EbayNotificationDestinationsCollection>;
+```
+
+###### Returns
+
+`Promise`\<[`EbayNotificationDestinationsCollection`](#ebaynotificationdestinationscollection)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getNotificationDestinations`](#getnotificationdestinations-1)
+
+##### getNotificationPublicKey()
+
+```ts
+getNotificationPublicKey(publicKeyId): Promise<EbayNotificationPublicKey>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `publicKeyId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationPublicKey`](#ebaynotificationpublickey)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getNotificationPublicKey`](#getnotificationpublickey-1)
+
+##### getNotificationSubscription()
+
+```ts
+getNotificationSubscription(subscriptionId): Promise<EbayNotificationSubscription>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `subscriptionId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationSubscription`](#ebaynotificationsubscription)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getNotificationSubscription`](#getnotificationsubscription-1)
+
+##### getNotificationSubscriptionFilter()
+
+```ts
+getNotificationSubscriptionFilter(subscriptionId, filterId): Promise<EbayNotificationSubscriptionFilter>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `subscriptionId` | `string` |
+| `filterId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationSubscriptionFilter`](#ebaynotificationsubscriptionfilter)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getNotificationSubscriptionFilter`](#getnotificationsubscriptionfilter-1)
+
+##### getNotificationSubscriptions()
+
+```ts
+getNotificationSubscriptions(): Promise<EbayNotificationSubscriptionsCollection>;
+```
+
+###### Returns
+
+`Promise`\<[`EbayNotificationSubscriptionsCollection`](#ebaynotificationsubscriptionscollection)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getNotificationSubscriptions`](#getnotificationsubscriptions-1)
+
+##### getNotificationTopic()
+
+```ts
+getNotificationTopic(topicId): Promise<{
+[providerField: string]: EbayMarketplaceJsonValue;
+  description?: string;
+  supportedPayloadVersions?: string[];
+  topicId?: string;
+}>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `topicId` | `string` |
+
+###### Returns
+
+`Promise`\<\{
+\[`providerField`: `string`\]: [`EbayMarketplaceJsonValue`](#ebaymarketplacejsonvalue);
+  `description?`: `string`;
+  `supportedPayloadVersions?`: `string`[];
+  `topicId?`: `string`;
+\}\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getNotificationTopic`](#getnotificationtopic-1)
+
+##### getNotificationTopics()
+
+```ts
+getNotificationTopics(input?): Promise<EbayRestCollection<EbayMarketplaceJsonObject>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`EbayNotificationTopicSearchInput`](#ebaynotificationtopicsearchinput) |
+
+###### Returns
+
+`Promise`\<[`EbayRestCollection`](#ebayrestcollection)\<[`EbayMarketplaceJsonObject`](#ebaymarketplacejsonobject)\>\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getNotificationTopics`](#getnotificationtopics-1)
+
+##### getOrder()
+
+```ts
+getOrder(orderId): Promise<EbayOrder>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `orderId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayOrder`](#ebayorder)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getOrder`](#getorder-1)
+
+##### getPaymentDispute()
+
+```ts
+getPaymentDispute(paymentDisputeId): Promise<EbayPaymentDispute>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `paymentDisputeId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayPaymentDispute`](#ebaypaymentdispute)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getPaymentDispute`](#getpaymentdispute-1)
+
+##### getPaymentDisputeActivities()
+
+```ts
+getPaymentDisputeActivities(paymentDisputeId): Promise<EbayPaymentDisputeActivities>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `paymentDisputeId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayPaymentDisputeActivities`](#ebaypaymentdisputeactivities)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getPaymentDisputeActivities`](#getpaymentdisputeactivities-1)
+
+##### getShippingFulfillment()
+
+```ts
+getShippingFulfillment(orderId, fulfillmentId): Promise<EbayShippingFulfillment>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `orderId` | `string` |
+| `fulfillmentId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayShippingFulfillment`](#ebayshippingfulfillment)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getShippingFulfillment`](#getshippingfulfillment-1)
+
+##### getShippingFulfillments()
+
+```ts
+getShippingFulfillments(orderId): Promise<EbayShippingFulfillmentsCollection>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `orderId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayShippingFulfillmentsCollection`](#ebayshippingfulfillmentscollection)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getShippingFulfillments`](#getshippingfulfillments-1)
+
+##### getSigningKey()
+
+```ts
+getSigningKey(signingKeyId): Promise<EbaySigningKey>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `signingKeyId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbaySigningKey`](#ebaysigningkey)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getSigningKey`](#getsigningkey-1)
+
+##### getSigningKeys()
+
+```ts
+getSigningKeys(): Promise<EbaySigningKeysCollection>;
+```
+
+###### Returns
+
+`Promise`\<[`EbaySigningKeysCollection`](#ebaysigningkeyscollection)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getSigningKeys`](#getsigningkeys-1)
+
+##### getUser()
+
+```ts
+getUser(): Promise<EbayUser>;
+```
+
+###### Returns
+
+`Promise`\<[`EbayUser`](#ebayuser)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`getUser`](#getuser-1)
+
+##### issueRefund()
+
+```ts
+issueRefund(orderId, input): Promise<EbayRefund>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `orderId` | `string` |
+| `input` | [`EbayIssueRefundInput`](#ebayissuerefundinput) |
+
+###### Returns
+
+`Promise`\<[`EbayRefund`](#ebayrefund)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`issueRefund`](#issuerefund-1)
+
+##### searchOrders()
+
+```ts
+searchOrders(input?): Promise<EbayOrdersCollection>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`EbayOrderSearchInput`](#ebayordersearchinput) |
+
+###### Returns
+
+`Promise`\<[`EbayOrdersCollection`](#ebayorderscollection)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`searchOrders`](#searchorders-1)
+
+##### searchPaymentDisputes()
+
+```ts
+searchPaymentDisputes(input?): Promise<EbayPaymentDisputesCollection>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`EbayPaymentDisputeSearchInput`](#ebaypaymentdisputesearchinput) |
+
+###### Returns
+
+`Promise`\<[`EbayPaymentDisputesCollection`](#ebaypaymentdisputescollection)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`searchPaymentDisputes`](#searchpaymentdisputes-1)
+
+##### sendMessage()
+
+```ts
+sendMessage(input): Promise<EbayMessageResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`EbaySendMessageInput`](#ebaysendmessageinput) |
+
+###### Returns
+
+`Promise`\<[`EbayMessageResponse`](#ebaymessageresponse)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`sendMessage`](#sendmessage-1)
+
+##### testNotificationSubscription()
+
+```ts
+testNotificationSubscription(subscriptionId): Promise<EbayNotificationSubscription>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `subscriptionId` | `string` |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationSubscription`](#ebaynotificationsubscription)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`testNotificationSubscription`](#testnotificationsubscription-1)
+
+##### updateConversation()
+
+```ts
+updateConversation(input): Promise<EbayConversation>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`EbayUpdateConversationInput`](#ebayupdateconversationinput) |
+
+###### Returns
+
+`Promise`\<[`EbayConversation`](#ebayconversation)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`updateConversation`](#updateconversation-1)
+
+##### updateNotificationConfig()
+
+```ts
+updateNotificationConfig(input): Promise<EbayNotificationConfig>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`EbayMarketplaceJsonObject`](#ebaymarketplacejsonobject) |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationConfig`](#ebaynotificationconfig)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`updateNotificationConfig`](#updatenotificationconfig-1)
+
+##### updateNotificationDestination()
+
+```ts
+updateNotificationDestination(destinationId, input): Promise<EbayNotificationDestination>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `destinationId` | `string` |
+| `input` | [`EbayNotificationDestinationInput`](#ebaynotificationdestinationinput) |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationDestination`](#ebaynotificationdestination)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`updateNotificationDestination`](#updatenotificationdestination-1)
+
+##### updateNotificationSubscription()
+
+```ts
+updateNotificationSubscription(subscriptionId, input): Promise<EbayNotificationSubscription>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `subscriptionId` | `string` |
+| `input` | [`EbayNotificationSubscriptionInput`](#ebaynotificationsubscriptioninput) |
+
+###### Returns
+
+`Promise`\<[`EbayNotificationSubscription`](#ebaynotificationsubscription)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`updateNotificationSubscription`](#updatenotificationsubscription-1)
+
+##### updatePaymentDisputeEvidence()
+
+```ts
+updatePaymentDisputeEvidence(paymentDisputeId, input): Promise<EbayPaymentDisputeActionResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `paymentDisputeId` | `string` |
+| `input` | [`EbayMarketplaceJsonObject`](#ebaymarketplacejsonobject) |
+
+###### Returns
+
+`Promise`\<[`EbayPaymentDisputeActionResponse`](#ebaypaymentdisputeactionresponse)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`updatePaymentDisputeEvidence`](#updatepaymentdisputeevidence-1)
+
+##### uploadPaymentDisputeEvidenceFile()
+
+```ts
+uploadPaymentDisputeEvidenceFile(paymentDisputeId, input): Promise<EbayPaymentDisputeActionResponse>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `paymentDisputeId` | `string` |
+| `input` | [`EbayMarketplaceJsonObject`](#ebaymarketplacejsonobject) |
+
+###### Returns
+
+`Promise`\<[`EbayPaymentDisputeActionResponse`](#ebaypaymentdisputeactionresponse)\>
+
+###### Inherited from
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient).[`uploadPaymentDisputeEvidenceFile`](#uploadpaymentdisputeevidencefile-1)
+
+***
+
+### EbayMarketplaceClientOptions
+
+#### Extended by
+
+- [`EbayMarketplaceIntegrationOptions`](#ebaymarketplaceintegrationoptions)
+- [`EbayLiveCheckOptions`](#ebaylivecheckoptions)
+
+#### Properties
+
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+##### applicationAccessToken?
+
+```ts
+optional applicationAccessToken?: string;
+```
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+##### environment?
+
+```ts
+optional environment?: "sandbox" | "production";
+```
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+##### marketplaceId?
+
+```ts
+optional marketplaceId?: string;
+```
+
+##### providerClient?
+
+```ts
+optional providerClient?: EbayMarketplaceProviderClient;
+```
+
+##### requestSigner?
+
+```ts
+optional requestSigner?: EbayRequestSigner;
+```
+
+##### retry?
+
+```ts
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+***
+
+### EbayMarketplaceIntegrationOptions
+
+#### Extends
+
+- [`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions)
+
+#### Properties
+
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+###### Inherited from
+
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`accessToken`](#accesstoken-1)
+
+##### applicationAccessToken?
+
+```ts
+optional applicationAccessToken?: string;
+```
+
+###### Inherited from
+
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`applicationAccessToken`](#applicationaccesstoken-1)
+
+##### baseUrl?
+
+```ts
+optional baseUrl?: string;
+```
+
+###### Inherited from
+
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`baseUrl`](#baseurl-1)
+
+##### client?
+
+```ts
+optional client?: EbayMarketplaceClient;
+```
+
+##### environment?
+
+```ts
+optional environment?: "sandbox" | "production";
+```
+
+###### Inherited from
+
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`environment`](#environment-1)
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Inherited from
+
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`fetch`](#fetch-1)
 
 ##### marketplaceId?
 
@@ -475,39 +1667,104 @@ optional marketplaceId?: string;
 
 [`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`marketplaceId`](#marketplaceid-2)
 
-##### requireDigitalSignatureForRefunds?
+##### providerClient?
 
 ```ts
-optional requireDigitalSignatureForRefunds?: boolean;
+optional providerClient?: EbayMarketplaceProviderClient;
 ```
 
 ###### Inherited from
 
-[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`requireDigitalSignatureForRefunds`](#requiredigitalsignatureforrefunds-2)
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`providerClient`](#providerclient-2)
 
-##### sellerDomicileCountry?
+##### requestSigner?
 
 ```ts
-optional sellerDomicileCountry?: string;
+optional requestSigner?: EbayRequestSigner;
 ```
 
 ###### Inherited from
 
-[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`sellerDomicileCountry`](#sellerdomicilecountry-2)
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`requestSigner`](#requestsigner-1)
 
-##### signRequest?
+##### retry?
 
 ```ts
-optional signRequest?: EbayRequestSigner;
+optional retry?:
+  | number
+  | ProviderJsonRetryOptions;
 ```
 
 ###### Inherited from
 
-[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`signRequest`](#signrequest-1)
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`retry`](#retry-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`signal`](#signal-1)
+
+##### timeoutMs?
+
+```ts
+optional timeoutMs?: number;
+```
+
+###### Inherited from
+
+[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions).[`timeoutMs`](#timeoutms-1)
 
 ***
 
-### EbayMarketplaceClient
+### EbayMarketplaceJsonObject
+
+#### Extended by
+
+- [`EbayMarketplaceProviderExtensionFields`](#ebaymarketplaceproviderextensionfields)
+- [`EbayMarketplaceProviderResponse`](#ebaymarketplaceproviderresponse)
+
+#### Indexable
+
+```ts
+[key: string]: EbayMarketplaceProviderExtensionValue
+```
+
+***
+
+### EbayMarketplaceOperationInput
+
+#### Properties
+
+##### args?
+
+```ts
+optional args?: unknown[];
+```
+
+##### client?
+
+```ts
+optional client?: EbayMarketplaceClient;
+```
+
+##### providerClient?
+
+```ts
+optional providerClient?: EbayMarketplaceProviderClient;
+```
+
+***
+
+### EbayMarketplaceProviderClient
+
+#### Extended by
+
+- [`EbayMarketplaceClient`](#ebaymarketplaceclient)
 
 #### Methods
 
@@ -1229,156 +2486,6 @@ uploadPaymentDisputeEvidenceFile(paymentDisputeId, input): Promise<EbayPaymentDi
 ###### Returns
 
 `Promise`\<[`EbayPaymentDisputeActionResponse`](#ebaypaymentdisputeactionresponse)\>
-
-***
-
-### EbayMarketplaceClientOptions
-
-#### Extended by
-
-- [`EbayLiveCheckOptions`](#ebaylivecheckoptions)
-
-#### Properties
-
-##### accessToken
-
-```ts
-accessToken: string;
-```
-
-##### apiBaseUrl?
-
-```ts
-optional apiBaseUrl?: string;
-```
-
-##### applicationAccessToken?
-
-```ts
-optional applicationAccessToken?: string;
-```
-
-##### digitalSignature?
-
-```ts
-optional digitalSignature?: EbayDigitalSignatureOptions;
-```
-
-##### fetch?
-
-```ts
-optional fetch?: {
-  (input, init?): Promise<Response>;
-  (input, init?): Promise<Response>;
-};
-```
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `URL` \| `RequestInfo` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-###### Call Signature
-
-```ts
-(input, init?): Promise<Response>;
-```
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `input` | `string` \| `Request` \| `URL` |
-| `init?` | `RequestInit` |
-
-###### Returns
-
-`Promise`\<`Response`\>
-
-##### identityApiBaseUrl?
-
-```ts
-optional identityApiBaseUrl?: string;
-```
-
-##### keyManagementApiBaseUrl?
-
-```ts
-optional keyManagementApiBaseUrl?: string;
-```
-
-##### marketplaceId?
-
-```ts
-optional marketplaceId?: string;
-```
-
-##### requireDigitalSignatureForRefunds?
-
-```ts
-optional requireDigitalSignatureForRefunds?: boolean;
-```
-
-##### sellerDomicileCountry?
-
-```ts
-optional sellerDomicileCountry?: string;
-```
-
-##### signRequest?
-
-```ts
-optional signRequest?: EbayRequestSigner;
-```
-
-***
-
-### EbayMarketplaceJsonObject
-
-#### Extended by
-
-- [`EbayMarketplaceProviderExtensionFields`](#ebaymarketplaceproviderextensionfields)
-- [`EbayMarketplaceProviderResponse`](#ebaymarketplaceproviderresponse)
-
-#### Indexable
-
-```ts
-[key: string]: EbayMarketplaceProviderExtensionValue
-```
-
-***
-
-### EbayMarketplaceOperationInput
-
-#### Properties
-
-##### args?
-
-```ts
-optional args?: unknown[];
-```
-
-##### client?
-
-```ts
-optional client?: EbayMarketplaceClient;
-```
 
 ***
 
@@ -2760,7 +3867,7 @@ api:
 ##### functionName
 
 ```ts
-functionName: keyof EbayMarketplaceClient;
+functionName: keyof EbayMarketplaceProviderClient;
 ```
 
 ##### method
@@ -3707,7 +4814,7 @@ const ebayMarketplaceIntegration: DefinedIntegration<{
         label: "eBay Commerce Identity OpenAPI 3 JSON";
         url: "https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json";
      }];
-     notes: readonly ["Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing.", "The selected REST slice now covers every documented operation in the currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource groups, but does not claim full eBay platform coverage.", "The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces.", "The Fulfillment API issueRefund path supports eBay HTTP Message Signature headers for EU/UK seller policy, but the SDK user must provide Key Management API signing material or a request signer.", "The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, and retention decisions."];
+     notes: readonly ["Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing.", "The selected eBay OpenAPI slice documents the provider-client contract for every currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource group operation, and this package ships a built-in REST adapter for those operations.", "The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces.", "Runtime provider-data operations use the built-in typed eBay REST adapter when OAuth token/environment/baseUrl/fetch options are provided; host-injected providerClient remains available as an override and must implement the selected operation contract.", "Local helpers for eBay notification challenge/signature parsing and HTTP Message Signature header creation remain available for host clients and webhook handlers.", "The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, retention decisions, and optional provider-client override runtime."];
      scope: "support-workflow-subset";
   };
   credentialRequirements: readonly [{
@@ -3744,6 +4851,11 @@ const ebayMarketplaceIntegration: DefinedIntegration<{
      label: "eBay marketplace ID";
      required: true;
    }, {
+     description: "Optional host-injected client implementing EbayMarketplaceProviderClient when the SDK user wants to override the built-in REST adapter.";
+     id: "ebay-provider-client";
+     label: "Optional eBay marketplace provider client override";
+     required: false;
+   }, {
      description: "Destination verification token used to answer eBay challenge_code requests for notification endpoints.";
      id: "ebay-notification-verification-token";
      label: "eBay notification verification token";
@@ -3756,7 +4868,7 @@ const ebayMarketplaceIntegration: DefinedIntegration<{
   }];
   directions: readonly ["receive-only", "send-only", "bidirectional"];
   id: "marketplace.ebay";
-  limitations: readonly ["The SDK user chooses marketplaces, OAuth flows, scopes, notification topics, subscription filters, operator visibility, outbound messaging policy, refund/dispute rules, retention, consent, and redaction.", "Some eBay APIs are entitlement, marketplace, scope, topic, or sandbox limited; this package exposes typed REST foundations and does not decide whether a seller is eligible for a specific action.", "The issueRefund method is fail-closed when EU/UK seller or SDK policy requires digital signatures and no eBay request signer or Key Management API signing key is configured.", "Notification signature verification requires a valid eBay public key retrieved by key ID from the Notification API or a SDK-user-provided verifier/cache implementation."];
+  limitations: readonly ["The SDK user chooses marketplaces, OAuth flows, scopes, notification topics, subscription filters, operator visibility, outbound messaging policy, refund/dispute rules, retention, consent, and redaction.", "Some eBay APIs are entitlement, marketplace, scope, topic, or sandbox limited; this package exposes a typed REST/provider-client contract and does not decide whether a seller is eligible for a specific action.", "Provider-data operations fail closed unless OAuth tokens are provided for the built-in typed REST adapter or an injected EbayMarketplaceProviderClient implements the selected operation.", "The local issueRefund signature helper is fail-closed when EU/UK seller or SDK policy requires digital signatures and no eBay signing key material is configured.", "Notification signature verification requires a valid eBay public key retrieved by key ID from the Notification API or a SDK-user-provided verifier/cache implementation."];
   maintainers: readonly [{
      name: "Cognidesk";
      type: "official";
@@ -3794,33 +4906,64 @@ const ebayMarketplaceIntegration: DefinedIntegration<{
         generatedFunctionCount: 45;
         implementedOperationCount: 45;
         operationCatalogArtifact: "docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json";
-        provider: "ebay-selected-rest";
+        provider: "ebay-provider-rest-adapter";
         unimplementedOperationCount: 0;
         verifiedAt: "2026-06-18";
      };
      implementation: {
         checkedAt: "2026-06-18";
-        communityPackagesChecked: readonly [{
-           decision: "not-adopted-community-client-not-official-default";
+        communityRestPackagesChecked: readonly [{
+           decision: "community-wrapper-rejected-not-provider-owned";
+           modifiedAt: "2026-05-11T08:17:20.577Z";
            package: "ebay-api";
            repository: "https://github.com/hendt/ebay-api";
            version: "9.5.2";
+         }, {
+           decision: "community-wrapper-rejected-not-provider-owned";
+           modifiedAt: "2026-03-13T20:45:46.135Z";
+           package: "@tradebuddyhq/ebay-wrapper";
+           repository: "https://github.com/tradebuddyhq/ebay-wrapper";
+           version: "2.0.0";
         }];
+        defaultHttpClient: "providerJsonRequest-for-selected-rest-operations";
         officialUtilityPackagesChecked: readonly [{
-           decision: "not-adopted-current-local-signer-is-smaller";
+           decision: "provider-owned-runtime-used-for-default-digital-signature-headers";
+           modifiedAt: "2023-07-31T23:11:34.276Z";
            package: "digital-signature-nodejs-sdk";
            repository: "https://github.com/eBay/digital-signature-nodejs-sdk";
+           runtimeUse: "generateDigestHeader, generateSignatureInput, and generateSignature are imported and used for default eBay digital signature header creation.";
            version: "3.0.1";
          }, {
-           decision: "not-adopted-current-local-verifier-is-smaller";
+           decision: "provider-owned-runtime-used-for-endpoint-challenge";
+           modifiedAt: "2023-06-15T21:52:53.428Z";
            package: "event-notification-nodejs-sdk";
            repository: "https://github.com/eBay/event-notification-nodejs-sdk";
+           runtimeUse: "validateEndpoint is imported and used for notification endpoint challenge responses; webhook payload parsing and public-key verification remain typed local code because the SDK process() helper owns a broader processor/OAuth flow than this adapter exposes.";
            version: "1.0.3";
+         }, {
+           decision: "provider-owned-oauth-helper-not-selected-rest-runtime";
+           modifiedAt: "2023-06-15T21:52:53.428Z";
+           package: "ebay-oauth-nodejs-client";
+           reason: "OAuth helper only; it does not expose the selected Sell Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, or Commerce Identity operations.";
+           repository: "https://github.com/eBay/ebay-oauth-nodejs-client";
+           version: "1.2.2";
         }];
+        providerClientOverride: true;
+        sdkAuditCheckedAt: "2026-06-25";
+        sdkDecision: "provider-owned-utility-sdks-used-no-provider-owned-general-rest-sdk";
+        sdkDecisionReason: "eBay's provider-owned Node.js packages cover digital signatures, event notifications, and OAuth helpers rather than a general backend REST client for this selected Sell/Commerce/Developer support slice. This package uses the provider-owned utility SDKs at runtime where they fit, keeps a typed selected REST adapter for API operations, and rejects community REST wrappers as package defaults because they are not eBay/provider-owned.";
         selectedApiCount: 5;
-        strategy: "direct-support-slice";
+        strategy: "provider-owned-utility-sdks-plus-selected-rest-adapter";
      };
      notificationDocs: "https://developer.ebay.com/api-docs/commerce/notification/overview.html";
+     providerClient: {
+        defaultClientPolicy: "built-in-rest-with-oauth-tokens-fail-closed";
+        failClosedPolicy: "credential-missing-without-token-or-host-client";
+        importPolicy: "optional-host-override";
+        interface: "EbayMarketplaceProviderClient";
+        package: "host-provided";
+        transportPolicy: "package-owned-typed-provider-rest-adapter";
+     };
      supportSlice: {
         allowlist: {
            alias: `ebay.${string}`;
@@ -3833,7 +4976,7 @@ const ebayMarketplaceIntegration: DefinedIntegration<{
            operationId: string;
            path: string;
         }[];
-        source: "official-ebay-openapi-selected-rest-contracts";
+        source: "official-ebay-openapi-selected-provider-contracts";
         specs: {
            api:   | "sell.fulfillment"
               | "commerce.message"
@@ -3860,7 +5003,7 @@ const ebayMarketplaceIntegration: DefinedIntegration<{
      description: string;
      exposesSensitiveData: boolean;
      extension: boolean;
-     label: keyof EbayMarketplaceClient;
+     label: keyof EbayMarketplaceProviderClient;
      metadata: {
         api:   | "sell.fulfillment"
            | "commerce.message"
@@ -3881,7 +5024,7 @@ const ebayMarketplaceIntegration: DefinedIntegration<{
   privacyNotes: readonly ["eBay orders, buyer/seller conversations, shipping fulfillments, disputes, refunds, notifications, and account profile records can contain customer data, addresses, item details, and internal support context.", "OAuth tokens, keyset secrets, notification verification tokens, public-key caches, and gateway shared secrets stay server-side; Studio receives only readiness and capability metadata."];
   provider: "ebay";
   trustLevel: "official";
-}, unknown, EbayMarketplaceOperations>;
+}, EbayMarketplaceIntegrationOptions, EbayMarketplaceOperations>;
 ```
 
 ***
@@ -4197,7 +5340,7 @@ const ebayMarketplaceProviderManifest: {
         label: "eBay Commerce Identity OpenAPI 3 JSON";
         url: "https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json";
      }];
-     notes: readonly ["Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing.", "The selected REST slice now covers every documented operation in the currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource groups, but does not claim full eBay platform coverage.", "The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces.", "The Fulfillment API issueRefund path supports eBay HTTP Message Signature headers for EU/UK seller policy, but the SDK user must provide Key Management API signing material or a request signer.", "The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, and retention decisions."];
+     notes: readonly ["Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing.", "The selected eBay OpenAPI slice documents the provider-client contract for every currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource group operation, and this package ships a built-in REST adapter for those operations.", "The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces.", "Runtime provider-data operations use the built-in typed eBay REST adapter when OAuth token/environment/baseUrl/fetch options are provided; host-injected providerClient remains available as an override and must implement the selected operation contract.", "Local helpers for eBay notification challenge/signature parsing and HTTP Message Signature header creation remain available for host clients and webhook handlers.", "The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, retention decisions, and optional provider-client override runtime."];
      scope: "support-workflow-subset";
   };
   credentialRequirements: readonly [{
@@ -4234,6 +5377,11 @@ const ebayMarketplaceProviderManifest: {
      label: "eBay marketplace ID";
      required: true;
    }, {
+     description: "Optional host-injected client implementing EbayMarketplaceProviderClient when the SDK user wants to override the built-in REST adapter.";
+     id: "ebay-provider-client";
+     label: "Optional eBay marketplace provider client override";
+     required: false;
+   }, {
      description: "Destination verification token used to answer eBay challenge_code requests for notification endpoints.";
      id: "ebay-notification-verification-token";
      label: "eBay notification verification token";
@@ -4246,7 +5394,7 @@ const ebayMarketplaceProviderManifest: {
   }];
   directions: readonly ["receive-only", "send-only", "bidirectional"];
   id: "marketplace.ebay";
-  limitations: readonly ["The SDK user chooses marketplaces, OAuth flows, scopes, notification topics, subscription filters, operator visibility, outbound messaging policy, refund/dispute rules, retention, consent, and redaction.", "Some eBay APIs are entitlement, marketplace, scope, topic, or sandbox limited; this package exposes typed REST foundations and does not decide whether a seller is eligible for a specific action.", "The issueRefund method is fail-closed when EU/UK seller or SDK policy requires digital signatures and no eBay request signer or Key Management API signing key is configured.", "Notification signature verification requires a valid eBay public key retrieved by key ID from the Notification API or a SDK-user-provided verifier/cache implementation."];
+  limitations: readonly ["The SDK user chooses marketplaces, OAuth flows, scopes, notification topics, subscription filters, operator visibility, outbound messaging policy, refund/dispute rules, retention, consent, and redaction.", "Some eBay APIs are entitlement, marketplace, scope, topic, or sandbox limited; this package exposes a typed REST/provider-client contract and does not decide whether a seller is eligible for a specific action.", "Provider-data operations fail closed unless OAuth tokens are provided for the built-in typed REST adapter or an injected EbayMarketplaceProviderClient implements the selected operation.", "The local issueRefund signature helper is fail-closed when EU/UK seller or SDK policy requires digital signatures and no eBay signing key material is configured.", "Notification signature verification requires a valid eBay public key retrieved by key ID from the Notification API or a SDK-user-provided verifier/cache implementation."];
   maintainers: readonly [{
      name: "Cognidesk";
      type: "official";
@@ -4284,33 +5432,64 @@ const ebayMarketplaceProviderManifest: {
         generatedFunctionCount: 45;
         implementedOperationCount: 45;
         operationCatalogArtifact: "docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json";
-        provider: "ebay-selected-rest";
+        provider: "ebay-provider-rest-adapter";
         unimplementedOperationCount: 0;
         verifiedAt: "2026-06-18";
      };
      implementation: {
         checkedAt: "2026-06-18";
-        communityPackagesChecked: readonly [{
-           decision: "not-adopted-community-client-not-official-default";
+        communityRestPackagesChecked: readonly [{
+           decision: "community-wrapper-rejected-not-provider-owned";
+           modifiedAt: "2026-05-11T08:17:20.577Z";
            package: "ebay-api";
            repository: "https://github.com/hendt/ebay-api";
            version: "9.5.2";
+         }, {
+           decision: "community-wrapper-rejected-not-provider-owned";
+           modifiedAt: "2026-03-13T20:45:46.135Z";
+           package: "@tradebuddyhq/ebay-wrapper";
+           repository: "https://github.com/tradebuddyhq/ebay-wrapper";
+           version: "2.0.0";
         }];
+        defaultHttpClient: "providerJsonRequest-for-selected-rest-operations";
         officialUtilityPackagesChecked: readonly [{
-           decision: "not-adopted-current-local-signer-is-smaller";
+           decision: "provider-owned-runtime-used-for-default-digital-signature-headers";
+           modifiedAt: "2023-07-31T23:11:34.276Z";
            package: "digital-signature-nodejs-sdk";
            repository: "https://github.com/eBay/digital-signature-nodejs-sdk";
+           runtimeUse: "generateDigestHeader, generateSignatureInput, and generateSignature are imported and used for default eBay digital signature header creation.";
            version: "3.0.1";
          }, {
-           decision: "not-adopted-current-local-verifier-is-smaller";
+           decision: "provider-owned-runtime-used-for-endpoint-challenge";
+           modifiedAt: "2023-06-15T21:52:53.428Z";
            package: "event-notification-nodejs-sdk";
            repository: "https://github.com/eBay/event-notification-nodejs-sdk";
+           runtimeUse: "validateEndpoint is imported and used for notification endpoint challenge responses; webhook payload parsing and public-key verification remain typed local code because the SDK process() helper owns a broader processor/OAuth flow than this adapter exposes.";
            version: "1.0.3";
+         }, {
+           decision: "provider-owned-oauth-helper-not-selected-rest-runtime";
+           modifiedAt: "2023-06-15T21:52:53.428Z";
+           package: "ebay-oauth-nodejs-client";
+           reason: "OAuth helper only; it does not expose the selected Sell Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, or Commerce Identity operations.";
+           repository: "https://github.com/eBay/ebay-oauth-nodejs-client";
+           version: "1.2.2";
         }];
+        providerClientOverride: true;
+        sdkAuditCheckedAt: "2026-06-25";
+        sdkDecision: "provider-owned-utility-sdks-used-no-provider-owned-general-rest-sdk";
+        sdkDecisionReason: "eBay's provider-owned Node.js packages cover digital signatures, event notifications, and OAuth helpers rather than a general backend REST client for this selected Sell/Commerce/Developer support slice. This package uses the provider-owned utility SDKs at runtime where they fit, keeps a typed selected REST adapter for API operations, and rejects community REST wrappers as package defaults because they are not eBay/provider-owned.";
         selectedApiCount: 5;
-        strategy: "direct-support-slice";
+        strategy: "provider-owned-utility-sdks-plus-selected-rest-adapter";
      };
      notificationDocs: "https://developer.ebay.com/api-docs/commerce/notification/overview.html";
+     providerClient: {
+        defaultClientPolicy: "built-in-rest-with-oauth-tokens-fail-closed";
+        failClosedPolicy: "credential-missing-without-token-or-host-client";
+        importPolicy: "optional-host-override";
+        interface: "EbayMarketplaceProviderClient";
+        package: "host-provided";
+        transportPolicy: "package-owned-typed-provider-rest-adapter";
+     };
      supportSlice: {
         allowlist: {
            alias: `ebay.${string}`;
@@ -4323,7 +5502,7 @@ const ebayMarketplaceProviderManifest: {
            operationId: string;
            path: string;
         }[];
-        source: "official-ebay-openapi-selected-rest-contracts";
+        source: "official-ebay-openapi-selected-provider-contracts";
         specs: {
            api:   | "sell.fulfillment"
               | "commerce.message"
@@ -4350,7 +5529,7 @@ const ebayMarketplaceProviderManifest: {
      description: string;
      exposesSensitiveData: boolean;
      extension: boolean;
-     label: keyof EbayMarketplaceClient;
+     label: keyof EbayMarketplaceProviderClient;
      metadata: {
         api:   | "sell.fulfillment"
            | "commerce.message"
@@ -4405,16 +5584,16 @@ const ebayMarketplaceProviderManifest: {
 | `capabilities` | readonly \[\{ `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\]; `capability`: `"receive"`; `description`: `"Validates eBay notification endpoint challenges and parses signed Notification API events for SDK-user-owned marketplace workflows."`; `exposesSensitiveData`: `true`; `label`: `"Receive eBay notifications"`; `providerObjects`: readonly \[\{ `kind`: `"ebayNotification"`; `label`: `"eBay Notification"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\]; `capability`: `"read-provider-object"`; `description`: `"Reads eBay seller orders, shipping fulfillments, payment disputes, message conversations, account profile details, and notification destinations/subscriptions."`; `exposesSensitiveData`: `true`; `label`: `"Read eBay marketplace records"`; `providerObjects`: readonly \[\{ `kind`: `"ebayOrder"`; `label`: `"eBay Order"`; \}, \{ `kind`: `"ebayShippingFulfillment"`; `label`: `"eBay Shipping Fulfillment"`; \}, \{ `kind`: `"ebayPaymentDispute"`; `label`: `"eBay Payment Dispute"`; \}, \{ `kind`: `"ebayConversation"`; `label`: `"eBay Conversation"`; \}, \{ `kind`: `"ebayUser"`; `label`: `"eBay User"`; \}, \{ `kind`: `"ebayNotificationDestination"`; `label`: `"eBay Notification Destination"`; \}, \{ `kind`: `"ebayNotificationSubscription"`; `label`: `"eBay Notification Subscription"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: readonly \[`"internal-support"`, `"mixed"`\]; `capability`: `"search-provider-object"`; `description`: `"Searches orders, payment disputes, and message conversations with SDK-user-supplied eBay filters and pagination."`; `exposesSensitiveData`: `true`; `label`: `"Search eBay marketplace records"`; `providerObjects`: readonly \[\{ `kind`: `"ebayOrder"`; `label`: `"eBay Order"`; \}, \{ `kind`: `"ebayPaymentDispute"`; `label`: `"eBay Payment Dispute"`; \}, \{ `kind`: `"ebayConversation"`; `label`: `"eBay Conversation"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: readonly \[`"internal-support"`, `"mixed"`\]; `capability`: `"update-provider-object"`; `changesWorkflow`: `true`; `description`: `"Updates eBay conversations, payment-dispute evidence or outcomes, and notification destination/subscription lifecycle when SDK-user policy permits marketplace mutations."`; `exposesSensitiveData`: `true`; `label`: `"Update eBay marketplace records"`; `providerObjects`: readonly \[\{ `kind`: `"ebayConversation"`; `label`: `"eBay Conversation"`; \}, \{ `kind`: `"ebayPaymentDispute"`; `label`: `"eBay Payment Dispute"`; \}, \{ `kind`: `"ebayNotificationDestination"`; `label`: `"eBay Notification Destination"`; \}, \{ `kind`: `"ebayNotificationSubscription"`; `label`: `"eBay Notification Subscription"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `audiences`: readonly \[`"internal-support"`, `"mixed"`\]; `capability`: `"delete-provider-object"`; `changesWorkflow`: `true`; `description`: `"Deletes notification destinations, subscriptions, and filters only when the SDK user's marketplace policy allows lifecycle changes."`; `label`: `"Delete eBay marketplace resources"`; `providerObjects`: readonly \[\{ `kind`: `"ebayNotificationDestination"`; `label`: `"eBay Notification Destination"`; \}, \{ `kind`: `"ebayNotificationSubscription"`; `label`: `"eBay Notification Subscription"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `audiences`: readonly \[`"internal-support"`, `"mixed"`\]; `capability`: `"create-provider-object"`; `changesWorkflow`: `true`; `description`: `"Creates shipping fulfillments, buyer/seller messages, refunds, and payment-dispute actions only when SDK-user policy allows."`; `exposesSensitiveData`: `true`; `label`: `"Create eBay fulfillment and message records"`; `providerObjects`: readonly \[\{ `kind`: `"ebayShippingFulfillment"`; `label`: `"eBay Shipping Fulfillment"`; \}, \{ `kind`: `"ebayMessage"`; `label`: `"eBay Message"`; \}, \{ `kind`: `"ebayRefund"`; `label`: `"eBay Refund"`; \}, \{ `kind`: `"ebayNotificationDestination"`; `label`: `"eBay Notification Destination"`; \}, \{ `kind`: `"ebayNotificationSubscription"`; `label`: `"eBay Notification Subscription"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `audiences`: readonly \[`"customer-facing"`, `"mixed"`\]; `capability`: `"send"`; `description`: `"Sends supported Commerce Message API messages to eBay conversations selected by the SDK user's workflow."`; `exposesSensitiveData`: `true`; `label`: `"Send eBay marketplace messages"`; `providerObjects`: readonly \[\{ `kind`: `"ebayMessage"`; `label`: `"eBay Message"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `audiences`: readonly \[`"internal-support"`\]; `capability`: `"marketplace.notification-signature"`; `description`: `"Decodes X-EBAY-SIGNATURE, retrieves or accepts the SDK-user-cached public key, and verifies ECDSA/SHA1 payload signatures before parsing."`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Validate eBay notification signatures"`; `providerObjects`: readonly \[\{ `kind`: `"ebaySignedNotification"`; `label`: `"eBay Signed Notification"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: readonly \[`"internal-support"`\]; `capability`: `"marketplace.digital-signature"`; `changesWorkflow`: `true`; `description`: `"Adds Content-Digest, Signature, Signature-Input, and X-EBAY-SIGNATURE-KEY headers to issueRefund when EU/UK seller policy requires eBay HTTP Message Signatures."`; `extension`: `true`; `label`: `"Sign regulated eBay refund requests"`; `providerObjects`: readonly \[\{ `kind`: `"ebaySignedRequest"`; `label`: `"eBay Signed Request"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `audiences`: readonly \[`"internal-support"`\]; `capability`: `"marketplace.notification-challenge"`; `description`: `"Computes the SHA-256 challengeResponse from challenge code, verification token, and endpoint URL for eBay destination setup."`; `extension`: `true`; `label`: `"Answer eBay notification challenges"`; `providerObjects`: readonly \[\{ `kind`: `"ebayNotificationChallenge"`; `label`: `"eBay Notification Challenge"`; \}\]; `requiresCredential`: `true`; \}\] |
 | `category` | `"marketplace"` |
 | `channelAudiences` | readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\] |
-| `coverage` | \{ `evidence`: readonly \[\{ `label`: `"eBay Sell Fulfillment API"`; `url`: `"https://developer.ebay.com/develop/api/sell/fulfillment_api"`; \}, \{ `label`: `"eBay Digital Signatures for APIs"`; `url`: `"https://developer.ebay.com/develop/guides/digital-signatures-for-apis"`; \}, \{ `label`: `"eBay Key Management API"`; `url`: `"https://developer.ebay.com/api-docs/developer/key-management/resources/methods"`; \}, \{ `label`: `"eBay Commerce Notification API resources"`; `url`: `"https://developer.ebay.com/api-docs/commerce/notification/resources/methods"`; \}, \{ `label`: `"eBay Commerce Notification API overview"`; `url`: `"https://developer.ebay.com/api-docs/commerce/notification/overview.html"`; \}, \{ `label`: `"eBay Notification getPublicKey"`; `url`: `"https://developer.ebay.com/api-docs/commerce/notification/resources/public_key/methods/getPublicKey"`; \}, \{ `label`: `"eBay OAuth client credentials grant flow"`; `url`: `"https://developer.ebay.com/develop/guides-v2/authorization#the-client-credentials-grant-flow"`; \}, \{ `label`: `"eBay Commerce Message API"`; `url`: `"https://developer.ebay.com/api-docs/commerce/message/resources/methods"`; \}, \{ `label`: `"eBay OpenAPI specifications"`; `url`: `"https://developer.ebay.com/api-docs/static/gs_take-advantage-of-openapi.html"`; \}, \{ `label`: `"eBay Fulfillment OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json"`; \}, \{ `label`: `"eBay Commerce Message OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json"`; \}, \{ `label`: `"eBay Commerce Notification OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json"`; \}, \{ `label`: `"eBay Developer Key Management OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json"`; \}, \{ `label`: `"eBay Commerce Identity OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json"`; \}\]; `notes`: readonly \[`"Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing."`, `"The selected REST slice now covers every documented operation in the currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource groups, but does not claim full eBay platform coverage."`, `"The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces."`, `"The Fulfillment API issueRefund path supports eBay HTTP Message Signature headers for EU/UK seller policy, but the SDK user must provide Key Management API signing material or a request signer."`, `"The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, and retention decisions."`\]; `scope`: `"support-workflow-subset"`; \} |
+| `coverage` | \{ `evidence`: readonly \[\{ `label`: `"eBay Sell Fulfillment API"`; `url`: `"https://developer.ebay.com/develop/api/sell/fulfillment_api"`; \}, \{ `label`: `"eBay Digital Signatures for APIs"`; `url`: `"https://developer.ebay.com/develop/guides/digital-signatures-for-apis"`; \}, \{ `label`: `"eBay Key Management API"`; `url`: `"https://developer.ebay.com/api-docs/developer/key-management/resources/methods"`; \}, \{ `label`: `"eBay Commerce Notification API resources"`; `url`: `"https://developer.ebay.com/api-docs/commerce/notification/resources/methods"`; \}, \{ `label`: `"eBay Commerce Notification API overview"`; `url`: `"https://developer.ebay.com/api-docs/commerce/notification/overview.html"`; \}, \{ `label`: `"eBay Notification getPublicKey"`; `url`: `"https://developer.ebay.com/api-docs/commerce/notification/resources/public_key/methods/getPublicKey"`; \}, \{ `label`: `"eBay OAuth client credentials grant flow"`; `url`: `"https://developer.ebay.com/develop/guides-v2/authorization#the-client-credentials-grant-flow"`; \}, \{ `label`: `"eBay Commerce Message API"`; `url`: `"https://developer.ebay.com/api-docs/commerce/message/resources/methods"`; \}, \{ `label`: `"eBay OpenAPI specifications"`; `url`: `"https://developer.ebay.com/api-docs/static/gs_take-advantage-of-openapi.html"`; \}, \{ `label`: `"eBay Fulfillment OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json"`; \}, \{ `label`: `"eBay Commerce Message OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json"`; \}, \{ `label`: `"eBay Commerce Notification OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json"`; \}, \{ `label`: `"eBay Developer Key Management OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json"`; \}, \{ `label`: `"eBay Commerce Identity OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json"`; \}\]; `notes`: readonly \[`"Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing."`, `"The selected eBay OpenAPI slice documents the provider-client contract for every currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource group operation, and this package ships a built-in REST adapter for those operations."`, `"The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces."`, `"Runtime provider-data operations use the built-in typed eBay REST adapter when OAuth token/environment/baseUrl/fetch options are provided; host-injected providerClient remains available as an override and must implement the selected operation contract."`, `"Local helpers for eBay notification challenge/signature parsing and HTTP Message Signature header creation remain available for host clients and webhook handlers."`, `"The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, retention decisions, and optional provider-client override runtime."`\]; `scope`: `"support-workflow-subset"`; \} |
 | `coverage.evidence` | readonly \[\{ `label`: `"eBay Sell Fulfillment API"`; `url`: `"https://developer.ebay.com/develop/api/sell/fulfillment_api"`; \}, \{ `label`: `"eBay Digital Signatures for APIs"`; `url`: `"https://developer.ebay.com/develop/guides/digital-signatures-for-apis"`; \}, \{ `label`: `"eBay Key Management API"`; `url`: `"https://developer.ebay.com/api-docs/developer/key-management/resources/methods"`; \}, \{ `label`: `"eBay Commerce Notification API resources"`; `url`: `"https://developer.ebay.com/api-docs/commerce/notification/resources/methods"`; \}, \{ `label`: `"eBay Commerce Notification API overview"`; `url`: `"https://developer.ebay.com/api-docs/commerce/notification/overview.html"`; \}, \{ `label`: `"eBay Notification getPublicKey"`; `url`: `"https://developer.ebay.com/api-docs/commerce/notification/resources/public_key/methods/getPublicKey"`; \}, \{ `label`: `"eBay OAuth client credentials grant flow"`; `url`: `"https://developer.ebay.com/develop/guides-v2/authorization#the-client-credentials-grant-flow"`; \}, \{ `label`: `"eBay Commerce Message API"`; `url`: `"https://developer.ebay.com/api-docs/commerce/message/resources/methods"`; \}, \{ `label`: `"eBay OpenAPI specifications"`; `url`: `"https://developer.ebay.com/api-docs/static/gs_take-advantage-of-openapi.html"`; \}, \{ `label`: `"eBay Fulfillment OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json"`; \}, \{ `label`: `"eBay Commerce Message OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json"`; \}, \{ `label`: `"eBay Commerce Notification OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json"`; \}, \{ `label`: `"eBay Developer Key Management OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json"`; \}, \{ `label`: `"eBay Commerce Identity OpenAPI 3 JSON"`; `url`: `"https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json"`; \}\] |
-| `coverage.notes` | readonly \[`"Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing."`, `"The selected REST slice now covers every documented operation in the currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource groups, but does not claim full eBay platform coverage."`, `"The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces."`, `"The Fulfillment API issueRefund path supports eBay HTTP Message Signature headers for EU/UK seller policy, but the SDK user must provide Key Management API signing material or a request signer."`, `"The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, and retention decisions."`\] |
+| `coverage.notes` | readonly \[`"Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing."`, `"The selected eBay OpenAPI slice documents the provider-client contract for every currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource group operation, and this package ships a built-in REST adapter for those operations."`, `"The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces."`, `"Runtime provider-data operations use the built-in typed eBay REST adapter when OAuth token/environment/baseUrl/fetch options are provided; host-injected providerClient remains available as an override and must implement the selected operation contract."`, `"Local helpers for eBay notification challenge/signature parsing and HTTP Message Signature header creation remain available for host clients and webhook handlers."`, `"The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, retention decisions, and optional provider-client override runtime."`\] |
 | `coverage.scope` | `"support-workflow-subset"` |
-| `credentialRequirements` | readonly \[\{ `description`: `"Server-side OAuth user token with SDK-user-selected Sell, Commerce Message, Identity, and Notification scopes."`; `id`: `"ebay-oauth-access-token"`; `label`: `"eBay OAuth user access token"`; `metadata`: \{ `scopeKind`: `"provider-oauth-scopes"`; \}; `required`: `true`; `scopes`: readonly \[`"https://api.ebay.com/oauth/api_scope/sell.fulfillment"`, `"https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly"`, `"https://api.ebay.com/oauth/api_scope/commerce.message"`, `"https://api.ebay.com/oauth/api_scope/commerce.identity.readonly"`, `"https://api.ebay.com/oauth/api_scope/commerce.notification.subscription"`\]; \}, \{ `description`: `"Client-credentials OAuth token with https://api.ebay.com/oauth/api_scope for Notification public-key retrieval."`; `id`: `"ebay-application-access-token"`; `label`: `"eBay application access token"`; `metadata`: \{ `scopeKind`: `"provider-oauth-scopes"`; \}; `required`: `true`; `scopes`: readonly \[`"https://api.ebay.com/oauth/api_scope"`\]; \}, \{ `description`: `"Application keyset client ID owned by the SDK user for OAuth and notification ownership metadata."`; `id`: `"ebay-client-id"`; `label`: `"eBay application client ID"`; `required`: `true`; \}, \{ `description`: `"Application keyset client secret kept server-side by the SDK user for OAuth token lifecycle operations."`; `id`: `"ebay-client-secret"`; `label`: `"eBay application client secret"`; `required`: `true`; \}, \{ `description`: `"SDK-user-selected marketplace such as EBAY_US or EBAY_DE, forwarded through X-EBAY-C-MARKETPLACE-ID where supported."`; `id`: `"ebay-marketplace-id"`; `label`: `"eBay marketplace ID"`; `required`: `true`; \}, \{ `description`: `"Destination verification token used to answer eBay challenge_code requests for notification endpoints."`; `id`: `"ebay-notification-verification-token"`; `label`: `"eBay notification verification token"`; `required`: `true`; \}, \{ `description`: `"Key Management API private key and public-key JWE required for issueRefund when EU/UK seller or SDK policy requires HTTP Message Signatures."`; `id`: `"ebay-digital-signature-key"`; `label`: `"eBay digital signature keypair"`; `required`: `false`; \}\] |
+| `credentialRequirements` | readonly \[\{ `description`: `"Server-side OAuth user token with SDK-user-selected Sell, Commerce Message, Identity, and Notification scopes."`; `id`: `"ebay-oauth-access-token"`; `label`: `"eBay OAuth user access token"`; `metadata`: \{ `scopeKind`: `"provider-oauth-scopes"`; \}; `required`: `true`; `scopes`: readonly \[`"https://api.ebay.com/oauth/api_scope/sell.fulfillment"`, `"https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly"`, `"https://api.ebay.com/oauth/api_scope/commerce.message"`, `"https://api.ebay.com/oauth/api_scope/commerce.identity.readonly"`, `"https://api.ebay.com/oauth/api_scope/commerce.notification.subscription"`\]; \}, \{ `description`: `"Client-credentials OAuth token with https://api.ebay.com/oauth/api_scope for Notification public-key retrieval."`; `id`: `"ebay-application-access-token"`; `label`: `"eBay application access token"`; `metadata`: \{ `scopeKind`: `"provider-oauth-scopes"`; \}; `required`: `true`; `scopes`: readonly \[`"https://api.ebay.com/oauth/api_scope"`\]; \}, \{ `description`: `"Application keyset client ID owned by the SDK user for OAuth and notification ownership metadata."`; `id`: `"ebay-client-id"`; `label`: `"eBay application client ID"`; `required`: `true`; \}, \{ `description`: `"Application keyset client secret kept server-side by the SDK user for OAuth token lifecycle operations."`; `id`: `"ebay-client-secret"`; `label`: `"eBay application client secret"`; `required`: `true`; \}, \{ `description`: `"SDK-user-selected marketplace such as EBAY_US or EBAY_DE, forwarded through X-EBAY-C-MARKETPLACE-ID where supported."`; `id`: `"ebay-marketplace-id"`; `label`: `"eBay marketplace ID"`; `required`: `true`; \}, \{ `description`: `"Optional host-injected client implementing EbayMarketplaceProviderClient when the SDK user wants to override the built-in REST adapter."`; `id`: `"ebay-provider-client"`; `label`: `"Optional eBay marketplace provider client override"`; `required`: `false`; \}, \{ `description`: `"Destination verification token used to answer eBay challenge_code requests for notification endpoints."`; `id`: `"ebay-notification-verification-token"`; `label`: `"eBay notification verification token"`; `required`: `true`; \}, \{ `description`: `"Key Management API private key and public-key JWE required for issueRefund when EU/UK seller or SDK policy requires HTTP Message Signatures."`; `id`: `"ebay-digital-signature-key"`; `label`: `"eBay digital signature keypair"`; `required`: `false`; \}\] |
 | `directions` | readonly \[`"receive-only"`, `"send-only"`, `"bidirectional"`\] |
 | `id` | `"marketplace.ebay"` |
-| `limitations` | readonly \[`"The SDK user chooses marketplaces, OAuth flows, scopes, notification topics, subscription filters, operator visibility, outbound messaging policy, refund/dispute rules, retention, consent, and redaction."`, `"Some eBay APIs are entitlement, marketplace, scope, topic, or sandbox limited; this package exposes typed REST foundations and does not decide whether a seller is eligible for a specific action."`, `"The issueRefund method is fail-closed when EU/UK seller or SDK policy requires digital signatures and no eBay request signer or Key Management API signing key is configured."`, `"Notification signature verification requires a valid eBay public key retrieved by key ID from the Notification API or a SDK-user-provided verifier/cache implementation."`\] |
+| `limitations` | readonly \[`"The SDK user chooses marketplaces, OAuth flows, scopes, notification topics, subscription filters, operator visibility, outbound messaging policy, refund/dispute rules, retention, consent, and redaction."`, `"Some eBay APIs are entitlement, marketplace, scope, topic, or sandbox limited; this package exposes a typed REST/provider-client contract and does not decide whether a seller is eligible for a specific action."`, `"Provider-data operations fail closed unless OAuth tokens are provided for the built-in typed REST adapter or an injected EbayMarketplaceProviderClient implements the selected operation."`, `"The local issueRefund signature helper is fail-closed when EU/UK seller or SDK policy requires digital signatures and no eBay signing key material is configured."`, `"Notification signature verification requires a valid eBay public key retrieved by key ID from the Notification API or a SDK-user-provided verifier/cache implementation."`\] |
 | `maintainers` | readonly \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
-| `metadata` | \{ `channelCoverage`: \{ `conversationBulkUpdate`: `"typed-update"`; `conversations`: `"typed-read-search-update"`; `digitalSignatures`: `"typed-sign"`; `inventoryMarketingAnalyticsBuyApis`: `"provider-supported-not-typed"`; `keyManagementSigningKeys`: `"typed-create-read-list"`; `messages`: `"typed-send"`; `notificationChallenge`: `"typed-response"`; `notificationConfig`: `"typed-read-update"`; `notificationDestinations`: `"typed-create-read-list-update-delete"`; `notificationFilters`: `"typed-create-read-delete"`; `notificationSignatures`: `"typed-verify"`; `notificationSubscriptions`: `"typed-create-read-list-update-enable-disable-test-delete"`; `notificationTopics`: `"typed-read-list"`; `orders`: `"typed-read-search"`; `paymentDisputeEvidence`: `"typed-read-upload-add-update"`; `paymentDisputes`: `"typed-read-search-update"`; `refunds`: `"typed-create"`; `shippingFulfillments`: `"typed-create-read-list"`; `userProfile`: `"typed-read"`; \}; `docs`: `"https://developer.ebay.com/api-docs"`; `fulfillmentDocs`: `"https://developer.ebay.com/api-docs/sell/fulfillment/overview.html"`; `generatedProviderSliceVerification`: \{ `apiVersion`: `string`; `coverageArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json"`; `documentedOperationCount`: `45`; `documentedPathCount`: `34`; `functionCatalogArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.functions.json"`; `generatedFunctionCount`: `45`; `implementedOperationCount`: `45`; `operationCatalogArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json"`; `provider`: `"ebay-selected-rest"`; `unimplementedOperationCount`: `0`; `verifiedAt`: `"2026-06-18"`; \}; `implementation`: \{ `checkedAt`: `"2026-06-18"`; `communityPackagesChecked`: readonly \[\{ `decision`: `"not-adopted-community-client-not-official-default"`; `package`: `"ebay-api"`; `repository`: `"https://github.com/hendt/ebay-api"`; `version`: `"9.5.2"`; \}\]; `officialUtilityPackagesChecked`: readonly \[\{ `decision`: `"not-adopted-current-local-signer-is-smaller"`; `package`: `"digital-signature-nodejs-sdk"`; `repository`: `"https://github.com/eBay/digital-signature-nodejs-sdk"`; `version`: `"3.0.1"`; \}, \{ `decision`: `"not-adopted-current-local-verifier-is-smaller"`; `package`: `"event-notification-nodejs-sdk"`; `repository`: `"https://github.com/eBay/event-notification-nodejs-sdk"`; `version`: `"1.0.3"`; \}\]; `selectedApiCount`: `5`; `strategy`: `"direct-support-slice"`; \}; `notificationDocs`: `"https://developer.ebay.com/api-docs/commerce/notification/overview.html"`; `supportSlice`: \{ `allowlist`: \{ `alias`: `` `ebay.${string}` ``; `api`: \| `"sell.fulfillment"` \| `"commerce.message"` \| `"commerce.notification"` \| `"developer.key-management"` \| `"commerce.identity"`; `method`: `"GET"` \| `"POST"` \| `"PUT"` \| `"DELETE"`; `operationId`: `string`; `path`: `string`; \}[]; `source`: `"official-ebay-openapi-selected-rest-contracts"`; `specs`: \{ `api`: \| `"sell.fulfillment"` \| `"commerce.message"` \| `"commerce.notification"` \| `"developer.key-management"` \| `"commerce.identity"`; `operationCount`: `15` \| `5` \| `21` \| `3` \| `1`; `pathCount`: `14` \| `5` \| `12` \| `2` \| `1`; `specUrl`: \| `"https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json"`; `version`: `"v1.20.7"` \| `"1.0.0"` \| `"v1.6.7"` \| `"v1.0.0"` \| `"v2.0.0"`; \}[]; `verifiedAt`: `"2026-06-18"`; \}; \} |
+| `metadata` | \{ `channelCoverage`: \{ `conversationBulkUpdate`: `"typed-update"`; `conversations`: `"typed-read-search-update"`; `digitalSignatures`: `"typed-sign"`; `inventoryMarketingAnalyticsBuyApis`: `"provider-supported-not-typed"`; `keyManagementSigningKeys`: `"typed-create-read-list"`; `messages`: `"typed-send"`; `notificationChallenge`: `"typed-response"`; `notificationConfig`: `"typed-read-update"`; `notificationDestinations`: `"typed-create-read-list-update-delete"`; `notificationFilters`: `"typed-create-read-delete"`; `notificationSignatures`: `"typed-verify"`; `notificationSubscriptions`: `"typed-create-read-list-update-enable-disable-test-delete"`; `notificationTopics`: `"typed-read-list"`; `orders`: `"typed-read-search"`; `paymentDisputeEvidence`: `"typed-read-upload-add-update"`; `paymentDisputes`: `"typed-read-search-update"`; `refunds`: `"typed-create"`; `shippingFulfillments`: `"typed-create-read-list"`; `userProfile`: `"typed-read"`; \}; `docs`: `"https://developer.ebay.com/api-docs"`; `fulfillmentDocs`: `"https://developer.ebay.com/api-docs/sell/fulfillment/overview.html"`; `generatedProviderSliceVerification`: \{ `apiVersion`: `string`; `coverageArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json"`; `documentedOperationCount`: `45`; `documentedPathCount`: `34`; `functionCatalogArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.functions.json"`; `generatedFunctionCount`: `45`; `implementedOperationCount`: `45`; `operationCatalogArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json"`; `provider`: `"ebay-provider-rest-adapter"`; `unimplementedOperationCount`: `0`; `verifiedAt`: `"2026-06-18"`; \}; `implementation`: \{ `checkedAt`: `"2026-06-18"`; `communityRestPackagesChecked`: readonly \[\{ `decision`: `"community-wrapper-rejected-not-provider-owned"`; `modifiedAt`: `"2026-05-11T08:17:20.577Z"`; `package`: `"ebay-api"`; `repository`: `"https://github.com/hendt/ebay-api"`; `version`: `"9.5.2"`; \}, \{ `decision`: `"community-wrapper-rejected-not-provider-owned"`; `modifiedAt`: `"2026-03-13T20:45:46.135Z"`; `package`: `"@tradebuddyhq/ebay-wrapper"`; `repository`: `"https://github.com/tradebuddyhq/ebay-wrapper"`; `version`: `"2.0.0"`; \}\]; `defaultHttpClient`: `"providerJsonRequest-for-selected-rest-operations"`; `officialUtilityPackagesChecked`: readonly \[\{ `decision`: `"provider-owned-runtime-used-for-default-digital-signature-headers"`; `modifiedAt`: `"2023-07-31T23:11:34.276Z"`; `package`: `"digital-signature-nodejs-sdk"`; `repository`: `"https://github.com/eBay/digital-signature-nodejs-sdk"`; `runtimeUse`: `"generateDigestHeader, generateSignatureInput, and generateSignature are imported and used for default eBay digital signature header creation."`; `version`: `"3.0.1"`; \}, \{ `decision`: `"provider-owned-runtime-used-for-endpoint-challenge"`; `modifiedAt`: `"2023-06-15T21:52:53.428Z"`; `package`: `"event-notification-nodejs-sdk"`; `repository`: `"https://github.com/eBay/event-notification-nodejs-sdk"`; `runtimeUse`: `"validateEndpoint is imported and used for notification endpoint challenge responses; webhook payload parsing and public-key verification remain typed local code because the SDK process() helper owns a broader processor/OAuth flow than this adapter exposes."`; `version`: `"1.0.3"`; \}, \{ `decision`: `"provider-owned-oauth-helper-not-selected-rest-runtime"`; `modifiedAt`: `"2023-06-15T21:52:53.428Z"`; `package`: `"ebay-oauth-nodejs-client"`; `reason`: `"OAuth helper only; it does not expose the selected Sell Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, or Commerce Identity operations."`; `repository`: `"https://github.com/eBay/ebay-oauth-nodejs-client"`; `version`: `"1.2.2"`; \}\]; `providerClientOverride`: `true`; `sdkAuditCheckedAt`: `"2026-06-25"`; `sdkDecision`: `"provider-owned-utility-sdks-used-no-provider-owned-general-rest-sdk"`; `sdkDecisionReason`: `"eBay's provider-owned Node.js packages cover digital signatures, event notifications, and OAuth helpers rather than a general backend REST client for this selected Sell/Commerce/Developer support slice. This package uses the provider-owned utility SDKs at runtime where they fit, keeps a typed selected REST adapter for API operations, and rejects community REST wrappers as package defaults because they are not eBay/provider-owned."`; `selectedApiCount`: `5`; `strategy`: `"provider-owned-utility-sdks-plus-selected-rest-adapter"`; \}; `notificationDocs`: `"https://developer.ebay.com/api-docs/commerce/notification/overview.html"`; `providerClient`: \{ `defaultClientPolicy`: `"built-in-rest-with-oauth-tokens-fail-closed"`; `failClosedPolicy`: `"credential-missing-without-token-or-host-client"`; `importPolicy`: `"optional-host-override"`; `interface`: `"EbayMarketplaceProviderClient"`; `package`: `"host-provided"`; `transportPolicy`: `"package-owned-typed-provider-rest-adapter"`; \}; `supportSlice`: \{ `allowlist`: \{ `alias`: `` `ebay.${string}` ``; `api`: \| `"sell.fulfillment"` \| `"commerce.message"` \| `"commerce.notification"` \| `"developer.key-management"` \| `"commerce.identity"`; `method`: `"GET"` \| `"POST"` \| `"PUT"` \| `"DELETE"`; `operationId`: `string`; `path`: `string`; \}[]; `source`: `"official-ebay-openapi-selected-provider-contracts"`; `specs`: \{ `api`: \| `"sell.fulfillment"` \| `"commerce.message"` \| `"commerce.notification"` \| `"developer.key-management"` \| `"commerce.identity"`; `operationCount`: `15` \| `5` \| `21` \| `3` \| `1`; `pathCount`: `14` \| `5` \| `12` \| `2` \| `1`; `specUrl`: \| `"https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json"`; `version`: `"v1.20.7"` \| `"1.0.0"` \| `"v1.6.7"` \| `"v1.0.0"` \| `"v2.0.0"`; \}[]; `verifiedAt`: `"2026-06-18"`; \}; \} |
 | `metadata.channelCoverage` | \{ `conversationBulkUpdate`: `"typed-update"`; `conversations`: `"typed-read-search-update"`; `digitalSignatures`: `"typed-sign"`; `inventoryMarketingAnalyticsBuyApis`: `"provider-supported-not-typed"`; `keyManagementSigningKeys`: `"typed-create-read-list"`; `messages`: `"typed-send"`; `notificationChallenge`: `"typed-response"`; `notificationConfig`: `"typed-read-update"`; `notificationDestinations`: `"typed-create-read-list-update-delete"`; `notificationFilters`: `"typed-create-read-delete"`; `notificationSignatures`: `"typed-verify"`; `notificationSubscriptions`: `"typed-create-read-list-update-enable-disable-test-delete"`; `notificationTopics`: `"typed-read-list"`; `orders`: `"typed-read-search"`; `paymentDisputeEvidence`: `"typed-read-upload-add-update"`; `paymentDisputes`: `"typed-read-search-update"`; `refunds`: `"typed-create"`; `shippingFulfillments`: `"typed-create-read-list"`; `userProfile`: `"typed-read"`; \} |
 | `metadata.channelCoverage.conversationBulkUpdate` | `"typed-update"` |
 | `metadata.channelCoverage.conversations` | `"typed-read-search-update"` |
@@ -4437,7 +5616,7 @@ const ebayMarketplaceProviderManifest: {
 | `metadata.channelCoverage.userProfile` | `"typed-read"` |
 | `metadata.docs` | `"https://developer.ebay.com/api-docs"` |
 | `metadata.fulfillmentDocs` | `"https://developer.ebay.com/api-docs/sell/fulfillment/overview.html"` |
-| `metadata.generatedProviderSliceVerification` | \{ `apiVersion`: `string`; `coverageArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json"`; `documentedOperationCount`: `45`; `documentedPathCount`: `34`; `functionCatalogArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.functions.json"`; `generatedFunctionCount`: `45`; `implementedOperationCount`: `45`; `operationCatalogArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json"`; `provider`: `"ebay-selected-rest"`; `unimplementedOperationCount`: `0`; `verifiedAt`: `"2026-06-18"`; \} |
+| `metadata.generatedProviderSliceVerification` | \{ `apiVersion`: `string`; `coverageArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json"`; `documentedOperationCount`: `45`; `documentedPathCount`: `34`; `functionCatalogArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.functions.json"`; `generatedFunctionCount`: `45`; `implementedOperationCount`: `45`; `operationCatalogArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json"`; `provider`: `"ebay-provider-rest-adapter"`; `unimplementedOperationCount`: `0`; `verifiedAt`: `"2026-06-18"`; \} |
 | `metadata.generatedProviderSliceVerification.apiVersion` | `string` |
 | `metadata.generatedProviderSliceVerification.coverageArtifact` | `"docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json"` |
 | `metadata.generatedProviderSliceVerification.documentedOperationCount` | `45` |
@@ -4446,23 +5625,35 @@ const ebayMarketplaceProviderManifest: {
 | `metadata.generatedProviderSliceVerification.generatedFunctionCount` | `45` |
 | `metadata.generatedProviderSliceVerification.implementedOperationCount` | `45` |
 | `metadata.generatedProviderSliceVerification.operationCatalogArtifact` | `"docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json"` |
-| `metadata.generatedProviderSliceVerification.provider` | `"ebay-selected-rest"` |
+| `metadata.generatedProviderSliceVerification.provider` | `"ebay-provider-rest-adapter"` |
 | `metadata.generatedProviderSliceVerification.unimplementedOperationCount` | `0` |
 | `metadata.generatedProviderSliceVerification.verifiedAt` | `"2026-06-18"` |
-| `metadata.implementation` | \{ `checkedAt`: `"2026-06-18"`; `communityPackagesChecked`: readonly \[\{ `decision`: `"not-adopted-community-client-not-official-default"`; `package`: `"ebay-api"`; `repository`: `"https://github.com/hendt/ebay-api"`; `version`: `"9.5.2"`; \}\]; `officialUtilityPackagesChecked`: readonly \[\{ `decision`: `"not-adopted-current-local-signer-is-smaller"`; `package`: `"digital-signature-nodejs-sdk"`; `repository`: `"https://github.com/eBay/digital-signature-nodejs-sdk"`; `version`: `"3.0.1"`; \}, \{ `decision`: `"not-adopted-current-local-verifier-is-smaller"`; `package`: `"event-notification-nodejs-sdk"`; `repository`: `"https://github.com/eBay/event-notification-nodejs-sdk"`; `version`: `"1.0.3"`; \}\]; `selectedApiCount`: `5`; `strategy`: `"direct-support-slice"`; \} |
+| `metadata.implementation` | \{ `checkedAt`: `"2026-06-18"`; `communityRestPackagesChecked`: readonly \[\{ `decision`: `"community-wrapper-rejected-not-provider-owned"`; `modifiedAt`: `"2026-05-11T08:17:20.577Z"`; `package`: `"ebay-api"`; `repository`: `"https://github.com/hendt/ebay-api"`; `version`: `"9.5.2"`; \}, \{ `decision`: `"community-wrapper-rejected-not-provider-owned"`; `modifiedAt`: `"2026-03-13T20:45:46.135Z"`; `package`: `"@tradebuddyhq/ebay-wrapper"`; `repository`: `"https://github.com/tradebuddyhq/ebay-wrapper"`; `version`: `"2.0.0"`; \}\]; `defaultHttpClient`: `"providerJsonRequest-for-selected-rest-operations"`; `officialUtilityPackagesChecked`: readonly \[\{ `decision`: `"provider-owned-runtime-used-for-default-digital-signature-headers"`; `modifiedAt`: `"2023-07-31T23:11:34.276Z"`; `package`: `"digital-signature-nodejs-sdk"`; `repository`: `"https://github.com/eBay/digital-signature-nodejs-sdk"`; `runtimeUse`: `"generateDigestHeader, generateSignatureInput, and generateSignature are imported and used for default eBay digital signature header creation."`; `version`: `"3.0.1"`; \}, \{ `decision`: `"provider-owned-runtime-used-for-endpoint-challenge"`; `modifiedAt`: `"2023-06-15T21:52:53.428Z"`; `package`: `"event-notification-nodejs-sdk"`; `repository`: `"https://github.com/eBay/event-notification-nodejs-sdk"`; `runtimeUse`: `"validateEndpoint is imported and used for notification endpoint challenge responses; webhook payload parsing and public-key verification remain typed local code because the SDK process() helper owns a broader processor/OAuth flow than this adapter exposes."`; `version`: `"1.0.3"`; \}, \{ `decision`: `"provider-owned-oauth-helper-not-selected-rest-runtime"`; `modifiedAt`: `"2023-06-15T21:52:53.428Z"`; `package`: `"ebay-oauth-nodejs-client"`; `reason`: `"OAuth helper only; it does not expose the selected Sell Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, or Commerce Identity operations."`; `repository`: `"https://github.com/eBay/ebay-oauth-nodejs-client"`; `version`: `"1.2.2"`; \}\]; `providerClientOverride`: `true`; `sdkAuditCheckedAt`: `"2026-06-25"`; `sdkDecision`: `"provider-owned-utility-sdks-used-no-provider-owned-general-rest-sdk"`; `sdkDecisionReason`: `"eBay's provider-owned Node.js packages cover digital signatures, event notifications, and OAuth helpers rather than a general backend REST client for this selected Sell/Commerce/Developer support slice. This package uses the provider-owned utility SDKs at runtime where they fit, keeps a typed selected REST adapter for API operations, and rejects community REST wrappers as package defaults because they are not eBay/provider-owned."`; `selectedApiCount`: `5`; `strategy`: `"provider-owned-utility-sdks-plus-selected-rest-adapter"`; \} |
 | `metadata.implementation.checkedAt` | `"2026-06-18"` |
-| `metadata.implementation.communityPackagesChecked` | readonly \[\{ `decision`: `"not-adopted-community-client-not-official-default"`; `package`: `"ebay-api"`; `repository`: `"https://github.com/hendt/ebay-api"`; `version`: `"9.5.2"`; \}\] |
-| `metadata.implementation.officialUtilityPackagesChecked` | readonly \[\{ `decision`: `"not-adopted-current-local-signer-is-smaller"`; `package`: `"digital-signature-nodejs-sdk"`; `repository`: `"https://github.com/eBay/digital-signature-nodejs-sdk"`; `version`: `"3.0.1"`; \}, \{ `decision`: `"not-adopted-current-local-verifier-is-smaller"`; `package`: `"event-notification-nodejs-sdk"`; `repository`: `"https://github.com/eBay/event-notification-nodejs-sdk"`; `version`: `"1.0.3"`; \}\] |
+| `metadata.implementation.communityRestPackagesChecked` | readonly \[\{ `decision`: `"community-wrapper-rejected-not-provider-owned"`; `modifiedAt`: `"2026-05-11T08:17:20.577Z"`; `package`: `"ebay-api"`; `repository`: `"https://github.com/hendt/ebay-api"`; `version`: `"9.5.2"`; \}, \{ `decision`: `"community-wrapper-rejected-not-provider-owned"`; `modifiedAt`: `"2026-03-13T20:45:46.135Z"`; `package`: `"@tradebuddyhq/ebay-wrapper"`; `repository`: `"https://github.com/tradebuddyhq/ebay-wrapper"`; `version`: `"2.0.0"`; \}\] |
+| `metadata.implementation.defaultHttpClient` | `"providerJsonRequest-for-selected-rest-operations"` |
+| `metadata.implementation.officialUtilityPackagesChecked` | readonly \[\{ `decision`: `"provider-owned-runtime-used-for-default-digital-signature-headers"`; `modifiedAt`: `"2023-07-31T23:11:34.276Z"`; `package`: `"digital-signature-nodejs-sdk"`; `repository`: `"https://github.com/eBay/digital-signature-nodejs-sdk"`; `runtimeUse`: `"generateDigestHeader, generateSignatureInput, and generateSignature are imported and used for default eBay digital signature header creation."`; `version`: `"3.0.1"`; \}, \{ `decision`: `"provider-owned-runtime-used-for-endpoint-challenge"`; `modifiedAt`: `"2023-06-15T21:52:53.428Z"`; `package`: `"event-notification-nodejs-sdk"`; `repository`: `"https://github.com/eBay/event-notification-nodejs-sdk"`; `runtimeUse`: `"validateEndpoint is imported and used for notification endpoint challenge responses; webhook payload parsing and public-key verification remain typed local code because the SDK process() helper owns a broader processor/OAuth flow than this adapter exposes."`; `version`: `"1.0.3"`; \}, \{ `decision`: `"provider-owned-oauth-helper-not-selected-rest-runtime"`; `modifiedAt`: `"2023-06-15T21:52:53.428Z"`; `package`: `"ebay-oauth-nodejs-client"`; `reason`: `"OAuth helper only; it does not expose the selected Sell Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, or Commerce Identity operations."`; `repository`: `"https://github.com/eBay/ebay-oauth-nodejs-client"`; `version`: `"1.2.2"`; \}\] |
+| `metadata.implementation.providerClientOverride` | `true` |
+| `metadata.implementation.sdkAuditCheckedAt` | `"2026-06-25"` |
+| `metadata.implementation.sdkDecision` | `"provider-owned-utility-sdks-used-no-provider-owned-general-rest-sdk"` |
+| `metadata.implementation.sdkDecisionReason` | `"eBay's provider-owned Node.js packages cover digital signatures, event notifications, and OAuth helpers rather than a general backend REST client for this selected Sell/Commerce/Developer support slice. This package uses the provider-owned utility SDKs at runtime where they fit, keeps a typed selected REST adapter for API operations, and rejects community REST wrappers as package defaults because they are not eBay/provider-owned."` |
 | `metadata.implementation.selectedApiCount` | `5` |
-| `metadata.implementation.strategy` | `"direct-support-slice"` |
+| `metadata.implementation.strategy` | `"provider-owned-utility-sdks-plus-selected-rest-adapter"` |
 | `metadata.notificationDocs` | `"https://developer.ebay.com/api-docs/commerce/notification/overview.html"` |
-| `metadata.supportSlice` | \{ `allowlist`: \{ `alias`: `` `ebay.${string}` ``; `api`: \| `"sell.fulfillment"` \| `"commerce.message"` \| `"commerce.notification"` \| `"developer.key-management"` \| `"commerce.identity"`; `method`: `"GET"` \| `"POST"` \| `"PUT"` \| `"DELETE"`; `operationId`: `string`; `path`: `string`; \}[]; `source`: `"official-ebay-openapi-selected-rest-contracts"`; `specs`: \{ `api`: \| `"sell.fulfillment"` \| `"commerce.message"` \| `"commerce.notification"` \| `"developer.key-management"` \| `"commerce.identity"`; `operationCount`: `15` \| `5` \| `21` \| `3` \| `1`; `pathCount`: `14` \| `5` \| `12` \| `2` \| `1`; `specUrl`: \| `"https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json"`; `version`: `"v1.20.7"` \| `"1.0.0"` \| `"v1.6.7"` \| `"v1.0.0"` \| `"v2.0.0"`; \}[]; `verifiedAt`: `"2026-06-18"`; \} |
+| `metadata.providerClient` | \{ `defaultClientPolicy`: `"built-in-rest-with-oauth-tokens-fail-closed"`; `failClosedPolicy`: `"credential-missing-without-token-or-host-client"`; `importPolicy`: `"optional-host-override"`; `interface`: `"EbayMarketplaceProviderClient"`; `package`: `"host-provided"`; `transportPolicy`: `"package-owned-typed-provider-rest-adapter"`; \} |
+| `metadata.providerClient.defaultClientPolicy` | `"built-in-rest-with-oauth-tokens-fail-closed"` |
+| `metadata.providerClient.failClosedPolicy` | `"credential-missing-without-token-or-host-client"` |
+| `metadata.providerClient.importPolicy` | `"optional-host-override"` |
+| `metadata.providerClient.interface` | `"EbayMarketplaceProviderClient"` |
+| `metadata.providerClient.package` | `"host-provided"` |
+| `metadata.providerClient.transportPolicy` | `"package-owned-typed-provider-rest-adapter"` |
+| `metadata.supportSlice` | \{ `allowlist`: \{ `alias`: `` `ebay.${string}` ``; `api`: \| `"sell.fulfillment"` \| `"commerce.message"` \| `"commerce.notification"` \| `"developer.key-management"` \| `"commerce.identity"`; `method`: `"GET"` \| `"POST"` \| `"PUT"` \| `"DELETE"`; `operationId`: `string`; `path`: `string`; \}[]; `source`: `"official-ebay-openapi-selected-provider-contracts"`; `specs`: \{ `api`: \| `"sell.fulfillment"` \| `"commerce.message"` \| `"commerce.notification"` \| `"developer.key-management"` \| `"commerce.identity"`; `operationCount`: `15` \| `5` \| `21` \| `3` \| `1`; `pathCount`: `14` \| `5` \| `12` \| `2` \| `1`; `specUrl`: \| `"https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json"`; `version`: `"v1.20.7"` \| `"1.0.0"` \| `"v1.6.7"` \| `"v1.0.0"` \| `"v2.0.0"`; \}[]; `verifiedAt`: `"2026-06-18"`; \} |
 | `metadata.supportSlice.allowlist` | \{ `alias`: `` `ebay.${string}` ``; `api`: \| `"sell.fulfillment"` \| `"commerce.message"` \| `"commerce.notification"` \| `"developer.key-management"` \| `"commerce.identity"`; `method`: `"GET"` \| `"POST"` \| `"PUT"` \| `"DELETE"`; `operationId`: `string`; `path`: `string`; \}[] |
-| `metadata.supportSlice.source` | `"official-ebay-openapi-selected-rest-contracts"` |
+| `metadata.supportSlice.source` | `"official-ebay-openapi-selected-provider-contracts"` |
 | `metadata.supportSlice.specs` | \{ `api`: \| `"sell.fulfillment"` \| `"commerce.message"` \| `"commerce.notification"` \| `"developer.key-management"` \| `"commerce.identity"`; `operationCount`: `15` \| `5` \| `21` \| `3` \| `1`; `pathCount`: `14` \| `5` \| `12` \| `2` \| `1`; `specUrl`: \| `"https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json"` \| `"https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json"`; `version`: `"v1.20.7"` \| `"1.0.0"` \| `"v1.6.7"` \| `"v1.0.0"` \| `"v2.0.0"`; \}[] |
 | `metadata.supportSlice.verifiedAt` | `"2026-06-18"` |
 | `name` | `"eBay Marketplace"` |
-| `operations` | \{ `alias`: `` `ebay.${string}` ``; `capability`: `string`; `changesWorkflow`: `boolean`; `description`: `string`; `exposesSensitiveData`: `boolean`; `extension`: `boolean`; `label`: keyof [`EbayMarketplaceClient`](#ebaymarketplaceclient); `metadata`: \{ `api`: \| `"sell.fulfillment"` \| `"commerce.message"` \| `"commerce.notification"` \| `"developer.key-management"` \| `"commerce.identity"`; `method`: `"GET"` \| `"POST"` \| `"PUT"` \| `"DELETE"`; `operationId`: `string`; `path`: `string`; `specUrl`: `string`; \}; `providerObject`: `string`; `providerOperation`: `string`; `requiresCredential`: `boolean`; `sideEffect`: `boolean`; \}[] |
+| `operations` | \{ `alias`: `` `ebay.${string}` ``; `capability`: `string`; `changesWorkflow`: `boolean`; `description`: `string`; `exposesSensitiveData`: `boolean`; `extension`: `boolean`; `label`: keyof [`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient); `metadata`: \{ `api`: \| `"sell.fulfillment"` \| `"commerce.message"` \| `"commerce.notification"` \| `"developer.key-management"` \| `"commerce.identity"`; `method`: `"GET"` \| `"POST"` \| `"PUT"` \| `"DELETE"`; `operationId`: `string`; `path`: `string`; `specUrl`: `string`; \}; `providerObject`: `string`; `providerOperation`: `string`; `requiresCredential`: `boolean`; `sideEffect`: `boolean`; \}[] |
 | `packageName` | `"@cognidesk/integration-marketplace-ebay"` |
 | `privacyNotes` | readonly \[`"eBay orders, buyer/seller conversations, shipping fulfillments, disputes, refunds, notifications, and account profile records can contain customer data, addresses, item details, and internal support context."`, `"OAuth tokens, keyset secrets, notification verification tokens, public-key caches, and gateway shared secrets stay server-side; Studio receives only readiness and capability metadata."`\] |
 | `provider` | `"ebay"` |
@@ -4473,7 +5664,7 @@ const ebayMarketplaceProviderManifest: {
 ### ebaySelectedApiFunctionCatalog
 
 ```ts
-const ebaySelectedApiFunctionCatalog: keyof EbayMarketplaceClient[];
+const ebaySelectedApiFunctionCatalog: keyof EbayMarketplaceProviderClient[];
 ```
 
 ***
@@ -4555,18 +5746,1090 @@ function createEbayDigitalSignatureHeaders(input): Record<string, string>;
 ### createEbayMarketplaceClient()
 
 ```ts
-function createEbayMarketplaceClient(options): EbayMarketplaceClient;
+function createEbayMarketplaceClient(options?): EbayMarketplaceClient;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions) |
+| `options?` | [`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions) |
 
 #### Returns
 
 [`EbayMarketplaceClient`](#ebaymarketplaceclient)
+
+***
+
+### createEbayMarketplaceIntegration()
+
+```ts
+function createEbayMarketplaceIntegration(options?): DefinedIntegration<{
+  capabilities: {
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+     capability: string;
+     changesWorkflow?: boolean;
+     description?: string;
+     exposesSensitiveData?: boolean;
+     extension?: boolean;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        schemaName?: string;
+     }[];
+     requiresCredential?: boolean;
+     sideEffect?: boolean;
+  }[];
+  category: string;
+  channelAudiences: ("customer-facing" | "internal-support" | "mixed")[];
+  coverage: {
+     evidence: {
+        label: string;
+        url?: string;
+     }[];
+     notes: string[];
+     scope:   | "support-workflow-subset"
+        | "provider-api-subset"
+        | "connector-required"
+        | "local-protocol"
+        | "full-provider-api";
+  };
+  credentialRequirements: {
+     description?: string;
+     id: string;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     required: boolean;
+     scopes: string[];
+  }[];
+  directions: (
+     | "receive-only"
+     | "send-only"
+     | "inbound-only"
+     | "outbound-only"
+    | "bidirectional")[];
+  id: string;
+  limitations: string[];
+  maintainers: {
+     name: string;
+     type: "community" | "official" | "unknown" | "partner";
+     url?: string;
+  }[];
+  metadata?: Record<string, unknown>;
+  name: string;
+  operations: {
+     alias: string;
+     audience?: "customer-facing" | "internal-support" | "mixed";
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+     capability: string;
+     changesWorkflow?: boolean;
+     description?: string;
+     exposesSensitiveData?: boolean;
+     extension: boolean;
+     externallyVisible?: boolean;
+     inputSchema?: unknown;
+     inputSchemaName?: string;
+     inputSchemaRef?: string;
+     label?: string;
+     metadata?: Record<string, unknown>;
+     outputSchema?: unknown;
+     outputSchemaName?: string;
+     outputSchemaRef?: string;
+     providerObject?: string;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        schemaName?: string;
+     }[];
+     providerOperation?: string;
+     requiredPolicyIds?: string[];
+     requiresApproval?: boolean;
+     requiresCredential?: boolean;
+     sideEffect?: boolean;
+  }[];
+  packageName: string;
+  privacyNotes: string[];
+  provider: string;
+  trustLevel: "community" | "official" | "verified" | "experimental";
+} & {
+  capabilities: readonly [{
+     audiences: readonly ["customer-facing", "internal-support", "mixed"];
+     capability: "receive";
+     description: "Validates eBay notification endpoint challenges and parses signed Notification API events for SDK-user-owned marketplace workflows.";
+     exposesSensitiveData: true;
+     label: "Receive eBay notifications";
+     providerObjects: readonly [{
+        kind: "ebayNotification";
+        label: "eBay Notification";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: readonly ["customer-facing", "internal-support", "mixed"];
+     capability: "read-provider-object";
+     description: "Reads eBay seller orders, shipping fulfillments, payment disputes, message conversations, account profile details, and notification destinations/subscriptions.";
+     exposesSensitiveData: true;
+     label: "Read eBay marketplace records";
+     providerObjects: readonly [{
+        kind: "ebayOrder";
+        label: "eBay Order";
+      }, {
+        kind: "ebayShippingFulfillment";
+        label: "eBay Shipping Fulfillment";
+      }, {
+        kind: "ebayPaymentDispute";
+        label: "eBay Payment Dispute";
+      }, {
+        kind: "ebayConversation";
+        label: "eBay Conversation";
+      }, {
+        kind: "ebayUser";
+        label: "eBay User";
+      }, {
+        kind: "ebayNotificationDestination";
+        label: "eBay Notification Destination";
+      }, {
+        kind: "ebayNotificationSubscription";
+        label: "eBay Notification Subscription";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: readonly ["internal-support", "mixed"];
+     capability: "search-provider-object";
+     description: "Searches orders, payment disputes, and message conversations with SDK-user-supplied eBay filters and pagination.";
+     exposesSensitiveData: true;
+     label: "Search eBay marketplace records";
+     providerObjects: readonly [{
+        kind: "ebayOrder";
+        label: "eBay Order";
+      }, {
+        kind: "ebayPaymentDispute";
+        label: "eBay Payment Dispute";
+      }, {
+        kind: "ebayConversation";
+        label: "eBay Conversation";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: readonly ["internal-support", "mixed"];
+     capability: "update-provider-object";
+     changesWorkflow: true;
+     description: "Updates eBay conversations, payment-dispute evidence or outcomes, and notification destination/subscription lifecycle when SDK-user policy permits marketplace mutations.";
+     exposesSensitiveData: true;
+     label: "Update eBay marketplace records";
+     providerObjects: readonly [{
+        kind: "ebayConversation";
+        label: "eBay Conversation";
+      }, {
+        kind: "ebayPaymentDispute";
+        label: "eBay Payment Dispute";
+      }, {
+        kind: "ebayNotificationDestination";
+        label: "eBay Notification Destination";
+      }, {
+        kind: "ebayNotificationSubscription";
+        label: "eBay Notification Subscription";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: readonly ["internal-support", "mixed"];
+     capability: "delete-provider-object";
+     changesWorkflow: true;
+     description: "Deletes notification destinations, subscriptions, and filters only when the SDK user's marketplace policy allows lifecycle changes.";
+     label: "Delete eBay marketplace resources";
+     providerObjects: readonly [{
+        kind: "ebayNotificationDestination";
+        label: "eBay Notification Destination";
+      }, {
+        kind: "ebayNotificationSubscription";
+        label: "eBay Notification Subscription";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: readonly ["internal-support", "mixed"];
+     capability: "create-provider-object";
+     changesWorkflow: true;
+     description: "Creates shipping fulfillments, buyer/seller messages, refunds, and payment-dispute actions only when SDK-user policy allows.";
+     exposesSensitiveData: true;
+     label: "Create eBay fulfillment and message records";
+     providerObjects: readonly [{
+        kind: "ebayShippingFulfillment";
+        label: "eBay Shipping Fulfillment";
+      }, {
+        kind: "ebayMessage";
+        label: "eBay Message";
+      }, {
+        kind: "ebayRefund";
+        label: "eBay Refund";
+      }, {
+        kind: "ebayNotificationDestination";
+        label: "eBay Notification Destination";
+      }, {
+        kind: "ebayNotificationSubscription";
+        label: "eBay Notification Subscription";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: readonly ["customer-facing", "mixed"];
+     capability: "send";
+     description: "Sends supported Commerce Message API messages to eBay conversations selected by the SDK user's workflow.";
+     exposesSensitiveData: true;
+     label: "Send eBay marketplace messages";
+     providerObjects: readonly [{
+        kind: "ebayMessage";
+        label: "eBay Message";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: readonly ["internal-support"];
+     capability: "marketplace.notification-signature";
+     description: "Decodes X-EBAY-SIGNATURE, retrieves or accepts the SDK-user-cached public key, and verifies ECDSA/SHA1 payload signatures before parsing.";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Validate eBay notification signatures";
+     providerObjects: readonly [{
+        kind: "ebaySignedNotification";
+        label: "eBay Signed Notification";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: readonly ["internal-support"];
+     capability: "marketplace.digital-signature";
+     changesWorkflow: true;
+     description: "Adds Content-Digest, Signature, Signature-Input, and X-EBAY-SIGNATURE-KEY headers to issueRefund when EU/UK seller policy requires eBay HTTP Message Signatures.";
+     extension: true;
+     label: "Sign regulated eBay refund requests";
+     providerObjects: readonly [{
+        kind: "ebaySignedRequest";
+        label: "eBay Signed Request";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: readonly ["internal-support"];
+     capability: "marketplace.notification-challenge";
+     description: "Computes the SHA-256 challengeResponse from challenge code, verification token, and endpoint URL for eBay destination setup.";
+     extension: true;
+     label: "Answer eBay notification challenges";
+     providerObjects: readonly [{
+        kind: "ebayNotificationChallenge";
+        label: "eBay Notification Challenge";
+     }];
+     requiresCredential: true;
+  }];
+  category: "marketplace";
+  channelAudiences: readonly ["customer-facing", "internal-support", "mixed"];
+  coverage: {
+     evidence: readonly [{
+        label: "eBay Sell Fulfillment API";
+        url: "https://developer.ebay.com/develop/api/sell/fulfillment_api";
+      }, {
+        label: "eBay Digital Signatures for APIs";
+        url: "https://developer.ebay.com/develop/guides/digital-signatures-for-apis";
+      }, {
+        label: "eBay Key Management API";
+        url: "https://developer.ebay.com/api-docs/developer/key-management/resources/methods";
+      }, {
+        label: "eBay Commerce Notification API resources";
+        url: "https://developer.ebay.com/api-docs/commerce/notification/resources/methods";
+      }, {
+        label: "eBay Commerce Notification API overview";
+        url: "https://developer.ebay.com/api-docs/commerce/notification/overview.html";
+      }, {
+        label: "eBay Notification getPublicKey";
+        url: "https://developer.ebay.com/api-docs/commerce/notification/resources/public_key/methods/getPublicKey";
+      }, {
+        label: "eBay OAuth client credentials grant flow";
+        url: "https://developer.ebay.com/develop/guides-v2/authorization#the-client-credentials-grant-flow";
+      }, {
+        label: "eBay Commerce Message API";
+        url: "https://developer.ebay.com/api-docs/commerce/message/resources/methods";
+      }, {
+        label: "eBay OpenAPI specifications";
+        url: "https://developer.ebay.com/api-docs/static/gs_take-advantage-of-openapi.html";
+      }, {
+        label: "eBay Fulfillment OpenAPI 3 JSON";
+        url: "https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json";
+      }, {
+        label: "eBay Commerce Message OpenAPI 3 JSON";
+        url: "https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json";
+      }, {
+        label: "eBay Commerce Notification OpenAPI 3 JSON";
+        url: "https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json";
+      }, {
+        label: "eBay Developer Key Management OpenAPI 3 JSON";
+        url: "https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json";
+      }, {
+        label: "eBay Commerce Identity OpenAPI 3 JSON";
+        url: "https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json";
+     }];
+     notes: readonly ["Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing.", "The selected eBay OpenAPI slice documents the provider-client contract for every currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource group operation, and this package ships a built-in REST adapter for those operations.", "The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces.", "Runtime provider-data operations use the built-in typed eBay REST adapter when OAuth token/environment/baseUrl/fetch options are provided; host-injected providerClient remains available as an override and must implement the selected operation contract.", "Local helpers for eBay notification challenge/signature parsing and HTTP Message Signature header creation remain available for host clients and webhook handlers.", "The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, retention decisions, and optional provider-client override runtime."];
+     scope: "support-workflow-subset";
+  };
+  credentialRequirements: readonly [{
+     description: "Server-side OAuth user token with SDK-user-selected Sell, Commerce Message, Identity, and Notification scopes.";
+     id: "ebay-oauth-access-token";
+     label: "eBay OAuth user access token";
+     metadata: {
+        scopeKind: "provider-oauth-scopes";
+     };
+     required: true;
+     scopes: readonly ["https://api.ebay.com/oauth/api_scope/sell.fulfillment", "https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly", "https://api.ebay.com/oauth/api_scope/commerce.message", "https://api.ebay.com/oauth/api_scope/commerce.identity.readonly", "https://api.ebay.com/oauth/api_scope/commerce.notification.subscription"];
+   }, {
+     description: "Client-credentials OAuth token with https://api.ebay.com/oauth/api_scope for Notification public-key retrieval.";
+     id: "ebay-application-access-token";
+     label: "eBay application access token";
+     metadata: {
+        scopeKind: "provider-oauth-scopes";
+     };
+     required: true;
+     scopes: readonly ["https://api.ebay.com/oauth/api_scope"];
+   }, {
+     description: "Application keyset client ID owned by the SDK user for OAuth and notification ownership metadata.";
+     id: "ebay-client-id";
+     label: "eBay application client ID";
+     required: true;
+   }, {
+     description: "Application keyset client secret kept server-side by the SDK user for OAuth token lifecycle operations.";
+     id: "ebay-client-secret";
+     label: "eBay application client secret";
+     required: true;
+   }, {
+     description: "SDK-user-selected marketplace such as EBAY_US or EBAY_DE, forwarded through X-EBAY-C-MARKETPLACE-ID where supported.";
+     id: "ebay-marketplace-id";
+     label: "eBay marketplace ID";
+     required: true;
+   }, {
+     description: "Optional host-injected client implementing EbayMarketplaceProviderClient when the SDK user wants to override the built-in REST adapter.";
+     id: "ebay-provider-client";
+     label: "Optional eBay marketplace provider client override";
+     required: false;
+   }, {
+     description: "Destination verification token used to answer eBay challenge_code requests for notification endpoints.";
+     id: "ebay-notification-verification-token";
+     label: "eBay notification verification token";
+     required: true;
+   }, {
+     description: "Key Management API private key and public-key JWE required for issueRefund when EU/UK seller or SDK policy requires HTTP Message Signatures.";
+     id: "ebay-digital-signature-key";
+     label: "eBay digital signature keypair";
+     required: false;
+  }];
+  directions: readonly ["receive-only", "send-only", "bidirectional"];
+  id: "marketplace.ebay";
+  limitations: readonly ["The SDK user chooses marketplaces, OAuth flows, scopes, notification topics, subscription filters, operator visibility, outbound messaging policy, refund/dispute rules, retention, consent, and redaction.", "Some eBay APIs are entitlement, marketplace, scope, topic, or sandbox limited; this package exposes a typed REST/provider-client contract and does not decide whether a seller is eligible for a specific action.", "Provider-data operations fail closed unless OAuth tokens are provided for the built-in typed REST adapter or an injected EbayMarketplaceProviderClient implements the selected operation.", "The local issueRefund signature helper is fail-closed when EU/UK seller or SDK policy requires digital signatures and no eBay signing key material is configured.", "Notification signature verification requires a valid eBay public key retrieved by key ID from the Notification API or a SDK-user-provided verifier/cache implementation."];
+  maintainers: readonly [{
+     name: "Cognidesk";
+     type: "official";
+  }];
+  metadata: {
+     channelCoverage: {
+        conversationBulkUpdate: "typed-update";
+        conversations: "typed-read-search-update";
+        digitalSignatures: "typed-sign";
+        inventoryMarketingAnalyticsBuyApis: "provider-supported-not-typed";
+        keyManagementSigningKeys: "typed-create-read-list";
+        messages: "typed-send";
+        notificationChallenge: "typed-response";
+        notificationConfig: "typed-read-update";
+        notificationDestinations: "typed-create-read-list-update-delete";
+        notificationFilters: "typed-create-read-delete";
+        notificationSignatures: "typed-verify";
+        notificationSubscriptions: "typed-create-read-list-update-enable-disable-test-delete";
+        notificationTopics: "typed-read-list";
+        orders: "typed-read-search";
+        paymentDisputeEvidence: "typed-read-upload-add-update";
+        paymentDisputes: "typed-read-search-update";
+        refunds: "typed-create";
+        shippingFulfillments: "typed-create-read-list";
+        userProfile: "typed-read";
+     };
+     docs: "https://developer.ebay.com/api-docs";
+     fulfillmentDocs: "https://developer.ebay.com/api-docs/sell/fulfillment/overview.html";
+     generatedProviderSliceVerification: {
+        apiVersion: string;
+        coverageArtifact: "docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json";
+        documentedOperationCount: 45;
+        documentedPathCount: 34;
+        functionCatalogArtifact: "docs/provider-coverage/ebay-selected-api-2026-06-18.functions.json";
+        generatedFunctionCount: 45;
+        implementedOperationCount: 45;
+        operationCatalogArtifact: "docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json";
+        provider: "ebay-provider-rest-adapter";
+        unimplementedOperationCount: 0;
+        verifiedAt: "2026-06-18";
+     };
+     implementation: {
+        checkedAt: "2026-06-18";
+        communityRestPackagesChecked: readonly [{
+           decision: "community-wrapper-rejected-not-provider-owned";
+           modifiedAt: "2026-05-11T08:17:20.577Z";
+           package: "ebay-api";
+           repository: "https://github.com/hendt/ebay-api";
+           version: "9.5.2";
+         }, {
+           decision: "community-wrapper-rejected-not-provider-owned";
+           modifiedAt: "2026-03-13T20:45:46.135Z";
+           package: "@tradebuddyhq/ebay-wrapper";
+           repository: "https://github.com/tradebuddyhq/ebay-wrapper";
+           version: "2.0.0";
+        }];
+        defaultHttpClient: "providerJsonRequest-for-selected-rest-operations";
+        officialUtilityPackagesChecked: readonly [{
+           decision: "provider-owned-runtime-used-for-default-digital-signature-headers";
+           modifiedAt: "2023-07-31T23:11:34.276Z";
+           package: "digital-signature-nodejs-sdk";
+           repository: "https://github.com/eBay/digital-signature-nodejs-sdk";
+           runtimeUse: "generateDigestHeader, generateSignatureInput, and generateSignature are imported and used for default eBay digital signature header creation.";
+           version: "3.0.1";
+         }, {
+           decision: "provider-owned-runtime-used-for-endpoint-challenge";
+           modifiedAt: "2023-06-15T21:52:53.428Z";
+           package: "event-notification-nodejs-sdk";
+           repository: "https://github.com/eBay/event-notification-nodejs-sdk";
+           runtimeUse: "validateEndpoint is imported and used for notification endpoint challenge responses; webhook payload parsing and public-key verification remain typed local code because the SDK process() helper owns a broader processor/OAuth flow than this adapter exposes.";
+           version: "1.0.3";
+         }, {
+           decision: "provider-owned-oauth-helper-not-selected-rest-runtime";
+           modifiedAt: "2023-06-15T21:52:53.428Z";
+           package: "ebay-oauth-nodejs-client";
+           reason: "OAuth helper only; it does not expose the selected Sell Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, or Commerce Identity operations.";
+           repository: "https://github.com/eBay/ebay-oauth-nodejs-client";
+           version: "1.2.2";
+        }];
+        providerClientOverride: true;
+        sdkAuditCheckedAt: "2026-06-25";
+        sdkDecision: "provider-owned-utility-sdks-used-no-provider-owned-general-rest-sdk";
+        sdkDecisionReason: "eBay's provider-owned Node.js packages cover digital signatures, event notifications, and OAuth helpers rather than a general backend REST client for this selected Sell/Commerce/Developer support slice. This package uses the provider-owned utility SDKs at runtime where they fit, keeps a typed selected REST adapter for API operations, and rejects community REST wrappers as package defaults because they are not eBay/provider-owned.";
+        selectedApiCount: 5;
+        strategy: "provider-owned-utility-sdks-plus-selected-rest-adapter";
+     };
+     notificationDocs: "https://developer.ebay.com/api-docs/commerce/notification/overview.html";
+     providerClient: {
+        defaultClientPolicy: "built-in-rest-with-oauth-tokens-fail-closed";
+        failClosedPolicy: "credential-missing-without-token-or-host-client";
+        importPolicy: "optional-host-override";
+        interface: "EbayMarketplaceProviderClient";
+        package: "host-provided";
+        transportPolicy: "package-owned-typed-provider-rest-adapter";
+     };
+     supportSlice: {
+        allowlist: {
+           alias: `ebay.${string}`;
+           api:   | "sell.fulfillment"
+              | "commerce.message"
+              | "commerce.notification"
+              | "developer.key-management"
+              | "commerce.identity";
+           method: "GET" | "POST" | "PUT" | "DELETE";
+           operationId: string;
+           path: string;
+        }[];
+        source: "official-ebay-openapi-selected-provider-contracts";
+        specs: {
+           api:   | "sell.fulfillment"
+              | "commerce.message"
+              | "commerce.notification"
+              | "developer.key-management"
+              | "commerce.identity";
+           operationCount: 1 | 3 | 5 | 15 | 21;
+           pathCount: 1 | 2 | 5 | 12 | 14;
+           specUrl:   | "https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json"
+              | "https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json"
+              | "https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json"
+              | "https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json"
+              | "https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json";
+           version: "v1.20.7" | "1.0.0" | "v1.6.7" | "v1.0.0" | "v2.0.0";
+        }[];
+        verifiedAt: "2026-06-18";
+     };
+  };
+  name: "eBay Marketplace";
+  operations: {
+     alias: `ebay.${string}`;
+     capability: string;
+     changesWorkflow: boolean;
+     description: string;
+     exposesSensitiveData: boolean;
+     extension: boolean;
+     label: keyof EbayMarketplaceProviderClient;
+     metadata: {
+        api:   | "sell.fulfillment"
+           | "commerce.message"
+           | "commerce.notification"
+           | "developer.key-management"
+           | "commerce.identity";
+        method: "GET" | "POST" | "PUT" | "DELETE";
+        operationId: string;
+        path: string;
+        specUrl: string;
+     };
+     providerObject: string;
+     providerOperation: string;
+     requiresCredential: boolean;
+     sideEffect: boolean;
+  }[];
+  packageName: "@cognidesk/integration-marketplace-ebay";
+  privacyNotes: readonly ["eBay orders, buyer/seller conversations, shipping fulfillments, disputes, refunds, notifications, and account profile records can contain customer data, addresses, item details, and internal support context.", "OAuth tokens, keyset secrets, notification verification tokens, public-key caches, and gateway shared secrets stay server-side; Studio receives only readiness and capability metadata."];
+  provider: "ebay";
+  trustLevel: "official";
+}, EbayMarketplaceIntegrationOptions, EbayMarketplaceOperations>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`EbayMarketplaceIntegrationOptions`](#ebaymarketplaceintegrationoptions) |
+
+#### Returns
+
+[`DefinedIntegration`](../../../packages/integration-kit/dist.md#definedintegration)\<\{
+  `capabilities`: \{
+     `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+     `capability`: `string`;
+     `changesWorkflow?`: `boolean`;
+     `description?`: `string`;
+     `exposesSensitiveData?`: `boolean`;
+     `extension?`: `boolean`;
+     `label?`: `string`;
+     `metadata?`: `Record`\<`string`, `unknown`\>;
+     `providerObjects?`: \{
+        `description?`: `string`;
+        `kind`: `string`;
+        `label?`: `string`;
+        `metadata?`: `Record`\<`string`, `unknown`\>;
+        `schemaName?`: `string`;
+     \}[];
+     `requiresCredential?`: `boolean`;
+     `sideEffect?`: `boolean`;
+  \}[];
+  `category`: `string`;
+  `channelAudiences`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+  `coverage`: \{
+     `evidence`: \{
+        `label`: `string`;
+        `url?`: `string`;
+     \}[];
+     `notes`: `string`[];
+     `scope`:   \| `"support-workflow-subset"`
+        \| `"provider-api-subset"`
+        \| `"connector-required"`
+        \| `"local-protocol"`
+        \| `"full-provider-api"`;
+  \};
+  `credentialRequirements`: \{
+     `description?`: `string`;
+     `id`: `string`;
+     `label?`: `string`;
+     `metadata?`: `Record`\<`string`, `unknown`\>;
+     `required`: `boolean`;
+     `scopes`: `string`[];
+  \}[];
+  `directions`: (
+     \| `"receive-only"`
+     \| `"send-only"`
+     \| `"inbound-only"`
+     \| `"outbound-only"`
+    \| `"bidirectional"`)[];
+  `id`: `string`;
+  `limitations`: `string`[];
+  `maintainers`: \{
+     `name`: `string`;
+     `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`;
+     `url?`: `string`;
+  \}[];
+  `metadata?`: `Record`\<`string`, `unknown`\>;
+  `name`: `string`;
+  `operations`: \{
+     `alias`: `string`;
+     `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`;
+     `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+     `capability`: `string`;
+     `changesWorkflow?`: `boolean`;
+     `description?`: `string`;
+     `exposesSensitiveData?`: `boolean`;
+     `extension`: `boolean`;
+     `externallyVisible?`: `boolean`;
+     `inputSchema?`: `unknown`;
+     `inputSchemaName?`: `string`;
+     `inputSchemaRef?`: `string`;
+     `label?`: `string`;
+     `metadata?`: `Record`\<`string`, `unknown`\>;
+     `outputSchema?`: `unknown`;
+     `outputSchemaName?`: `string`;
+     `outputSchemaRef?`: `string`;
+     `providerObject?`: `string`;
+     `providerObjects?`: \{
+        `description?`: `string`;
+        `kind`: `string`;
+        `label?`: `string`;
+        `metadata?`: `Record`\<`string`, `unknown`\>;
+        `schemaName?`: `string`;
+     \}[];
+     `providerOperation?`: `string`;
+     `requiredPolicyIds?`: `string`[];
+     `requiresApproval?`: `boolean`;
+     `requiresCredential?`: `boolean`;
+     `sideEffect?`: `boolean`;
+  \}[];
+  `packageName`: `string`;
+  `privacyNotes`: `string`[];
+  `provider`: `string`;
+  `trustLevel`: `"community"` \| `"official"` \| `"verified"` \| `"experimental"`;
+\} & \{
+  `capabilities`: readonly \[\{
+     `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
+     `capability`: `"receive"`;
+     `description`: `"Validates eBay notification endpoint challenges and parses signed Notification API events for SDK-user-owned marketplace workflows."`;
+     `exposesSensitiveData`: `true`;
+     `label`: `"Receive eBay notifications"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"ebayNotification"`;
+        `label`: `"eBay Notification"`;
+     \}\];
+     `requiresCredential`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
+     `capability`: `"read-provider-object"`;
+     `description`: `"Reads eBay seller orders, shipping fulfillments, payment disputes, message conversations, account profile details, and notification destinations/subscriptions."`;
+     `exposesSensitiveData`: `true`;
+     `label`: `"Read eBay marketplace records"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"ebayOrder"`;
+        `label`: `"eBay Order"`;
+      \}, \{
+        `kind`: `"ebayShippingFulfillment"`;
+        `label`: `"eBay Shipping Fulfillment"`;
+      \}, \{
+        `kind`: `"ebayPaymentDispute"`;
+        `label`: `"eBay Payment Dispute"`;
+      \}, \{
+        `kind`: `"ebayConversation"`;
+        `label`: `"eBay Conversation"`;
+      \}, \{
+        `kind`: `"ebayUser"`;
+        `label`: `"eBay User"`;
+      \}, \{
+        `kind`: `"ebayNotificationDestination"`;
+        `label`: `"eBay Notification Destination"`;
+      \}, \{
+        `kind`: `"ebayNotificationSubscription"`;
+        `label`: `"eBay Notification Subscription"`;
+     \}\];
+     `requiresCredential`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
+     `capability`: `"search-provider-object"`;
+     `description`: `"Searches orders, payment disputes, and message conversations with SDK-user-supplied eBay filters and pagination."`;
+     `exposesSensitiveData`: `true`;
+     `label`: `"Search eBay marketplace records"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"ebayOrder"`;
+        `label`: `"eBay Order"`;
+      \}, \{
+        `kind`: `"ebayPaymentDispute"`;
+        `label`: `"eBay Payment Dispute"`;
+      \}, \{
+        `kind`: `"ebayConversation"`;
+        `label`: `"eBay Conversation"`;
+     \}\];
+     `requiresCredential`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
+     `capability`: `"update-provider-object"`;
+     `changesWorkflow`: `true`;
+     `description`: `"Updates eBay conversations, payment-dispute evidence or outcomes, and notification destination/subscription lifecycle when SDK-user policy permits marketplace mutations."`;
+     `exposesSensitiveData`: `true`;
+     `label`: `"Update eBay marketplace records"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"ebayConversation"`;
+        `label`: `"eBay Conversation"`;
+      \}, \{
+        `kind`: `"ebayPaymentDispute"`;
+        `label`: `"eBay Payment Dispute"`;
+      \}, \{
+        `kind`: `"ebayNotificationDestination"`;
+        `label`: `"eBay Notification Destination"`;
+      \}, \{
+        `kind`: `"ebayNotificationSubscription"`;
+        `label`: `"eBay Notification Subscription"`;
+     \}\];
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
+     `capability`: `"delete-provider-object"`;
+     `changesWorkflow`: `true`;
+     `description`: `"Deletes notification destinations, subscriptions, and filters only when the SDK user's marketplace policy allows lifecycle changes."`;
+     `label`: `"Delete eBay marketplace resources"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"ebayNotificationDestination"`;
+        `label`: `"eBay Notification Destination"`;
+      \}, \{
+        `kind`: `"ebayNotificationSubscription"`;
+        `label`: `"eBay Notification Subscription"`;
+     \}\];
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"internal-support"`, `"mixed"`\];
+     `capability`: `"create-provider-object"`;
+     `changesWorkflow`: `true`;
+     `description`: `"Creates shipping fulfillments, buyer/seller messages, refunds, and payment-dispute actions only when SDK-user policy allows."`;
+     `exposesSensitiveData`: `true`;
+     `label`: `"Create eBay fulfillment and message records"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"ebayShippingFulfillment"`;
+        `label`: `"eBay Shipping Fulfillment"`;
+      \}, \{
+        `kind`: `"ebayMessage"`;
+        `label`: `"eBay Message"`;
+      \}, \{
+        `kind`: `"ebayRefund"`;
+        `label`: `"eBay Refund"`;
+      \}, \{
+        `kind`: `"ebayNotificationDestination"`;
+        `label`: `"eBay Notification Destination"`;
+      \}, \{
+        `kind`: `"ebayNotificationSubscription"`;
+        `label`: `"eBay Notification Subscription"`;
+     \}\];
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"customer-facing"`, `"mixed"`\];
+     `capability`: `"send"`;
+     `description`: `"Sends supported Commerce Message API messages to eBay conversations selected by the SDK user's workflow."`;
+     `exposesSensitiveData`: `true`;
+     `label`: `"Send eBay marketplace messages"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"ebayMessage"`;
+        `label`: `"eBay Message"`;
+     \}\];
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"internal-support"`\];
+     `capability`: `"marketplace.notification-signature"`;
+     `description`: `"Decodes X-EBAY-SIGNATURE, retrieves or accepts the SDK-user-cached public key, and verifies ECDSA/SHA1 payload signatures before parsing."`;
+     `exposesSensitiveData`: `true`;
+     `extension`: `true`;
+     `label`: `"Validate eBay notification signatures"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"ebaySignedNotification"`;
+        `label`: `"eBay Signed Notification"`;
+     \}\];
+     `requiresCredential`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"internal-support"`\];
+     `capability`: `"marketplace.digital-signature"`;
+     `changesWorkflow`: `true`;
+     `description`: `"Adds Content-Digest, Signature, Signature-Input, and X-EBAY-SIGNATURE-KEY headers to issueRefund when EU/UK seller policy requires eBay HTTP Message Signatures."`;
+     `extension`: `true`;
+     `label`: `"Sign regulated eBay refund requests"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"ebaySignedRequest"`;
+        `label`: `"eBay Signed Request"`;
+     \}\];
+     `requiresCredential`: `true`;
+     `sideEffect`: `true`;
+   \}, \{
+     `audiences`: readonly \[`"internal-support"`\];
+     `capability`: `"marketplace.notification-challenge"`;
+     `description`: `"Computes the SHA-256 challengeResponse from challenge code, verification token, and endpoint URL for eBay destination setup."`;
+     `extension`: `true`;
+     `label`: `"Answer eBay notification challenges"`;
+     `providerObjects`: readonly \[\{
+        `kind`: `"ebayNotificationChallenge"`;
+        `label`: `"eBay Notification Challenge"`;
+     \}\];
+     `requiresCredential`: `true`;
+  \}\];
+  `category`: `"marketplace"`;
+  `channelAudiences`: readonly \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
+  `coverage`: \{
+     `evidence`: readonly \[\{
+        `label`: `"eBay Sell Fulfillment API"`;
+        `url`: `"https://developer.ebay.com/develop/api/sell/fulfillment_api"`;
+      \}, \{
+        `label`: `"eBay Digital Signatures for APIs"`;
+        `url`: `"https://developer.ebay.com/develop/guides/digital-signatures-for-apis"`;
+      \}, \{
+        `label`: `"eBay Key Management API"`;
+        `url`: `"https://developer.ebay.com/api-docs/developer/key-management/resources/methods"`;
+      \}, \{
+        `label`: `"eBay Commerce Notification API resources"`;
+        `url`: `"https://developer.ebay.com/api-docs/commerce/notification/resources/methods"`;
+      \}, \{
+        `label`: `"eBay Commerce Notification API overview"`;
+        `url`: `"https://developer.ebay.com/api-docs/commerce/notification/overview.html"`;
+      \}, \{
+        `label`: `"eBay Notification getPublicKey"`;
+        `url`: `"https://developer.ebay.com/api-docs/commerce/notification/resources/public_key/methods/getPublicKey"`;
+      \}, \{
+        `label`: `"eBay OAuth client credentials grant flow"`;
+        `url`: `"https://developer.ebay.com/develop/guides-v2/authorization#the-client-credentials-grant-flow"`;
+      \}, \{
+        `label`: `"eBay Commerce Message API"`;
+        `url`: `"https://developer.ebay.com/api-docs/commerce/message/resources/methods"`;
+      \}, \{
+        `label`: `"eBay OpenAPI specifications"`;
+        `url`: `"https://developer.ebay.com/api-docs/static/gs_take-advantage-of-openapi.html"`;
+      \}, \{
+        `label`: `"eBay Fulfillment OpenAPI 3 JSON"`;
+        `url`: `"https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json"`;
+      \}, \{
+        `label`: `"eBay Commerce Message OpenAPI 3 JSON"`;
+        `url`: `"https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json"`;
+      \}, \{
+        `label`: `"eBay Commerce Notification OpenAPI 3 JSON"`;
+        `url`: `"https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json"`;
+      \}, \{
+        `label`: `"eBay Developer Key Management OpenAPI 3 JSON"`;
+        `url`: `"https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json"`;
+      \}, \{
+        `label`: `"eBay Commerce Identity OpenAPI 3 JSON"`;
+        `url`: `"https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json"`;
+     \}\];
+     `notes`: readonly \[`"Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing."`, `"The selected eBay OpenAPI slice documents the provider-client contract for every currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource group operation, and this package ships a built-in REST adapter for those operations."`, `"The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces."`, `"Runtime provider-data operations use the built-in typed eBay REST adapter when OAuth token/environment/baseUrl/fetch options are provided; host-injected providerClient remains available as an override and must implement the selected operation contract."`, `"Local helpers for eBay notification challenge/signature parsing and HTTP Message Signature header creation remain available for host clients and webhook handlers."`, `"The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, retention decisions, and optional provider-client override runtime."`\];
+     `scope`: `"support-workflow-subset"`;
+  \};
+  `credentialRequirements`: readonly \[\{
+     `description`: `"Server-side OAuth user token with SDK-user-selected Sell, Commerce Message, Identity, and Notification scopes."`;
+     `id`: `"ebay-oauth-access-token"`;
+     `label`: `"eBay OAuth user access token"`;
+     `metadata`: \{
+        `scopeKind`: `"provider-oauth-scopes"`;
+     \};
+     `required`: `true`;
+     `scopes`: readonly \[`"https://api.ebay.com/oauth/api_scope/sell.fulfillment"`, `"https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly"`, `"https://api.ebay.com/oauth/api_scope/commerce.message"`, `"https://api.ebay.com/oauth/api_scope/commerce.identity.readonly"`, `"https://api.ebay.com/oauth/api_scope/commerce.notification.subscription"`\];
+   \}, \{
+     `description`: `"Client-credentials OAuth token with https://api.ebay.com/oauth/api_scope for Notification public-key retrieval."`;
+     `id`: `"ebay-application-access-token"`;
+     `label`: `"eBay application access token"`;
+     `metadata`: \{
+        `scopeKind`: `"provider-oauth-scopes"`;
+     \};
+     `required`: `true`;
+     `scopes`: readonly \[`"https://api.ebay.com/oauth/api_scope"`\];
+   \}, \{
+     `description`: `"Application keyset client ID owned by the SDK user for OAuth and notification ownership metadata."`;
+     `id`: `"ebay-client-id"`;
+     `label`: `"eBay application client ID"`;
+     `required`: `true`;
+   \}, \{
+     `description`: `"Application keyset client secret kept server-side by the SDK user for OAuth token lifecycle operations."`;
+     `id`: `"ebay-client-secret"`;
+     `label`: `"eBay application client secret"`;
+     `required`: `true`;
+   \}, \{
+     `description`: `"SDK-user-selected marketplace such as EBAY_US or EBAY_DE, forwarded through X-EBAY-C-MARKETPLACE-ID where supported."`;
+     `id`: `"ebay-marketplace-id"`;
+     `label`: `"eBay marketplace ID"`;
+     `required`: `true`;
+   \}, \{
+     `description`: `"Optional host-injected client implementing EbayMarketplaceProviderClient when the SDK user wants to override the built-in REST adapter."`;
+     `id`: `"ebay-provider-client"`;
+     `label`: `"Optional eBay marketplace provider client override"`;
+     `required`: `false`;
+   \}, \{
+     `description`: `"Destination verification token used to answer eBay challenge_code requests for notification endpoints."`;
+     `id`: `"ebay-notification-verification-token"`;
+     `label`: `"eBay notification verification token"`;
+     `required`: `true`;
+   \}, \{
+     `description`: `"Key Management API private key and public-key JWE required for issueRefund when EU/UK seller or SDK policy requires HTTP Message Signatures."`;
+     `id`: `"ebay-digital-signature-key"`;
+     `label`: `"eBay digital signature keypair"`;
+     `required`: `false`;
+  \}\];
+  `directions`: readonly \[`"receive-only"`, `"send-only"`, `"bidirectional"`\];
+  `id`: `"marketplace.ebay"`;
+  `limitations`: readonly \[`"The SDK user chooses marketplaces, OAuth flows, scopes, notification topics, subscription filters, operator visibility, outbound messaging policy, refund/dispute rules, retention, consent, and redaction."`, `"Some eBay APIs are entitlement, marketplace, scope, topic, or sandbox limited; this package exposes a typed REST/provider-client contract and does not decide whether a seller is eligible for a specific action."`, `"Provider-data operations fail closed unless OAuth tokens are provided for the built-in typed REST adapter or an injected EbayMarketplaceProviderClient implements the selected operation."`, `"The local issueRefund signature helper is fail-closed when EU/UK seller or SDK policy requires digital signatures and no eBay signing key material is configured."`, `"Notification signature verification requires a valid eBay public key retrieved by key ID from the Notification API or a SDK-user-provided verifier/cache implementation."`\];
+  `maintainers`: readonly \[\{
+     `name`: `"Cognidesk"`;
+     `type`: `"official"`;
+  \}\];
+  `metadata`: \{
+     `channelCoverage`: \{
+        `conversationBulkUpdate`: `"typed-update"`;
+        `conversations`: `"typed-read-search-update"`;
+        `digitalSignatures`: `"typed-sign"`;
+        `inventoryMarketingAnalyticsBuyApis`: `"provider-supported-not-typed"`;
+        `keyManagementSigningKeys`: `"typed-create-read-list"`;
+        `messages`: `"typed-send"`;
+        `notificationChallenge`: `"typed-response"`;
+        `notificationConfig`: `"typed-read-update"`;
+        `notificationDestinations`: `"typed-create-read-list-update-delete"`;
+        `notificationFilters`: `"typed-create-read-delete"`;
+        `notificationSignatures`: `"typed-verify"`;
+        `notificationSubscriptions`: `"typed-create-read-list-update-enable-disable-test-delete"`;
+        `notificationTopics`: `"typed-read-list"`;
+        `orders`: `"typed-read-search"`;
+        `paymentDisputeEvidence`: `"typed-read-upload-add-update"`;
+        `paymentDisputes`: `"typed-read-search-update"`;
+        `refunds`: `"typed-create"`;
+        `shippingFulfillments`: `"typed-create-read-list"`;
+        `userProfile`: `"typed-read"`;
+     \};
+     `docs`: `"https://developer.ebay.com/api-docs"`;
+     `fulfillmentDocs`: `"https://developer.ebay.com/api-docs/sell/fulfillment/overview.html"`;
+     `generatedProviderSliceVerification`: \{
+        `apiVersion`: `string`;
+        `coverageArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json"`;
+        `documentedOperationCount`: `45`;
+        `documentedPathCount`: `34`;
+        `functionCatalogArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.functions.json"`;
+        `generatedFunctionCount`: `45`;
+        `implementedOperationCount`: `45`;
+        `operationCatalogArtifact`: `"docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json"`;
+        `provider`: `"ebay-provider-rest-adapter"`;
+        `unimplementedOperationCount`: `0`;
+        `verifiedAt`: `"2026-06-18"`;
+     \};
+     `implementation`: \{
+        `checkedAt`: `"2026-06-18"`;
+        `communityRestPackagesChecked`: readonly \[\{
+           `decision`: `"community-wrapper-rejected-not-provider-owned"`;
+           `modifiedAt`: `"2026-05-11T08:17:20.577Z"`;
+           `package`: `"ebay-api"`;
+           `repository`: `"https://github.com/hendt/ebay-api"`;
+           `version`: `"9.5.2"`;
+         \}, \{
+           `decision`: `"community-wrapper-rejected-not-provider-owned"`;
+           `modifiedAt`: `"2026-03-13T20:45:46.135Z"`;
+           `package`: `"@tradebuddyhq/ebay-wrapper"`;
+           `repository`: `"https://github.com/tradebuddyhq/ebay-wrapper"`;
+           `version`: `"2.0.0"`;
+        \}\];
+        `defaultHttpClient`: `"providerJsonRequest-for-selected-rest-operations"`;
+        `officialUtilityPackagesChecked`: readonly \[\{
+           `decision`: `"provider-owned-runtime-used-for-default-digital-signature-headers"`;
+           `modifiedAt`: `"2023-07-31T23:11:34.276Z"`;
+           `package`: `"digital-signature-nodejs-sdk"`;
+           `repository`: `"https://github.com/eBay/digital-signature-nodejs-sdk"`;
+           `runtimeUse`: `"generateDigestHeader, generateSignatureInput, and generateSignature are imported and used for default eBay digital signature header creation."`;
+           `version`: `"3.0.1"`;
+         \}, \{
+           `decision`: `"provider-owned-runtime-used-for-endpoint-challenge"`;
+           `modifiedAt`: `"2023-06-15T21:52:53.428Z"`;
+           `package`: `"event-notification-nodejs-sdk"`;
+           `repository`: `"https://github.com/eBay/event-notification-nodejs-sdk"`;
+           `runtimeUse`: `"validateEndpoint is imported and used for notification endpoint challenge responses; webhook payload parsing and public-key verification remain typed local code because the SDK process() helper owns a broader processor/OAuth flow than this adapter exposes."`;
+           `version`: `"1.0.3"`;
+         \}, \{
+           `decision`: `"provider-owned-oauth-helper-not-selected-rest-runtime"`;
+           `modifiedAt`: `"2023-06-15T21:52:53.428Z"`;
+           `package`: `"ebay-oauth-nodejs-client"`;
+           `reason`: `"OAuth helper only; it does not expose the selected Sell Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, or Commerce Identity operations."`;
+           `repository`: `"https://github.com/eBay/ebay-oauth-nodejs-client"`;
+           `version`: `"1.2.2"`;
+        \}\];
+        `providerClientOverride`: `true`;
+        `sdkAuditCheckedAt`: `"2026-06-25"`;
+        `sdkDecision`: `"provider-owned-utility-sdks-used-no-provider-owned-general-rest-sdk"`;
+        `sdkDecisionReason`: `"eBay's provider-owned Node.js packages cover digital signatures, event notifications, and OAuth helpers rather than a general backend REST client for this selected Sell/Commerce/Developer support slice. This package uses the provider-owned utility SDKs at runtime where they fit, keeps a typed selected REST adapter for API operations, and rejects community REST wrappers as package defaults because they are not eBay/provider-owned."`;
+        `selectedApiCount`: `5`;
+        `strategy`: `"provider-owned-utility-sdks-plus-selected-rest-adapter"`;
+     \};
+     `notificationDocs`: `"https://developer.ebay.com/api-docs/commerce/notification/overview.html"`;
+     `providerClient`: \{
+        `defaultClientPolicy`: `"built-in-rest-with-oauth-tokens-fail-closed"`;
+        `failClosedPolicy`: `"credential-missing-without-token-or-host-client"`;
+        `importPolicy`: `"optional-host-override"`;
+        `interface`: `"EbayMarketplaceProviderClient"`;
+        `package`: `"host-provided"`;
+        `transportPolicy`: `"package-owned-typed-provider-rest-adapter"`;
+     \};
+     `supportSlice`: \{
+        `allowlist`: \{
+           `alias`: `` `ebay.${string}` ``;
+           `api`:   \| `"sell.fulfillment"`
+              \| `"commerce.message"`
+              \| `"commerce.notification"`
+              \| `"developer.key-management"`
+              \| `"commerce.identity"`;
+           `method`: `"GET"` \| `"POST"` \| `"PUT"` \| `"DELETE"`;
+           `operationId`: `string`;
+           `path`: `string`;
+        \}[];
+        `source`: `"official-ebay-openapi-selected-provider-contracts"`;
+        `specs`: \{
+           `api`:   \| `"sell.fulfillment"`
+              \| `"commerce.message"`
+              \| `"commerce.notification"`
+              \| `"developer.key-management"`
+              \| `"commerce.identity"`;
+           `operationCount`: `1` \| `3` \| `5` \| `15` \| `21`;
+           `pathCount`: `1` \| `2` \| `5` \| `12` \| `14`;
+           `specUrl`:   \| `"https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json"`
+              \| `"https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json"`
+              \| `"https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json"`
+              \| `"https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json"`
+              \| `"https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json"`;
+           `version`: `"v1.20.7"` \| `"1.0.0"` \| `"v1.6.7"` \| `"v1.0.0"` \| `"v2.0.0"`;
+        \}[];
+        `verifiedAt`: `"2026-06-18"`;
+     \};
+  \};
+  `name`: `"eBay Marketplace"`;
+  `operations`: \{
+     `alias`: `` `ebay.${string}` ``;
+     `capability`: `string`;
+     `changesWorkflow`: `boolean`;
+     `description`: `string`;
+     `exposesSensitiveData`: `boolean`;
+     `extension`: `boolean`;
+     `label`: keyof [`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient);
+     `metadata`: \{
+        `api`:   \| `"sell.fulfillment"`
+           \| `"commerce.message"`
+           \| `"commerce.notification"`
+           \| `"developer.key-management"`
+           \| `"commerce.identity"`;
+        `method`: `"GET"` \| `"POST"` \| `"PUT"` \| `"DELETE"`;
+        `operationId`: `string`;
+        `path`: `string`;
+        `specUrl`: `string`;
+     \};
+     `providerObject`: `string`;
+     `providerOperation`: `string`;
+     `requiresCredential`: `boolean`;
+     `sideEffect`: `boolean`;
+  \}[];
+  `packageName`: `"@cognidesk/integration-marketplace-ebay"`;
+  `privacyNotes`: readonly \[`"eBay orders, buyer/seller conversations, shipping fulfillments, disputes, refunds, notifications, and account profile records can contain customer data, addresses, item details, and internal support context."`, `"OAuth tokens, keyset secrets, notification verification tokens, public-key caches, and gateway shared secrets stay server-side; Studio receives only readiness and capability metadata."`\];
+  `provider`: `"ebay"`;
+  `trustLevel`: `"official"`;
+\}, [`EbayMarketplaceIntegrationOptions`](#ebaymarketplaceintegrationoptions), `EbayMarketplaceOperations`\>
+
+***
+
+### createEbayMarketplaceIntegrationOperationHandlers()
+
+```ts
+function createEbayMarketplaceIntegrationOperationHandlers(options?): EbayMarketplaceOperations;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`EbayMarketplaceIntegrationOptions`](#ebaymarketplaceintegrationoptions) |
+
+#### Returns
+
+`EbayMarketplaceOperations`
 
 ***
 
@@ -4636,6 +6899,36 @@ function createEbayNotificationChallengeResponse(input): {
 | Name | Type |
 | ------ | ------ |
 | `challengeResponse` | `string` |
+
+***
+
+### createEbayRestMarketplaceProviderClient()
+
+```ts
+function createEbayRestMarketplaceProviderClient(options?): EbayMarketplaceProviderClient;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | `Omit`\<[`EbayMarketplaceClientOptions`](#ebaymarketplaceclientoptions), `"providerClient"`\> |
+
+#### Returns
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient)
+
+***
+
+### createUnconfiguredEbayMarketplaceProviderClient()
+
+```ts
+function createUnconfiguredEbayMarketplaceProviderClient(): EbayMarketplaceProviderClient;
+```
+
+#### Returns
+
+[`EbayMarketplaceProviderClient`](#ebaymarketplaceproviderclient)
 
 ***
 

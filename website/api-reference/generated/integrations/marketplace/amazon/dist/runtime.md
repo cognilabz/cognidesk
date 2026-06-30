@@ -356,9 +356,33 @@ Re-exports [AmazonSpApiOfficialSdk](../dist.md#amazonspapiofficialsdk)
 
 ***
 
+### createAmazonIntegration
+
+Re-exports [createAmazonIntegration](../dist.md#createamazonintegration)
+
+***
+
+### createAmazonIntegrationOperationHandlers
+
+Re-exports [createAmazonIntegrationOperationHandlers](../dist.md#createamazonintegrationoperationhandlers)
+
+***
+
 ### createAmazonMarketplaceClient
 
 Re-exports [createAmazonMarketplaceClient](../dist.md#createamazonmarketplaceclient)
+
+***
+
+### createAmazonMarketplaceIntegration
+
+Re-exports [createAmazonMarketplaceIntegration](../dist.md#createamazonmarketplaceintegration)
+
+***
+
+### createAmazonMarketplaceIntegrationOperationHandlers
+
+Re-exports [createAmazonMarketplaceIntegrationOperationHandlers](../dist.md#createamazonmarketplaceintegrationoperationhandlers)
 
 ***
 
@@ -371,6 +395,18 @@ Re-exports [createAmazonMarketplaceLiveChecks](../dist.md#createamazonmarketplac
 ### createAmazonRestrictedDataToken
 
 Re-exports [createAmazonRestrictedDataToken](../dist.md#createamazonrestricteddatatoken)
+
+***
+
+### createAmazonSpApiOfficialSdkApis
+
+Re-exports [createAmazonSpApiOfficialSdkApis](../dist.md#createamazonspapiofficialsdkapis)
+
+***
+
+### getAmazonSpApiOfficialSdk
+
+Re-exports [getAmazonSpApiOfficialSdk](../dist.md#getamazonspapiofficialsdk)
 
 ***
 

@@ -12,9 +12,270 @@
 
 ***
 
-### ZendeskTicketingClient
+### ZendeskSdkResource
 
 #### Methods
+
+##### \_rawRequest()?
+
+```ts
+optional _rawRequest(
+   method,
+   path,
+body?): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `method` | `string` |
+| `path` | `string` |
+| `body?` | `unknown` |
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+##### create()?
+
+```ts
+optional create(input): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload) |
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+##### list()?
+
+```ts
+optional list(): Promise<unknown>;
+```
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+##### me()?
+
+```ts
+optional me(): Promise<unknown>;
+```
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+##### query()?
+
+```ts
+optional query(query): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `query` | `string` |
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+##### show()?
+
+```ts
+optional show(id): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `id` | `number` |
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+##### update()?
+
+```ts
+optional update(id, input): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `id` | `number` |
+| `input` | [`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload) |
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+##### upload()?
+
+```ts
+optional upload(data, options): Promise<unknown>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `data` | `Buffer`\<`ArrayBufferLike`\> \| `BodyInit` \| `ReadableStream` |
+| `options` | [`ZendeskUploadOptions`](#zendeskuploadoptions) |
+
+###### Returns
+
+`Promise`\<`unknown`\>
+
+***
+
+### ZendeskSdkResponse
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `T` | [`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload) |
+
+#### Indexable
+
+```ts
+[key: string]: unknown
+```
+
+#### Properties
+
+##### response?
+
+```ts
+optional response?: unknown;
+```
+
+##### result?
+
+```ts
+optional result?: T;
+```
+
+***
+
+### ZendeskTicketAttachmentInput
+
+#### Extends
+
+- [`ZendeskUploadFileInput`](#zendeskuploadfileinput)
+
+#### Properties
+
+##### binary?
+
+```ts
+optional binary?: boolean;
+```
+
+###### Inherited from
+
+[`ZendeskUploadFileInput`](#zendeskuploadfileinput).[`binary`](#binary-1)
+
+##### comment?
+
+```ts
+optional comment?: JsonObject;
+```
+
+##### contentType?
+
+```ts
+optional contentType?: string;
+```
+
+###### Inherited from
+
+[`ZendeskUploadFileInput`](#zendeskuploadfileinput).[`contentType`](#contenttype-1)
+
+##### data
+
+```ts
+data: Buffer<ArrayBufferLike> | BodyInit | ReadableStream;
+```
+
+###### Inherited from
+
+[`ZendeskUploadFileInput`](#zendeskuploadfileinput).[`data`](#data-1)
+
+##### filename
+
+```ts
+filename: string;
+```
+
+###### Inherited from
+
+[`ZendeskUploadFileInput`](#zendeskuploadfileinput).[`filename`](#filename-1)
+
+##### public?
+
+```ts
+optional public?: boolean;
+```
+
+##### ticketId
+
+```ts
+ticketId: string | number;
+```
+
+##### token?
+
+```ts
+optional token?: string;
+```
+
+###### Inherited from
+
+[`ZendeskUploadFileInput`](#zendeskuploadfileinput).[`token`](#token-1)
+
+***
+
+### ZendeskTicketingClient
+
+#### Properties
+
+##### rawClient
+
+```ts
+rawClient: ZendeskTicketingRawClient;
+```
+
+#### Methods
+
+##### addTicketAttachment()
+
+```ts
+addTicketAttachment(input): Promise<JsonObject>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ZendeskTicketAttachmentInput`](#zendeskticketattachmentinput) |
+
+###### Returns
+
+`Promise`\<[`JsonObject`](#jsonobject)\>
 
 ##### createComment()
 
@@ -69,6 +330,16 @@ getOrganization(organizationId): Promise<JsonObject>;
 
 `Promise`\<[`JsonObject`](#jsonobject)\>
 
+##### getRawClient()
+
+```ts
+getRawClient(): ZendeskTicketingRawClient;
+```
+
+###### Returns
+
+[`ZendeskTicketingRawClient`](#zendeskticketingrawclient)
+
 ##### getTicket()
 
 ```ts
@@ -104,12 +375,12 @@ getUser(userId): Promise<JsonObject>;
 ##### listWebhooks()
 
 ```ts
-listWebhooks(): Promise<JsonValue>;
+listWebhooks(): Promise<ZendeskTicketingProviderPayload>;
 ```
 
 ###### Returns
 
-`Promise`\<[`JsonValue`](#jsonvalue)\>
+`Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\>
 
 ##### rawRequest()
 
@@ -147,7 +418,7 @@ readiness(): Promise<JsonObject>;
 ##### searchTickets()
 
 ```ts
-searchTickets(query): Promise<JsonObject>;
+searchTickets(query): Promise<ZendeskTicketingProviderPayload>;
 ```
 
 ###### Parameters
@@ -158,7 +429,7 @@ searchTickets(query): Promise<JsonObject>;
 
 ###### Returns
 
-`Promise`\<[`JsonObject`](#jsonobject)\>
+`Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\>
 
 ##### updateTicket()
 
@@ -187,11 +458,7 @@ uploadFile(input): Promise<JsonObject>;
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | \{ `contentType?`: `string`; `data`: `BodyInit`; `filename`: `string`; `token?`: `string`; \} |
-| `input.contentType?` | `string` |
-| `input.data` | `BodyInit` |
-| `input.filename` | `string` |
-| `input.token?` | `string` |
+| `input` | [`ZendeskUploadFileInput`](#zendeskuploadfileinput) |
 
 ###### Returns
 
@@ -200,6 +467,10 @@ uploadFile(input): Promise<JsonObject>;
 ***
 
 ### ZendeskTicketingClientOptions
+
+#### Extended by
+
+- [`ZendeskTicketingIntegrationOptions`](#zendeskticketingintegrationoptions)
 
 #### Properties
 
@@ -220,6 +491,22 @@ optional apiBasePath?: string;
 ```ts
 optional apiToken?: string;
 ```
+
+##### createSdkClient?
+
+```ts
+optional createSdkClient?: (options) => ZendeskTicketingRawClient;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | `ZendeskClientOptions` |
+
+###### Returns
+
+[`ZendeskTicketingRawClient`](#zendeskticketingrawclient)
 
 ##### email?
 
@@ -280,6 +567,281 @@ optional fetch?: {
 instanceUrl: string;
 ```
 
+##### rawClient?
+
+```ts
+optional rawClient?: ZendeskTicketingRawClient;
+```
+
+##### sdkOptions?
+
+```ts
+optional sdkOptions?: Partial<ZendeskClientOptions>;
+```
+
+***
+
+### ZendeskTicketingIntegrationOptions
+
+#### Extends
+
+- [`ZendeskTicketingClientOptions`](#zendeskticketingclientoptions)
+
+#### Properties
+
+##### accessToken?
+
+```ts
+optional accessToken?: string;
+```
+
+###### Inherited from
+
+[`ZendeskTicketingClientOptions`](#zendeskticketingclientoptions).[`accessToken`](#accesstoken)
+
+##### apiBasePath?
+
+```ts
+optional apiBasePath?: string;
+```
+
+###### Inherited from
+
+[`ZendeskTicketingClientOptions`](#zendeskticketingclientoptions).[`apiBasePath`](#apibasepath)
+
+##### apiToken?
+
+```ts
+optional apiToken?: string;
+```
+
+###### Inherited from
+
+[`ZendeskTicketingClientOptions`](#zendeskticketingclientoptions).[`apiToken`](#apitoken)
+
+##### createSdkClient?
+
+```ts
+optional createSdkClient?: (options) => ZendeskTicketingRawClient;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | `ZendeskClientOptions` |
+
+###### Returns
+
+[`ZendeskTicketingRawClient`](#zendeskticketingrawclient)
+
+###### Inherited from
+
+[`ZendeskTicketingClientOptions`](#zendeskticketingclientoptions).[`createSdkClient`](#createsdkclient)
+
+##### email?
+
+```ts
+optional email?: string;
+```
+
+###### Inherited from
+
+[`ZendeskTicketingClientOptions`](#zendeskticketingclientoptions).[`email`](#email)
+
+##### fetch?
+
+```ts
+optional fetch?: {
+  (input, init?): Promise<Response>;
+  (input, init?): Promise<Response>;
+};
+```
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `URL` \| `RequestInfo` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Call Signature
+
+```ts
+(input, init?): Promise<Response>;
+```
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/fetch)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `Request` \| `URL` |
+| `init?` | `RequestInit` |
+
+###### Returns
+
+`Promise`\<`Response`\>
+
+###### Inherited from
+
+[`ZendeskTicketingClientOptions`](#zendeskticketingclientoptions).[`fetch`](#fetch)
+
+##### instanceUrl
+
+```ts
+instanceUrl: string;
+```
+
+###### Inherited from
+
+[`ZendeskTicketingClientOptions`](#zendeskticketingclientoptions).[`instanceUrl`](#instanceurl)
+
+##### rawClient?
+
+```ts
+optional rawClient?: ZendeskTicketingRawClient;
+```
+
+###### Inherited from
+
+[`ZendeskTicketingClientOptions`](#zendeskticketingclientoptions).[`rawClient`](#rawclient-1)
+
+##### sdkOptions?
+
+```ts
+optional sdkOptions?: Partial<ZendeskClientOptions>;
+```
+
+###### Inherited from
+
+[`ZendeskTicketingClientOptions`](#zendeskticketingclientoptions).[`sdkOptions`](#sdkoptions)
+
+##### ticketingClient?
+
+```ts
+optional ticketingClient?: ZendeskTicketingClient;
+```
+
+***
+
+### ZendeskTicketingRawClient
+
+#### Properties
+
+##### attachments
+
+```ts
+attachments: ZendeskSdkResource;
+```
+
+##### organizations
+
+```ts
+organizations: ZendeskSdkResource;
+```
+
+##### search
+
+```ts
+search: ZendeskSdkResource;
+```
+
+##### tickets
+
+```ts
+tickets: ZendeskSdkResource;
+```
+
+##### users
+
+```ts
+users: ZendeskSdkResource;
+```
+
+##### webhooks
+
+```ts
+webhooks: ZendeskSdkResource;
+```
+
+***
+
+### ZendeskUploadFileInput
+
+#### Extended by
+
+- [`ZendeskTicketAttachmentInput`](#zendeskticketattachmentinput)
+
+#### Properties
+
+##### binary?
+
+```ts
+optional binary?: boolean;
+```
+
+##### contentType?
+
+```ts
+optional contentType?: string;
+```
+
+##### data
+
+```ts
+data: Buffer<ArrayBufferLike> | BodyInit | ReadableStream;
+```
+
+##### filename
+
+```ts
+filename: string;
+```
+
+##### token?
+
+```ts
+optional token?: string;
+```
+
+***
+
+### ZendeskUploadOptions
+
+#### Properties
+
+##### binary
+
+```ts
+binary: boolean;
+```
+
+##### filename
+
+```ts
+filename: string;
+```
+
+##### token?
+
+```ts
+optional token?: string;
+```
+
 ## Type Aliases
 
 ### JsonPrimitive
@@ -297,6 +859,38 @@ type JsonValue =
   | JsonPrimitive
   | JsonObject
   | JsonValue[];
+```
+
+***
+
+### ZendeskTicketingIntegration
+
+```ts
+type ZendeskTicketingIntegration = ReturnType<typeof createZendeskTicketingIntegration>;
+```
+
+***
+
+### ZendeskTicketingProviderPayload
+
+```ts
+type ZendeskTicketingProviderPayload = JsonObject | object;
+```
+
+## Variables
+
+### createZendeskIntegration
+
+```ts
+const createZendeskIntegration: typeof createZendeskTicketingIntegration;
+```
+
+***
+
+### createZendeskIntegrationOperationHandlers
+
+```ts
+const createZendeskIntegrationOperationHandlers: typeof createZendeskTicketingOperationHandlers;
 ```
 
 ## Functions
@@ -322,167 +916,747 @@ function createZendeskTicketingClient(options): ZendeskTicketingClient;
 ### createZendeskTicketingIntegration()
 
 ```ts
-function createZendeskTicketingIntegration(options): DefinedIntegration<{
-  capabilities: [{
-     capability: "create-provider-object";
-     changesWorkflow: true;
-     exposesSensitiveData: true;
-     providerObjects: [{
-        kind: "zendeskTicket";
-        label: "Zendesk Ticket";
+function createZendeskTicketingIntegration(options): {
+  bindingReport: OperationBindingReport;
+  client: ZendeskTicketingClient;
+  getRawClient: () => ZendeskTicketingRawClient;
+  manifest: {
+     capabilities: {
+        audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+        capability: string;
+        changesWorkflow?: boolean;
+        description?: string;
+        exposesSensitiveData?: boolean;
+        extension?: boolean;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        providerObjects?: {
+           description?: string;
+           kind: string;
+           label?: string;
+           metadata?: Record<string, unknown>;
+           schemaName?: string;
+        }[];
+        requiresCredential?: boolean;
+        sideEffect?: boolean;
+     }[];
+     category: string;
+     channelAudiences: ("customer-facing" | "internal-support" | "mixed")[];
+     coverage: {
+        evidence: {
+           label: string;
+           url?: string;
+        }[];
+        notes: string[];
+        scope:   | "support-workflow-subset"
+           | "provider-api-subset"
+           | "connector-required"
+           | "local-protocol"
+           | "full-provider-api";
+     };
+     credentialRequirements: {
+        description?: string;
+        id: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        required: boolean;
+        scopes: string[];
+     }[];
+     directions: (
+        | "receive-only"
+        | "send-only"
+        | "inbound-only"
+        | "outbound-only"
+       | "bidirectional")[];
+     id: string;
+     limitations: string[];
+     maintainers: {
+        name: string;
+        type: "community" | "official" | "unknown" | "partner";
+        url?: string;
+     }[];
+     metadata?: Record<string, unknown>;
+     name: string;
+     operations: {
+        alias: string;
+        audience?: "customer-facing" | "internal-support" | "mixed";
+        audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+        capability: string;
+        changesWorkflow?: boolean;
+        description?: string;
+        exposesSensitiveData?: boolean;
+        extension: boolean;
+        externallyVisible?: boolean;
+        inputSchema?: unknown;
+        inputSchemaName?: string;
+        inputSchemaRef?: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        outputSchema?: unknown;
+        outputSchemaName?: string;
+        outputSchemaRef?: string;
+        providerObject?: string;
+        providerObjects?: {
+           description?: string;
+           kind: string;
+           label?: string;
+           metadata?: Record<string, unknown>;
+           schemaName?: string;
+        }[];
+        providerOperation?: string;
+        requiredPolicyIds?: string[];
+        requiresApproval?: boolean;
+        requiresCredential?: boolean;
+        sideEffect?: boolean;
+     }[];
+     packageName: string;
+     privacyNotes: string[];
+     provider: string;
+     trustLevel: "community" | "official" | "verified" | "experimental";
+   } & {
+     capabilities: [{
+        capability: "create-provider-object";
+        changesWorkflow: true;
+        exposesSensitiveData: true;
+        providerObjects: [{
+           kind: "zendeskTicket";
+           label: "Zendesk Ticket";
+         }, {
+           kind: "zendeskTicketComment";
+           label: "Zendesk Ticket Comment";
+        }];
+        requiresCredential: true;
+        sideEffect: true;
       }, {
-        kind: "zendeskTicketComment";
-        label: "Zendesk Ticket Comment";
+        capability: "read-provider-object";
+        exposesSensitiveData: true;
+        providerObjects: [{
+           kind: "zendeskTicket";
+           label: "Zendesk Ticket";
+         }, {
+           kind: "zendeskUser";
+           label: "Zendesk User";
+         }, {
+           kind: "zendeskOrganization";
+           label: "Zendesk Organization";
+         }, {
+           kind: "zendeskWebhook";
+           label: "Zendesk Webhook";
+        }];
+        requiresCredential: true;
+      }, {
+        capability: "update-provider-object";
+        changesWorkflow: true;
+        exposesSensitiveData: true;
+        providerObjects: [{
+           kind: "zendeskTicket";
+           label: "Zendesk Ticket";
+        }];
+        requiresCredential: true;
+        sideEffect: true;
      }];
-     requiresCredential: true;
-     sideEffect: true;
-   }, {
-     capability: "read-provider-object";
-     exposesSensitiveData: true;
-     providerObjects: [{
-        kind: "zendeskTicket";
-        label: "Zendesk Ticket";
+     category: "ticketing";
+     channelAudiences: ["customer-facing", "internal-support", "mixed"];
+     coverage: {
+        evidence: [{
+           label: "node-zendesk package";
+           url: "https://www.npmjs.com/package/node-zendesk";
+         }, {
+           label: "Zendesk Node.js API client docs";
+           url: "https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/";
+         }, {
+           label: "Zendesk Support API OpenAPI";
+           url: "https://developer.zendesk.com/zendesk/oas.yaml";
+         }, {
+           label: "Zendesk Support Tickets API";
+           url: "https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/";
+         }, {
+           label: "Zendesk Ticket Comments API";
+           url: "https://developer.zendesk.com/api-reference/ticketing/tickets/ticket_comments/";
+         }, {
+           label: "Zendesk Upload Files API";
+           url: "https://developer.zendesk.com/api-reference/ticketing/tickets/ticket-attachments/";
+        }];
+        notes: ["Coverage is a Cognidesk support workflow adapter backed by the node-zendesk provider SDK.", "Typed operations cover ticket create/read/update/search, public comments, internal notes, upload-and-attach, users, organizations, webhooks list, current-user readiness, and a node-zendesk rawClient escape hatch for SDK-user-owned advanced methods.", "This package intentionally does not copy the old generated full Zendesk Support OpenAPI clone."];
+        scope: "support-workflow-subset";
+     };
+     credentialRequirements: [{
+        id: "zendesk-instance";
+        label: "Zendesk Support instance URL";
+        required: true;
       }, {
-        kind: "zendeskUser";
-        label: "Zendesk User";
-      }, {
-        kind: "zendeskOrganization";
-        label: "Zendesk Organization";
-      }, {
-        kind: "zendeskWebhook";
-        label: "Zendesk Webhook";
+        id: "zendesk-api-access";
+        label: "Zendesk Support API access";
+        metadata: {
+           privilegeGuidance: "OAuth tokens use Zendesk read/write scopes. API-token credentials inherit the Zendesk user's role and Support permissions.";
+           scopeKind: "mixed-auth-mode";
+        };
+        required: true;
+        scopes: ["read", "write"];
      }];
-     requiresCredential: true;
-   }, {
-     capability: "update-provider-object";
-     changesWorkflow: true;
-     exposesSensitiveData: true;
-     providerObjects: [{
-        kind: "zendeskTicket";
-        label: "Zendesk Ticket";
+     directions: ["bidirectional"];
+     id: "ticketing.zendesk";
+     limitations: ["Tenant fields, triggers, automations, macros, routing, requester identity, and outbound policy remain SDK-user configuration."];
+     maintainers: [{
+        name: "Cognidesk";
+        type: "official";
      }];
-     requiresCredential: true;
-     sideEffect: true;
-   }, {
-     capability: "search-provider-object";
-     exposesSensitiveData: true;
-     providerObjects: [{
-        kind: "zendeskTicket";
-        label: "Zendesk Ticket";
-     }];
-     requiresCredential: true;
-   }, {
-     capability: "handoff";
-     changesWorkflow: true;
-     exposesSensitiveData: true;
-     providerObjects: [{
-        kind: "zendeskTicket";
-        label: "Zendesk Ticket";
-      }, {
-        kind: "zendeskTicketComment";
-        label: "Zendesk Ticket Comment";
-     }];
-     requiresCredential: true;
-     sideEffect: true;
-  }];
-  category: "ticketing";
-  channelAudiences: ["customer-facing", "internal-support", "mixed"];
-  coverage: {
-     evidence: [{
-        label: "Zendesk Node.js API client docs";
-        url: "https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/";
-      }, {
-        label: "Zendesk Support API OpenAPI";
-        url: "https://developer.zendesk.com/zendesk/oas.yaml";
-      }, {
-        label: "Zendesk Support Tickets API";
-        url: "https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/";
-      }, {
-        label: "Zendesk Ticket Comments API";
-        url: "https://developer.zendesk.com/api-reference/ticketing/tickets/ticket_comments/";
-      }, {
-        label: "Zendesk Upload Files API";
-        url: "https://developer.zendesk.com/api-reference/ticketing/tickets/ticket-attachments/";
-     }];
-     notes: ["SDK decision: Zendesk documents node-zendesk but marks it not officially supported, so this package keeps a constrained Zendesk Support API slice instead of adopting it as an official SDK.", "Coverage is limited to ticket create/read/update/search, comments, uploads, users, organizations, webhooks list, current-user readiness, and raw request escape hatch operations used by Cognidesk support workflows.", "This package intentionally does not copy the old generated full Zendesk Support OpenAPI clone."];
-     scope: "provider-api-subset";
-  };
-  credentialRequirements: [{
-     id: "zendesk-instance";
-     label: "Zendesk Support instance URL";
-     required: true;
-   }, {
-     id: "zendesk-api-access";
-     label: "Zendesk Support API access";
      metadata: {
-        privilegeGuidance: "OAuth tokens use Zendesk read/write scopes. API-token credentials inherit the Zendesk user's role and Support permissions.";
-        scopeKind: "mixed-auth-mode";
+        channelCoverage: {
+           broaderZendeskApi: "provider-sdk-raw-client";
+           comments: "sdk-backed-ticket-update-comment";
+           organizations: "sdk-backed-read";
+           tickets: "sdk-backed-create-read-update-search";
+           uploads: "sdk-backed-attachments-upload-and-ticket-comment-association";
+           users: "sdk-backed-read-current-user";
+           webhooks: "sdk-backed-list";
+        };
+        implementation: {
+           manifestImport: "no-sdk-client-initialization";
+           rawClientEscapeHatch: "ZendeskTicketingClient.rawClient / getRawClient()";
+           sdkPackage: "node-zendesk";
+           sdkVersionRange: "^6.0.1";
+           strategy: "provider-sdk-backed-client";
+        };
+        implementationStrategy: "node-zendesk-sdk-backed-support-workflow-subset";
+        integrationEntryPoints: {
+           manifest: "@cognidesk/integration-ticketing-zendesk/manifest";
+           runtime: "@cognidesk/integration-ticketing-zendesk/runtime";
+        };
+        integrationName: "Zendesk Integration";
+        integrationPackageName: "@cognidesk/integration-ticketing-zendesk";
+        issue: 35;
+        providerClient: {
+           importPolicy: "runtime-entrypoint-only";
+           package: "node-zendesk";
+           versionRange: "^6.0.1";
+        };
      };
-     required: true;
-     scopes: ["read", "write"];
-  }];
-  directions: ["bidirectional"];
-  id: "ticketing.zendesk";
-  limitations: ["Tenant fields, triggers, automations, macros, routing, requester identity, and outbound policy remain SDK-user configuration."];
-  maintainers: [{
-     name: "Cognidesk";
-     type: "official";
-  }];
-  metadata: {
-     implementationStrategy: "direct-http-support-slice";
-     issue: 35;
-     sdkDecision: {
-        candidate: "node-zendesk";
-        checkedAt: "2026-06-21";
-        reason: "Zendesk's own docs mark node-zendesk as not officially supported.";
-        verdict: "not-adopted";
-     };
-     supportSlice: {
-        allowlistedOperations: readonly ["tickets.create", "tickets.read", "tickets.update", "search", "ticket_comments.create", "uploads.create", "users.read", "organizations.read", "webhooks.list", "users.me"];
-        source: "Zendesk Support API";
-     };
+     name: "Zendesk Support";
+     operations: [{
+        alias: "ticket.create";
+        capability: "create-provider-object";
+        changesWorkflow: true;
+        exposesSensitiveData: true;
+        providerObject: "ticket";
+        providerOperation: "POST /api/v2/tickets.json";
+        sideEffect: true;
+      }, {
+        alias: "ticket.read";
+        capability: "read-provider-object";
+        exposesSensitiveData: true;
+        providerObject: "ticket";
+        providerOperation: "GET /api/v2/tickets/{ticket_id}.json";
+      }, {
+        alias: "ticket.update";
+        capability: "update-provider-object";
+        changesWorkflow: true;
+        exposesSensitiveData: true;
+        providerObject: "ticket";
+        providerOperation: "PUT /api/v2/tickets/{ticket_id}.json";
+        sideEffect: true;
+     }];
+     packageName: "@cognidesk/integration-ticketing-zendesk";
+     privacyNotes: ["Zendesk tickets can contain customer messages, requester details, internal comments, tags, and workflow metadata."];
+     provider: "zendesk";
+     trustLevel: "official";
   };
-  name: "Zendesk Support";
-  operations: [{
-     alias: "ticket.create";
-     capability: "create-provider-object";
-     changesWorkflow: true;
-     exposesSensitiveData: true;
-     providerObject: "ticket";
-     providerOperation: "POST /api/v2/tickets.json";
-     sideEffect: true;
-   }, {
-     alias: "ticket.read";
-     capability: "read-provider-object";
-     exposesSensitiveData: true;
-     providerObject: "ticket";
-     providerOperation: "GET /api/v2/tickets/{ticket_id}.json";
-   }, {
-     alias: "ticket.update";
-     capability: "update-provider-object";
-     changesWorkflow: true;
-     exposesSensitiveData: true;
-     providerObject: "ticket";
-     providerOperation: "PUT /api/v2/tickets/{ticket_id}.json";
-     sideEffect: true;
-  }];
-  packageName: "@cognidesk/integration-ticketing-zendesk";
-  privacyNotes: ["Zendesk tickets can contain customer messages, requester details, internal comments, tags, and workflow metadata."];
-  provider: "zendesk";
-  trustLevel: "official";
-}, unknown, {
-  customer.read: (input) => Promise<JsonObject>;
-  ticket.attachments.add: (input) => Promise<JsonObject>;
-  ticket.comment.create: (input) => Promise<JsonObject>;
-  ticket.create: (input) => Promise<JsonObject>;
-  ticket.internalNote.create: (input) => Promise<JsonObject>;
-  ticket.read: (input) => Promise<JsonObject>;
-  ticket.search: (input) => Promise<JsonObject>;
-  ticket.update: (input) => Promise<JsonObject>;
-  zendesk.organization.read: (input) => Promise<JsonObject>;
+  metadata?: Record<string, unknown>;
+  operationAliases: (
+     | "ticket.read"
+     | "ticket.comment.create"
+     | "ticket.create"
+     | "ticket.update"
+     | "ticket.search"
+     | "ticket.internalNote.create"
+     | "ticket.attachments.add"
+     | "customer.read"
+     | "zendesk.organization.read"
+     | "zendesk.webhook.list"
+    | "zendesk.readiness")[];
+  operations: {
+     customer.read: (input, _context) => Promise<JsonObject>;
+     ticket.attachments.add: (input, _context) => Promise<JsonObject>;
+     ticket.comment.create: (input, _context) => Promise<JsonObject>;
+     ticket.create: (input, _context) => Promise<JsonObject>;
+     ticket.internalNote.create: (input, _context) => Promise<JsonObject>;
+     ticket.read: (input, _context) => Promise<JsonObject>;
+     ticket.search: (input, _context) => Promise<ZendeskTicketingProviderPayload>;
+     ticket.update: (input, _context) => Promise<JsonObject>;
+     zendesk.organization.read: (input, _context) => Promise<JsonObject>;
+     zendesk.readiness: () => Promise<JsonObject>;
+     zendesk.webhook.list: () => Promise<ZendeskTicketingProviderPayload>;
+  };
+  getOperationHandler: {
+     customer.read: (input, _context) => Promise<JsonObject>;
+     ticket.attachments.add: (input, _context) => Promise<JsonObject>;
+     ticket.comment.create: (input, _context) => Promise<JsonObject>;
+     ticket.create: (input, _context) => Promise<JsonObject>;
+     ticket.internalNote.create: (input, _context) => Promise<JsonObject>;
+     ticket.read: (input, _context) => Promise<JsonObject>;
+     ticket.search: (input, _context) => Promise<ZendeskTicketingProviderPayload>;
+     ticket.update: (input, _context) => Promise<JsonObject>;
+     zendesk.organization.read: (input, _context) => Promise<JsonObject>;
+     zendesk.readiness: () => Promise<JsonObject>;
+     zendesk.webhook.list: () => Promise<ZendeskTicketingProviderPayload>;
+  }[Alias];
+  requireOperationHandler: {
+     customer.read: (input, _context) => Promise<JsonObject>;
+     ticket.attachments.add: (input, _context) => Promise<JsonObject>;
+     ticket.comment.create: (input, _context) => Promise<JsonObject>;
+     ticket.create: (input, _context) => Promise<JsonObject>;
+     ticket.internalNote.create: (input, _context) => Promise<JsonObject>;
+     ticket.read: (input, _context) => Promise<JsonObject>;
+     ticket.search: (input, _context) => Promise<ZendeskTicketingProviderPayload>;
+     ticket.update: (input, _context) => Promise<JsonObject>;
+     zendesk.organization.read: (input, _context) => Promise<JsonObject>;
+     zendesk.readiness: () => Promise<JsonObject>;
+     zendesk.webhook.list: () => Promise<ZendeskTicketingProviderPayload>;
+  }[Alias];
+  run: Promise<Awaited<ReturnType<{
+     customer.read: (input, _context) => Promise<JsonObject>;
+     ticket.attachments.add: (input, _context) => Promise<JsonObject>;
+     ticket.comment.create: (input, _context) => Promise<JsonObject>;
+     ticket.create: (input, _context) => Promise<JsonObject>;
+     ticket.internalNote.create: (input, _context) => Promise<JsonObject>;
+     ticket.read: (input, _context) => Promise<JsonObject>;
+     ticket.search: (input, _context) => Promise<ZendeskTicketingProviderPayload>;
+     ticket.update: (input, _context) => Promise<JsonObject>;
+     zendesk.organization.read: (input, _context) => Promise<JsonObject>;
+     zendesk.readiness: () => Promise<JsonObject>;
+     zendesk.webhook.list: () => Promise<ZendeskTicketingProviderPayload>;
+  }[Alias]>>>;
+};
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`ZendeskTicketingIntegrationOptions`](#zendeskticketingintegrationoptions) |
+
+#### Returns
+
+```ts
+{
+  bindingReport: OperationBindingReport;
+  client: ZendeskTicketingClient;
+  getRawClient: () => ZendeskTicketingRawClient;
+  manifest: {
+     capabilities: {
+        audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+        capability: string;
+        changesWorkflow?: boolean;
+        description?: string;
+        exposesSensitiveData?: boolean;
+        extension?: boolean;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        providerObjects?: {
+           description?: string;
+           kind: string;
+           label?: string;
+           metadata?: Record<string, unknown>;
+           schemaName?: string;
+        }[];
+        requiresCredential?: boolean;
+        sideEffect?: boolean;
+     }[];
+     category: string;
+     channelAudiences: ("customer-facing" | "internal-support" | "mixed")[];
+     coverage: {
+        evidence: {
+           label: string;
+           url?: string;
+        }[];
+        notes: string[];
+        scope:   | "support-workflow-subset"
+           | "provider-api-subset"
+           | "connector-required"
+           | "local-protocol"
+           | "full-provider-api";
+     };
+     credentialRequirements: {
+        description?: string;
+        id: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        required: boolean;
+        scopes: string[];
+     }[];
+     directions: (
+        | "receive-only"
+        | "send-only"
+        | "inbound-only"
+        | "outbound-only"
+       | "bidirectional")[];
+     id: string;
+     limitations: string[];
+     maintainers: {
+        name: string;
+        type: "community" | "official" | "unknown" | "partner";
+        url?: string;
+     }[];
+     metadata?: Record<string, unknown>;
+     name: string;
+     operations: {
+        alias: string;
+        audience?: "customer-facing" | "internal-support" | "mixed";
+        audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+        capability: string;
+        changesWorkflow?: boolean;
+        description?: string;
+        exposesSensitiveData?: boolean;
+        extension: boolean;
+        externallyVisible?: boolean;
+        inputSchema?: unknown;
+        inputSchemaName?: string;
+        inputSchemaRef?: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        outputSchema?: unknown;
+        outputSchemaName?: string;
+        outputSchemaRef?: string;
+        providerObject?: string;
+        providerObjects?: {
+           description?: string;
+           kind: string;
+           label?: string;
+           metadata?: Record<string, unknown>;
+           schemaName?: string;
+        }[];
+        providerOperation?: string;
+        requiredPolicyIds?: string[];
+        requiresApproval?: boolean;
+        requiresCredential?: boolean;
+        sideEffect?: boolean;
+     }[];
+     packageName: string;
+     privacyNotes: string[];
+     provider: string;
+     trustLevel: "community" | "official" | "verified" | "experimental";
+   } & {
+     capabilities: [{
+        capability: "create-provider-object";
+        changesWorkflow: true;
+        exposesSensitiveData: true;
+        providerObjects: [{
+           kind: "zendeskTicket";
+           label: "Zendesk Ticket";
+         }, {
+           kind: "zendeskTicketComment";
+           label: "Zendesk Ticket Comment";
+        }];
+        requiresCredential: true;
+        sideEffect: true;
+      }, {
+        capability: "read-provider-object";
+        exposesSensitiveData: true;
+        providerObjects: [{
+           kind: "zendeskTicket";
+           label: "Zendesk Ticket";
+         }, {
+           kind: "zendeskUser";
+           label: "Zendesk User";
+         }, {
+           kind: "zendeskOrganization";
+           label: "Zendesk Organization";
+         }, {
+           kind: "zendeskWebhook";
+           label: "Zendesk Webhook";
+        }];
+        requiresCredential: true;
+      }, {
+        capability: "update-provider-object";
+        changesWorkflow: true;
+        exposesSensitiveData: true;
+        providerObjects: [{
+           kind: "zendeskTicket";
+           label: "Zendesk Ticket";
+        }];
+        requiresCredential: true;
+        sideEffect: true;
+     }];
+     category: "ticketing";
+     channelAudiences: ["customer-facing", "internal-support", "mixed"];
+     coverage: {
+        evidence: [{
+           label: "node-zendesk package";
+           url: "https://www.npmjs.com/package/node-zendesk";
+         }, {
+           label: "Zendesk Node.js API client docs";
+           url: "https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/";
+         }, {
+           label: "Zendesk Support API OpenAPI";
+           url: "https://developer.zendesk.com/zendesk/oas.yaml";
+         }, {
+           label: "Zendesk Support Tickets API";
+           url: "https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/";
+         }, {
+           label: "Zendesk Ticket Comments API";
+           url: "https://developer.zendesk.com/api-reference/ticketing/tickets/ticket_comments/";
+         }, {
+           label: "Zendesk Upload Files API";
+           url: "https://developer.zendesk.com/api-reference/ticketing/tickets/ticket-attachments/";
+        }];
+        notes: ["Coverage is a Cognidesk support workflow adapter backed by the node-zendesk provider SDK.", "Typed operations cover ticket create/read/update/search, public comments, internal notes, upload-and-attach, users, organizations, webhooks list, current-user readiness, and a node-zendesk rawClient escape hatch for SDK-user-owned advanced methods.", "This package intentionally does not copy the old generated full Zendesk Support OpenAPI clone."];
+        scope: "support-workflow-subset";
+     };
+     credentialRequirements: [{
+        id: "zendesk-instance";
+        label: "Zendesk Support instance URL";
+        required: true;
+      }, {
+        id: "zendesk-api-access";
+        label: "Zendesk Support API access";
+        metadata: {
+           privilegeGuidance: "OAuth tokens use Zendesk read/write scopes. API-token credentials inherit the Zendesk user's role and Support permissions.";
+           scopeKind: "mixed-auth-mode";
+        };
+        required: true;
+        scopes: ["read", "write"];
+     }];
+     directions: ["bidirectional"];
+     id: "ticketing.zendesk";
+     limitations: ["Tenant fields, triggers, automations, macros, routing, requester identity, and outbound policy remain SDK-user configuration."];
+     maintainers: [{
+        name: "Cognidesk";
+        type: "official";
+     }];
+     metadata: {
+        channelCoverage: {
+           broaderZendeskApi: "provider-sdk-raw-client";
+           comments: "sdk-backed-ticket-update-comment";
+           organizations: "sdk-backed-read";
+           tickets: "sdk-backed-create-read-update-search";
+           uploads: "sdk-backed-attachments-upload-and-ticket-comment-association";
+           users: "sdk-backed-read-current-user";
+           webhooks: "sdk-backed-list";
+        };
+        implementation: {
+           manifestImport: "no-sdk-client-initialization";
+           rawClientEscapeHatch: "ZendeskTicketingClient.rawClient / getRawClient()";
+           sdkPackage: "node-zendesk";
+           sdkVersionRange: "^6.0.1";
+           strategy: "provider-sdk-backed-client";
+        };
+        implementationStrategy: "node-zendesk-sdk-backed-support-workflow-subset";
+        integrationEntryPoints: {
+           manifest: "@cognidesk/integration-ticketing-zendesk/manifest";
+           runtime: "@cognidesk/integration-ticketing-zendesk/runtime";
+        };
+        integrationName: "Zendesk Integration";
+        integrationPackageName: "@cognidesk/integration-ticketing-zendesk";
+        issue: 35;
+        providerClient: {
+           importPolicy: "runtime-entrypoint-only";
+           package: "node-zendesk";
+           versionRange: "^6.0.1";
+        };
+     };
+     name: "Zendesk Support";
+     operations: [{
+        alias: "ticket.create";
+        capability: "create-provider-object";
+        changesWorkflow: true;
+        exposesSensitiveData: true;
+        providerObject: "ticket";
+        providerOperation: "POST /api/v2/tickets.json";
+        sideEffect: true;
+      }, {
+        alias: "ticket.read";
+        capability: "read-provider-object";
+        exposesSensitiveData: true;
+        providerObject: "ticket";
+        providerOperation: "GET /api/v2/tickets/{ticket_id}.json";
+      }, {
+        alias: "ticket.update";
+        capability: "update-provider-object";
+        changesWorkflow: true;
+        exposesSensitiveData: true;
+        providerObject: "ticket";
+        providerOperation: "PUT /api/v2/tickets/{ticket_id}.json";
+        sideEffect: true;
+     }];
+     packageName: "@cognidesk/integration-ticketing-zendesk";
+     privacyNotes: ["Zendesk tickets can contain customer messages, requester details, internal comments, tags, and workflow metadata."];
+     provider: "zendesk";
+     trustLevel: "official";
+  };
+  metadata?: Record<string, unknown>;
+  operationAliases: (
+     | "ticket.read"
+     | "ticket.comment.create"
+     | "ticket.create"
+     | "ticket.update"
+     | "ticket.search"
+     | "ticket.internalNote.create"
+     | "ticket.attachments.add"
+     | "customer.read"
+     | "zendesk.organization.read"
+     | "zendesk.webhook.list"
+    | "zendesk.readiness")[];
+  operations: {
+     customer.read: (input, _context) => Promise<JsonObject>;
+     ticket.attachments.add: (input, _context) => Promise<JsonObject>;
+     ticket.comment.create: (input, _context) => Promise<JsonObject>;
+     ticket.create: (input, _context) => Promise<JsonObject>;
+     ticket.internalNote.create: (input, _context) => Promise<JsonObject>;
+     ticket.read: (input, _context) => Promise<JsonObject>;
+     ticket.search: (input, _context) => Promise<ZendeskTicketingProviderPayload>;
+     ticket.update: (input, _context) => Promise<JsonObject>;
+     zendesk.organization.read: (input, _context) => Promise<JsonObject>;
+     zendesk.readiness: () => Promise<JsonObject>;
+     zendesk.webhook.list: () => Promise<ZendeskTicketingProviderPayload>;
+  };
+  getOperationHandler: {
+     customer.read: (input, _context) => Promise<JsonObject>;
+     ticket.attachments.add: (input, _context) => Promise<JsonObject>;
+     ticket.comment.create: (input, _context) => Promise<JsonObject>;
+     ticket.create: (input, _context) => Promise<JsonObject>;
+     ticket.internalNote.create: (input, _context) => Promise<JsonObject>;
+     ticket.read: (input, _context) => Promise<JsonObject>;
+     ticket.search: (input, _context) => Promise<ZendeskTicketingProviderPayload>;
+     ticket.update: (input, _context) => Promise<JsonObject>;
+     zendesk.organization.read: (input, _context) => Promise<JsonObject>;
+     zendesk.readiness: () => Promise<JsonObject>;
+     zendesk.webhook.list: () => Promise<ZendeskTicketingProviderPayload>;
+  }[Alias];
+  requireOperationHandler: {
+     customer.read: (input, _context) => Promise<JsonObject>;
+     ticket.attachments.add: (input, _context) => Promise<JsonObject>;
+     ticket.comment.create: (input, _context) => Promise<JsonObject>;
+     ticket.create: (input, _context) => Promise<JsonObject>;
+     ticket.internalNote.create: (input, _context) => Promise<JsonObject>;
+     ticket.read: (input, _context) => Promise<JsonObject>;
+     ticket.search: (input, _context) => Promise<ZendeskTicketingProviderPayload>;
+     ticket.update: (input, _context) => Promise<JsonObject>;
+     zendesk.organization.read: (input, _context) => Promise<JsonObject>;
+     zendesk.readiness: () => Promise<JsonObject>;
+     zendesk.webhook.list: () => Promise<ZendeskTicketingProviderPayload>;
+  }[Alias];
+  run: Promise<Awaited<ReturnType<{
+     customer.read: (input, _context) => Promise<JsonObject>;
+     ticket.attachments.add: (input, _context) => Promise<JsonObject>;
+     ticket.comment.create: (input, _context) => Promise<JsonObject>;
+     ticket.create: (input, _context) => Promise<JsonObject>;
+     ticket.internalNote.create: (input, _context) => Promise<JsonObject>;
+     ticket.read: (input, _context) => Promise<JsonObject>;
+     ticket.search: (input, _context) => Promise<ZendeskTicketingProviderPayload>;
+     ticket.update: (input, _context) => Promise<JsonObject>;
+     zendesk.organization.read: (input, _context) => Promise<JsonObject>;
+     zendesk.readiness: () => Promise<JsonObject>;
+     zendesk.webhook.list: () => Promise<ZendeskTicketingProviderPayload>;
+  }[Alias]>>>;
+}
+```
+
+| Name | Type |
+| ------ | ------ |
+| `bindingReport` | [`OperationBindingReport`](../../../packages/integration-kit/dist.md#operationbindingreport) |
+| `client` | [`ZendeskTicketingClient`](#zendeskticketingclient) |
+| `getRawClient()` | () => [`ZendeskTicketingRawClient`](#zendeskticketingrawclient) |
+| `manifest` | \{ `capabilities`: \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[]; `category`: `string`; `channelAudiences`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `coverage`: \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \}; `credentialRequirements`: \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[]; `directions`: ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[]; `id`: `string`; `limitations`: `string`[]; `maintainers`: \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[]; `metadata?`: `Record`\<`string`, `unknown`\>; `name`: `string`; `operations`: \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[]; `packageName`: `string`; `privacyNotes`: `string`[]; `provider`: `string`; `trustLevel`: `"community"` \| `"official"` \| `"verified"` \| `"experimental"`; \} & \{ `capabilities`: \[\{ `capability`: `"create-provider-object"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `providerObjects`: \[\{ `kind`: `"zendeskTicket"`; `label`: `"Zendesk Ticket"`; \}, \{ `kind`: `"zendeskTicketComment"`; `label`: `"Zendesk Ticket Comment"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `capability`: `"read-provider-object"`; `exposesSensitiveData`: `true`; `providerObjects`: \[\{ `kind`: `"zendeskTicket"`; `label`: `"Zendesk Ticket"`; \}, \{ `kind`: `"zendeskUser"`; `label`: `"Zendesk User"`; \}, \{ `kind`: `"zendeskOrganization"`; `label`: `"Zendesk Organization"`; \}, \{ `kind`: `"zendeskWebhook"`; `label`: `"Zendesk Webhook"`; \}\]; `requiresCredential`: `true`; \}, \{ `capability`: `"update-provider-object"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `providerObjects`: \[\{ `kind`: `"zendeskTicket"`; `label`: `"Zendesk Ticket"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}\]; `category`: `"ticketing"`; `channelAudiences`: \[`"customer-facing"`, `"internal-support"`, `"mixed"`\]; `coverage`: \{ `evidence`: \[\{ `label`: `"node-zendesk package"`; `url`: `"https://www.npmjs.com/package/node-zendesk"`; \}, \{ `label`: `"Zendesk Node.js API client docs"`; `url`: `"https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/"`; \}, \{ `label`: `"Zendesk Support API OpenAPI"`; `url`: `"https://developer.zendesk.com/zendesk/oas.yaml"`; \}, \{ `label`: `"Zendesk Support Tickets API"`; `url`: `"https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/"`; \}, \{ `label`: `"Zendesk Ticket Comments API"`; `url`: `"https://developer.zendesk.com/api-reference/ticketing/tickets/ticket_comments/"`; \}, \{ `label`: `"Zendesk Upload Files API"`; `url`: `"https://developer.zendesk.com/api-reference/ticketing/tickets/ticket-attachments/"`; \}\]; `notes`: \[`"Coverage is a Cognidesk support workflow adapter backed by the node-zendesk provider SDK."`, `"Typed operations cover ticket create/read/update/search, public comments, internal notes, upload-and-attach, users, organizations, webhooks list, current-user readiness, and a node-zendesk rawClient escape hatch for SDK-user-owned advanced methods."`, `"This package intentionally does not copy the old generated full Zendesk Support OpenAPI clone."`\]; `scope`: `"support-workflow-subset"`; \}; `credentialRequirements`: \[\{ `id`: `"zendesk-instance"`; `label`: `"Zendesk Support instance URL"`; `required`: `true`; \}, \{ `id`: `"zendesk-api-access"`; `label`: `"Zendesk Support API access"`; `metadata`: \{ `privilegeGuidance`: `"OAuth tokens use Zendesk read/write scopes. API-token credentials inherit the Zendesk user's role and Support permissions."`; `scopeKind`: `"mixed-auth-mode"`; \}; `required`: `true`; `scopes`: \[`"read"`, `"write"`\]; \}\]; `directions`: \[`"bidirectional"`\]; `id`: `"ticketing.zendesk"`; `limitations`: \[`"Tenant fields, triggers, automations, macros, routing, requester identity, and outbound policy remain SDK-user configuration."`\]; `maintainers`: \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\]; `metadata`: \{ `channelCoverage`: \{ `broaderZendeskApi`: `"provider-sdk-raw-client"`; `comments`: `"sdk-backed-ticket-update-comment"`; `organizations`: `"sdk-backed-read"`; `tickets`: `"sdk-backed-create-read-update-search"`; `uploads`: `"sdk-backed-attachments-upload-and-ticket-comment-association"`; `users`: `"sdk-backed-read-current-user"`; `webhooks`: `"sdk-backed-list"`; \}; `implementation`: \{ `manifestImport`: `"no-sdk-client-initialization"`; `rawClientEscapeHatch`: `"ZendeskTicketingClient.rawClient / getRawClient()"`; `sdkPackage`: `"node-zendesk"`; `sdkVersionRange`: `"^6.0.1"`; `strategy`: `"provider-sdk-backed-client"`; \}; `implementationStrategy`: `"node-zendesk-sdk-backed-support-workflow-subset"`; `integrationEntryPoints`: \{ `manifest`: `"@cognidesk/integration-ticketing-zendesk/manifest"`; `runtime`: `"@cognidesk/integration-ticketing-zendesk/runtime"`; \}; `integrationName`: `"Zendesk Integration"`; `integrationPackageName`: `"@cognidesk/integration-ticketing-zendesk"`; `issue`: `35`; `providerClient`: \{ `importPolicy`: `"runtime-entrypoint-only"`; `package`: `"node-zendesk"`; `versionRange`: `"^6.0.1"`; \}; \}; `name`: `"Zendesk Support"`; `operations`: \[\{ `alias`: `"ticket.create"`; `capability`: `"create-provider-object"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `providerObject`: `"ticket"`; `providerOperation`: `"POST /api/v2/tickets.json"`; `sideEffect`: `true`; \}, \{ `alias`: `"ticket.read"`; `capability`: `"read-provider-object"`; `exposesSensitiveData`: `true`; `providerObject`: `"ticket"`; `providerOperation`: `"GET /api/v2/tickets/{ticket_id}.json"`; \}, \{ `alias`: `"ticket.update"`; `capability`: `"update-provider-object"`; `changesWorkflow`: `true`; `exposesSensitiveData`: `true`; `providerObject`: `"ticket"`; `providerOperation`: `"PUT /api/v2/tickets/{ticket_id}.json"`; `sideEffect`: `true`; \}\]; `packageName`: `"@cognidesk/integration-ticketing-zendesk"`; `privacyNotes`: \[`"Zendesk tickets can contain customer messages, requester details, internal comments, tags, and workflow metadata."`\]; `provider`: `"zendesk"`; `trustLevel`: `"official"`; \} |
+| `metadata?` | `Record`\<`string`, `unknown`\> |
+| `operationAliases` | ( \| `"ticket.read"` \| `"ticket.comment.create"` \| `"ticket.create"` \| `"ticket.update"` \| `"ticket.search"` \| `"ticket.internalNote.create"` \| `"ticket.attachments.add"` \| `"customer.read"` \| `"zendesk.organization.read"` \| `"zendesk.webhook.list"` \| `"zendesk.readiness"`)[] |
+| `operations` | \{ `customer.read`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.attachments.add`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.comment.create`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.create`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.internalNote.create`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.read`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.search`: (`input`, `_context`) => `Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\>; `ticket.update`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `zendesk.organization.read`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `zendesk.readiness`: () => `Promise`\<[`JsonObject`](#jsonobject)\>; `zendesk.webhook.list`: () => `Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\>; \} |
+| `operations.customer.read()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `operations.ticket.attachments.add()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `operations.ticket.comment.create()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `operations.ticket.create()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `operations.ticket.internalNote.create()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `operations.ticket.read()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `operations.ticket.search()` | (`input`, `_context`) => `Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\> |
+| `operations.ticket.update()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `operations.zendesk.organization.read()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `operations.zendesk.readiness()` | () => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `operations.zendesk.webhook.list()` | () => `Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\> |
+| `getOperationHandler()` | (`alias`) => \{ `customer.read`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.attachments.add`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.comment.create`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.create`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.internalNote.create`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.read`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.search`: (`input`, `_context`) => `Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\>; `ticket.update`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `zendesk.organization.read`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `zendesk.readiness`: () => `Promise`\<[`JsonObject`](#jsonobject)\>; `zendesk.webhook.list`: () => `Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\>; \}\[`Alias`\] |
+| `requireOperationHandler()` | (`alias`) => \{ `customer.read`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.attachments.add`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.comment.create`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.create`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.internalNote.create`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.read`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.search`: (`input`, `_context`) => `Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\>; `ticket.update`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `zendesk.organization.read`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `zendesk.readiness`: () => `Promise`\<[`JsonObject`](#jsonobject)\>; `zendesk.webhook.list`: () => `Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\>; \}\[`Alias`\] |
+| `run()` | ( `alias`, `input`, `context?`) => `Promise`\<`Awaited`\<`ReturnType`\<\{ `customer.read`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.attachments.add`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.comment.create`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.create`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.internalNote.create`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.read`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `ticket.search`: (`input`, `_context`) => `Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\>; `ticket.update`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `zendesk.organization.read`: (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\>; `zendesk.readiness`: () => `Promise`\<[`JsonObject`](#jsonobject)\>; `zendesk.webhook.list`: () => `Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\>; \}\[`Alias`\]\>\>\> |
+
+***
+
+### createZendeskTicketingOperationHandlers()
+
+```ts
+function createZendeskTicketingOperationHandlers(options): {
+  customer.read: (input, _context) => Promise<JsonObject>;
+  ticket.attachments.add: (input, _context) => Promise<JsonObject>;
+  ticket.comment.create: (input, _context) => Promise<JsonObject>;
+  ticket.create: (input, _context) => Promise<JsonObject>;
+  ticket.internalNote.create: (input, _context) => Promise<JsonObject>;
+  ticket.read: (input, _context) => Promise<JsonObject>;
+  ticket.search: (input, _context) => Promise<ZendeskTicketingProviderPayload>;
+  ticket.update: (input, _context) => Promise<JsonObject>;
+  zendesk.organization.read: (input, _context) => Promise<JsonObject>;
   zendesk.readiness: () => Promise<JsonObject>;
-  zendesk.webhook.list: () => Promise<JsonValue>;
-}>;
+  zendesk.webhook.list: () => Promise<ZendeskTicketingProviderPayload>;
+};
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`ZendeskTicketingIntegrationOptions`](#zendeskticketingintegrationoptions) |
+
+#### Returns
+
+```ts
+{
+  customer.read: (input, _context) => Promise<JsonObject>;
+  ticket.attachments.add: (input, _context) => Promise<JsonObject>;
+  ticket.comment.create: (input, _context) => Promise<JsonObject>;
+  ticket.create: (input, _context) => Promise<JsonObject>;
+  ticket.internalNote.create: (input, _context) => Promise<JsonObject>;
+  ticket.read: (input, _context) => Promise<JsonObject>;
+  ticket.search: (input, _context) => Promise<ZendeskTicketingProviderPayload>;
+  ticket.update: (input, _context) => Promise<JsonObject>;
+  zendesk.organization.read: (input, _context) => Promise<JsonObject>;
+  zendesk.readiness: () => Promise<JsonObject>;
+  zendesk.webhook.list: () => Promise<ZendeskTicketingProviderPayload>;
+}
+```
+
+| Name | Type |
+| ------ | ------ |
+| `customer.read()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `ticket.attachments.add()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `ticket.comment.create()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `ticket.create()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `ticket.internalNote.create()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `ticket.read()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `ticket.search()` | (`input`, `_context`) => `Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\> |
+| `ticket.update()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `zendesk.organization.read()` | (`input`, `_context`) => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `zendesk.readiness()` | () => `Promise`\<[`JsonObject`](#jsonobject)\> |
+| `zendesk.webhook.list()` | () => `Promise`\<[`ZendeskTicketingProviderPayload`](#zendeskticketingproviderpayload)\> |
+
+***
+
+### zendeskEndpointUri()
+
+```ts
+function zendeskEndpointUri(options): string;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | `Pick`\<[`ZendeskTicketingClientOptions`](#zendeskticketingclientoptions), `"instanceUrl"` \| `"apiBasePath"`\> |
+
+#### Returns
+
+`string`
+
+***
+
+### zendeskSdkOptions()
+
+```ts
+function zendeskSdkOptions(options, endpointUri?): ZendeskClientOptions;
 ```
 
 #### Parameters
@@ -490,173 +1664,26 @@ function createZendeskTicketingIntegration(options): DefinedIntegration<{
 | Parameter | Type |
 | ------ | ------ |
 | `options` | [`ZendeskTicketingClientOptions`](#zendeskticketingclientoptions) |
+| `endpointUri?` | `string` |
 
 #### Returns
 
-[`DefinedIntegration`](../../../packages/integration-kit/dist.md#definedintegration)\<\{
-  `capabilities`: \[\{
-     `capability`: `"create-provider-object"`;
-     `changesWorkflow`: `true`;
-     `exposesSensitiveData`: `true`;
-     `providerObjects`: \[\{
-        `kind`: `"zendeskTicket"`;
-        `label`: `"Zendesk Ticket"`;
-      \}, \{
-        `kind`: `"zendeskTicketComment"`;
-        `label`: `"Zendesk Ticket Comment"`;
-     \}\];
-     `requiresCredential`: `true`;
-     `sideEffect`: `true`;
-   \}, \{
-     `capability`: `"read-provider-object"`;
-     `exposesSensitiveData`: `true`;
-     `providerObjects`: \[\{
-        `kind`: `"zendeskTicket"`;
-        `label`: `"Zendesk Ticket"`;
-      \}, \{
-        `kind`: `"zendeskUser"`;
-        `label`: `"Zendesk User"`;
-      \}, \{
-        `kind`: `"zendeskOrganization"`;
-        `label`: `"Zendesk Organization"`;
-      \}, \{
-        `kind`: `"zendeskWebhook"`;
-        `label`: `"Zendesk Webhook"`;
-     \}\];
-     `requiresCredential`: `true`;
-   \}, \{
-     `capability`: `"update-provider-object"`;
-     `changesWorkflow`: `true`;
-     `exposesSensitiveData`: `true`;
-     `providerObjects`: \[\{
-        `kind`: `"zendeskTicket"`;
-        `label`: `"Zendesk Ticket"`;
-     \}\];
-     `requiresCredential`: `true`;
-     `sideEffect`: `true`;
-   \}, \{
-     `capability`: `"search-provider-object"`;
-     `exposesSensitiveData`: `true`;
-     `providerObjects`: \[\{
-        `kind`: `"zendeskTicket"`;
-        `label`: `"Zendesk Ticket"`;
-     \}\];
-     `requiresCredential`: `true`;
-   \}, \{
-     `capability`: `"handoff"`;
-     `changesWorkflow`: `true`;
-     `exposesSensitiveData`: `true`;
-     `providerObjects`: \[\{
-        `kind`: `"zendeskTicket"`;
-        `label`: `"Zendesk Ticket"`;
-      \}, \{
-        `kind`: `"zendeskTicketComment"`;
-        `label`: `"Zendesk Ticket Comment"`;
-     \}\];
-     `requiresCredential`: `true`;
-     `sideEffect`: `true`;
-  \}\];
-  `category`: `"ticketing"`;
-  `channelAudiences`: \[`"customer-facing"`, `"internal-support"`, `"mixed"`\];
-  `coverage`: \{
-     `evidence`: \[\{
-        `label`: `"Zendesk Node.js API client docs"`;
-        `url`: `"https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/"`;
-      \}, \{
-        `label`: `"Zendesk Support API OpenAPI"`;
-        `url`: `"https://developer.zendesk.com/zendesk/oas.yaml"`;
-      \}, \{
-        `label`: `"Zendesk Support Tickets API"`;
-        `url`: `"https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/"`;
-      \}, \{
-        `label`: `"Zendesk Ticket Comments API"`;
-        `url`: `"https://developer.zendesk.com/api-reference/ticketing/tickets/ticket_comments/"`;
-      \}, \{
-        `label`: `"Zendesk Upload Files API"`;
-        `url`: `"https://developer.zendesk.com/api-reference/ticketing/tickets/ticket-attachments/"`;
-     \}\];
-     `notes`: \[`"SDK decision: Zendesk documents node-zendesk but marks it not officially supported, so this package keeps a constrained Zendesk Support API slice instead of adopting it as an official SDK."`, `"Coverage is limited to ticket create/read/update/search, comments, uploads, users, organizations, webhooks list, current-user readiness, and raw request escape hatch operations used by Cognidesk support workflows."`, `"This package intentionally does not copy the old generated full Zendesk Support OpenAPI clone."`\];
-     `scope`: `"provider-api-subset"`;
-  \};
-  `credentialRequirements`: \[\{
-     `id`: `"zendesk-instance"`;
-     `label`: `"Zendesk Support instance URL"`;
-     `required`: `true`;
-   \}, \{
-     `id`: `"zendesk-api-access"`;
-     `label`: `"Zendesk Support API access"`;
-     `metadata`: \{
-        `privilegeGuidance`: `"OAuth tokens use Zendesk read/write scopes. API-token credentials inherit the Zendesk user's role and Support permissions."`;
-        `scopeKind`: `"mixed-auth-mode"`;
-     \};
-     `required`: `true`;
-     `scopes`: \[`"read"`, `"write"`\];
-  \}\];
-  `directions`: \[`"bidirectional"`\];
-  `id`: `"ticketing.zendesk"`;
-  `limitations`: \[`"Tenant fields, triggers, automations, macros, routing, requester identity, and outbound policy remain SDK-user configuration."`\];
-  `maintainers`: \[\{
-     `name`: `"Cognidesk"`;
-     `type`: `"official"`;
-  \}\];
-  `metadata`: \{
-     `implementationStrategy`: `"direct-http-support-slice"`;
-     `issue`: `35`;
-     `sdkDecision`: \{
-        `candidate`: `"node-zendesk"`;
-        `checkedAt`: `"2026-06-21"`;
-        `reason`: `"Zendesk's own docs mark node-zendesk as not officially supported."`;
-        `verdict`: `"not-adopted"`;
-     \};
-     `supportSlice`: \{
-        `allowlistedOperations`: readonly \[`"tickets.create"`, `"tickets.read"`, `"tickets.update"`, `"search"`, `"ticket_comments.create"`, `"uploads.create"`, `"users.read"`, `"organizations.read"`, `"webhooks.list"`, `"users.me"`\];
-        `source`: `"Zendesk Support API"`;
-     \};
-  \};
-  `name`: `"Zendesk Support"`;
-  `operations`: \[\{
-     `alias`: `"ticket.create"`;
-     `capability`: `"create-provider-object"`;
-     `changesWorkflow`: `true`;
-     `exposesSensitiveData`: `true`;
-     `providerObject`: `"ticket"`;
-     `providerOperation`: `"POST /api/v2/tickets.json"`;
-     `sideEffect`: `true`;
-   \}, \{
-     `alias`: `"ticket.read"`;
-     `capability`: `"read-provider-object"`;
-     `exposesSensitiveData`: `true`;
-     `providerObject`: `"ticket"`;
-     `providerOperation`: `"GET /api/v2/tickets/{ticket_id}.json"`;
-   \}, \{
-     `alias`: `"ticket.update"`;
-     `capability`: `"update-provider-object"`;
-     `changesWorkflow`: `true`;
-     `exposesSensitiveData`: `true`;
-     `providerObject`: `"ticket"`;
-     `providerOperation`: `"PUT /api/v2/tickets/{ticket_id}.json"`;
-     `sideEffect`: `true`;
-  \}\];
-  `packageName`: `"@cognidesk/integration-ticketing-zendesk"`;
-  `privacyNotes`: \[`"Zendesk tickets can contain customer messages, requester details, internal comments, tags, and workflow metadata."`\];
-  `provider`: `"zendesk"`;
-  `trustLevel`: `"official"`;
-\}, `unknown`, \{
-  `customer.read`: (`input`) => `Promise`\<[`JsonObject`](#jsonobject)\>;
-  `ticket.attachments.add`: (`input`) => `Promise`\<[`JsonObject`](#jsonobject)\>;
-  `ticket.comment.create`: (`input`) => `Promise`\<[`JsonObject`](#jsonobject)\>;
-  `ticket.create`: (`input`) => `Promise`\<[`JsonObject`](#jsonobject)\>;
-  `ticket.internalNote.create`: (`input`) => `Promise`\<[`JsonObject`](#jsonobject)\>;
-  `ticket.read`: (`input`) => `Promise`\<[`JsonObject`](#jsonobject)\>;
-  `ticket.search`: (`input`) => `Promise`\<[`JsonObject`](#jsonobject)\>;
-  `ticket.update`: (`input`) => `Promise`\<[`JsonObject`](#jsonobject)\>;
-  `zendesk.organization.read`: (`input`) => `Promise`\<[`JsonObject`](#jsonobject)\>;
-  `zendesk.readiness`: () => `Promise`\<[`JsonObject`](#jsonobject)\>;
-  `zendesk.webhook.list`: () => `Promise`\<[`JsonValue`](#jsonvalue)\>;
-\}\>
+`ZendeskClientOptions`
 
 ## References
+
+### zendeskTicketingOperationAliases
+
+Re-exports [zendeskTicketingOperationAliases](dist/manifest.md#zendeskticketingoperationaliases)
+
+***
 
 ### zendeskTicketingProviderManifest
 
 Re-exports [zendeskTicketingProviderManifest](dist/manifest.md#zendeskticketingprovidermanifest)
+
+***
+
+### zendeskTicketingProviderManifestInput
+
+Re-exports [zendeskTicketingProviderManifestInput](dist/manifest.md#zendeskticketingprovidermanifestinput)

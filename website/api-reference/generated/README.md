@@ -58,6 +58,8 @@
 - [integrations/email/postmark/dist/manifest](integrations/email/postmark/dist/manifest.md)
 - [integrations/email/ses/dist](integrations/email/ses/dist.md)
 - [integrations/email/ses/dist/manifest](integrations/email/ses/dist/manifest.md)
+- [integrations/email/smtp/dist](integrations/email/smtp/dist.md)
+- [integrations/email/smtp/dist/manifest](integrations/email/smtp/dist/manifest.md)
 - [integrations/form/cognidesk/dist](integrations/form/cognidesk/dist.md)
 - [integrations/form/cognidesk/dist/manifest](integrations/form/cognidesk/dist/manifest.md)
 - [integrations/form/cognidesk/dist/runtime](integrations/form/cognidesk/dist/runtime.md)

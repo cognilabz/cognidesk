@@ -2,6 +2,327 @@
 
 ## Interfaces
 
+### DrachtioSrfSipGateway
+
+#### Extends
+
+- [`SipStackGateway`](#sipstackgateway)
+
+#### Properties
+
+##### rawClient
+
+```ts
+readonly rawClient: {
+  dialogs: Map<string, Dialog>;
+  sdkPackage: "drachtio-srf";
+  srf: Srf;
+};
+```
+
+###### dialogs
+
+```ts
+dialogs: Map<string, Dialog>;
+```
+
+###### sdkPackage
+
+```ts
+sdkPackage: "drachtio-srf";
+```
+
+###### srf
+
+```ts
+srf: Srf;
+```
+
+#### Methods
+
+##### answerCall()?
+
+```ts
+optional answerCall(input, context):
+  | SipCallControlResult
+| Promise<SipCallControlResult>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`SipAnswerCallInput`](#sipanswercallinput) |
+| `context` | \{ `config`: [`SipVoiceConfig`](#sipvoiceconfig); `signal?`: `AbortSignal`; \} |
+| `context.config` | [`SipVoiceConfig`](#sipvoiceconfig) |
+| `context.signal?` | `AbortSignal` |
+
+###### Returns
+
+  \| [`SipCallControlResult`](#sipcallcontrolresult)
+  \| `Promise`\<[`SipCallControlResult`](#sipcallcontrolresult)\>
+
+###### Inherited from
+
+[`SipStackGateway`](#sipstackgateway).[`answerCall`](#answercall-1)
+
+##### checkReadiness()?
+
+```ts
+optional checkReadiness(context):
+  | SipReadinessResult
+| Promise<SipReadinessResult>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `context` | [`SipStackReadinessContext`](#sipstackreadinesscontext) |
+
+###### Returns
+
+  \| [`SipReadinessResult`](#sipreadinessresult)
+  \| `Promise`\<[`SipReadinessResult`](#sipreadinessresult)\>
+
+###### Inherited from
+
+[`SipStackGateway`](#sipstackgateway).[`checkReadiness`](#checkreadiness-1)
+
+##### createOutboundCall()?
+
+```ts
+optional createOutboundCall(input, context):
+  | SipCallControlResult
+| Promise<SipCallControlResult>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`SipOutboundCallInput`](#sipoutboundcallinput) |
+| `context` | \{ `config`: [`SipVoiceConfig`](#sipvoiceconfig); `signal?`: `AbortSignal`; \} |
+| `context.config` | [`SipVoiceConfig`](#sipvoiceconfig) |
+| `context.signal?` | `AbortSignal` |
+
+###### Returns
+
+  \| [`SipCallControlResult`](#sipcallcontrolresult)
+  \| `Promise`\<[`SipCallControlResult`](#sipcallcontrolresult)\>
+
+###### Inherited from
+
+[`SipStackGateway`](#sipstackgateway).[`createOutboundCall`](#createoutboundcall-1)
+
+##### hangupCall()?
+
+```ts
+optional hangupCall(input, context):
+  | SipCallControlResult
+| Promise<SipCallControlResult>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`SipHangupCallInput`](#siphangupcallinput) |
+| `context` | \{ `config`: [`SipVoiceConfig`](#sipvoiceconfig); `signal?`: `AbortSignal`; \} |
+| `context.config` | [`SipVoiceConfig`](#sipvoiceconfig) |
+| `context.signal?` | `AbortSignal` |
+
+###### Returns
+
+  \| [`SipCallControlResult`](#sipcallcontrolresult)
+  \| `Promise`\<[`SipCallControlResult`](#sipcallcontrolresult)\>
+
+###### Inherited from
+
+[`SipStackGateway`](#sipstackgateway).[`hangupCall`](#hangupcall-1)
+
+##### rejectCall()?
+
+```ts
+optional rejectCall(input, context):
+  | SipCallControlResult
+| Promise<SipCallControlResult>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`SipRejectCallInput`](#siprejectcallinput) |
+| `context` | \{ `config`: [`SipVoiceConfig`](#sipvoiceconfig); `signal?`: `AbortSignal`; \} |
+| `context.config` | [`SipVoiceConfig`](#sipvoiceconfig) |
+| `context.signal?` | `AbortSignal` |
+
+###### Returns
+
+  \| [`SipCallControlResult`](#sipcallcontrolresult)
+  \| `Promise`\<[`SipCallControlResult`](#sipcallcontrolresult)\>
+
+###### Inherited from
+
+[`SipStackGateway`](#sipstackgateway).[`rejectCall`](#rejectcall-1)
+
+##### sendDtmf()?
+
+```ts
+optional sendDtmf(input, context):
+  | SipCallControlResult
+| Promise<SipCallControlResult>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`SipDtmfInput`](#sipdtmfinput) |
+| `context` | \{ `config`: [`SipVoiceConfig`](#sipvoiceconfig); `signal?`: `AbortSignal`; \} |
+| `context.config` | [`SipVoiceConfig`](#sipvoiceconfig) |
+| `context.signal?` | `AbortSignal` |
+
+###### Returns
+
+  \| [`SipCallControlResult`](#sipcallcontrolresult)
+  \| `Promise`\<[`SipCallControlResult`](#sipcallcontrolresult)\>
+
+###### Inherited from
+
+[`SipStackGateway`](#sipstackgateway).[`sendDtmf`](#senddtmf-1)
+
+##### startRecording()?
+
+```ts
+optional startRecording(input, context):
+  | SipCallControlResult
+| Promise<SipCallControlResult>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`SipRecordingControlInput`](#siprecordingcontrolinput) |
+| `context` | \{ `config`: [`SipVoiceConfig`](#sipvoiceconfig); `signal?`: `AbortSignal`; \} |
+| `context.config` | [`SipVoiceConfig`](#sipvoiceconfig) |
+| `context.signal?` | `AbortSignal` |
+
+###### Returns
+
+  \| [`SipCallControlResult`](#sipcallcontrolresult)
+  \| `Promise`\<[`SipCallControlResult`](#sipcallcontrolresult)\>
+
+###### Inherited from
+
+[`SipStackGateway`](#sipstackgateway).[`startRecording`](#startrecording-1)
+
+##### stopRecording()?
+
+```ts
+optional stopRecording(input, context):
+  | SipCallControlResult
+| Promise<SipCallControlResult>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`SipRecordingControlInput`](#siprecordingcontrolinput) |
+| `context` | \{ `config`: [`SipVoiceConfig`](#sipvoiceconfig); `signal?`: `AbortSignal`; \} |
+| `context.config` | [`SipVoiceConfig`](#sipvoiceconfig) |
+| `context.signal?` | `AbortSignal` |
+
+###### Returns
+
+  \| [`SipCallControlResult`](#sipcallcontrolresult)
+  \| `Promise`\<[`SipCallControlResult`](#sipcallcontrolresult)\>
+
+###### Inherited from
+
+[`SipStackGateway`](#sipstackgateway).[`stopRecording`](#stoprecording-1)
+
+##### transferCall()?
+
+```ts
+optional transferCall(input, context):
+  | SipCallControlResult
+| Promise<SipCallControlResult>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`SipTransferCallInput`](#siptransfercallinput) |
+| `context` | \{ `config`: [`SipVoiceConfig`](#sipvoiceconfig); `signal?`: `AbortSignal`; \} |
+| `context.config` | [`SipVoiceConfig`](#sipvoiceconfig) |
+| `context.signal?` | `AbortSignal` |
+
+###### Returns
+
+  \| [`SipCallControlResult`](#sipcallcontrolresult)
+  \| `Promise`\<[`SipCallControlResult`](#sipcallcontrolresult)\>
+
+###### Inherited from
+
+[`SipStackGateway`](#sipstackgateway).[`transferCall`](#transfercall-1)
+
+##### updateMediaSession()?
+
+```ts
+optional updateMediaSession(input, context):
+  | SipCallControlResult
+| Promise<SipCallControlResult>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`SipMediaSessionUpdateInput`](#sipmediasessionupdateinput) |
+| `context` | \{ `config`: [`SipVoiceConfig`](#sipvoiceconfig); `signal?`: `AbortSignal`; \} |
+| `context.config` | [`SipVoiceConfig`](#sipvoiceconfig) |
+| `context.signal?` | `AbortSignal` |
+
+###### Returns
+
+  \| [`SipCallControlResult`](#sipcallcontrolresult)
+  \| `Promise`\<[`SipCallControlResult`](#sipcallcontrolresult)\>
+
+###### Inherited from
+
+[`SipStackGateway`](#sipstackgateway).[`updateMediaSession`](#updatemediasession-1)
+
+***
+
+### DrachtioSrfSipStackGatewayOptions
+
+#### Properties
+
+##### connect?
+
+```ts
+optional connect?: any;
+```
+
+##### dialogs?
+
+```ts
+optional dialogs?: Map<string, Dialog>;
+```
+
+##### srf?
+
+```ts
+optional srf?: any;
+```
+
+***
+
 ### ParseSipVoiceWebhookOperationInput
 
 #### Properties
@@ -1129,6 +1450,10 @@ type: "answer" | "offer";
 
 ### SipStackGateway
 
+#### Extended by
+
+- [`DrachtioSrfSipGateway`](#drachtiosrfsipgateway)
+
 #### Methods
 
 ##### answerCall()?
@@ -2078,6 +2403,24 @@ function buildSipAddress(address): string;
 
 ***
 
+### createDrachtioSipStackGateway()
+
+```ts
+function createDrachtioSipStackGateway(options?): DrachtioSrfSipGateway;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`DrachtioSrfSipStackGatewayOptions`](#drachtiosrfsipstackgatewayoptions) |
+
+#### Returns
+
+[`DrachtioSrfSipGateway`](#drachtiosrfsipgateway)
+
+***
+
 ### createSipVoiceClient()
 
 ```ts
@@ -2246,6 +2589,12 @@ function validateSipWebhookSignature(input): boolean;
 `boolean`
 
 ## References
+
+### createDrachtioSrfSipStackGateway
+
+Renames and re-exports [createDrachtioSipStackGateway](#createdrachtiosipstackgateway)
+
+***
 
 ### sipVoiceProviderManifest
 
