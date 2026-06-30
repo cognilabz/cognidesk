@@ -2208,28 +2208,30 @@
 <p>Cognidesk Studio is the operations surface for a configured Cognidesk target. It is not a separate runtime and it does not replace the application that owns the agent. Studio connects to a target through the Studio Adapter, reads the target manifest, inspects the compiled agent, follows conversations and runtime events, and gives operators a controlled workspace for analysis, dashboard creation, and source-backed changes.</p>
 <p><img alt="Studio home with target health, conversation metrics, telemetry, artifacts, and source metadata" src="../assets/screenshots/studio-home.png" /></p>
 <h2 id="package">Package<a class="headerlink" href="#package" title="Permanent link">&para;</a></h2>
-<p>Studio is published as <code>@cognidesk/studio</code> for deployments that install the
-operations app from npm:</p>
+<p>Studio is published as <code>@cognidesk/studio</code>, and the operator execution service
+is published as <code>@cognidesk/studio-operator-runtime</code>, for deployments that
+install Studio services from npm:</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">pnpm</label><label for="__tabbed_1_2">npm</label><label for="__tabbed_1_3">yarn</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pnpm<span class="w"> </span>add<span class="w"> </span>@cognidesk/studio
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pnpm<span class="w"> </span>add<span class="w"> </span>@cognidesk/studio<span class="w"> </span>@cognidesk/studio-operator-runtime
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>npm<span class="w"> </span>install<span class="w"> </span>@cognidesk/studio
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>npm<span class="w"> </span>install<span class="w"> </span>@cognidesk/studio<span class="w"> </span>@cognidesk/studio-operator-runtime
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>yarn<span class="w"> </span>add<span class="w"> </span>@cognidesk/studio
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>yarn<span class="w"> </span>add<span class="w"> </span>@cognidesk/studio<span class="w"> </span>@cognidesk/studio-operator-runtime
 </span></code></pre></div>
 </div>
 </div>
 </div>
-<p>The package contains the Studio web application source and scripts. Running it
-still requires a target manifest, Studio database settings, auth secrets, and
-the Studio operator runtime when Operator source workflows are enabled. For a
-complete local stack, use the <a href="../getting-started/local-development/">local development runbook</a>.</p>
+<p>The packages contain the Studio web application source, operator runtime source,
+and service scripts. Running them still requires a target manifest, Studio
+database settings, auth secrets, and the Studio operator runtime configuration
+when Operator source workflows are enabled. For a complete local stack, use the
+<a href="../getting-started/local-development/">local development runbook</a>.</p>
 <h2 id="what-studio-helps-with">What Studio helps with<a class="headerlink" href="#what-studio-helps-with" title="Permanent link">&para;</a></h2>
 <p>Studio is useful when a support agent has moved beyond a local prototype and people need to understand, operate, and improve it without reading every package in the repository.</p>
 <table>

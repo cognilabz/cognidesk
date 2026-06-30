@@ -2411,16 +2411,20 @@
 <td>Studio operations web application for inspecting configured targets, conversations, telemetry, dashboards, and operator workflows</td>
 </tr>
 <tr>
+<td><code>@cognidesk/studio-operator-runtime</code></td>
+<td>WebSocket runtime for Studio operator sessions and source-workspace sandboxes</td>
+</tr>
+<tr>
 <td><code>@cognidesk/studio-adapter</code></td>
 <td>Optional Studio target introspection adapter</td>
 </tr>
 </tbody>
 </table>
-<p><code>@cognidesk/studio</code> is the published Studio app package. It still needs normal
-application configuration, including a target manifest, Studio database
-settings, auth secrets, and the operator runtime when source-work workflows are
-enabled. For the repository demo stack, use the <a href="../local-development/">Local Development</a>
-runbook.</p>
+<p><code>@cognidesk/studio</code> and <code>@cognidesk/studio-operator-runtime</code> are the published
+Studio service packages. Studio still needs normal application configuration,
+including a target manifest, Studio database settings, auth secrets, and the
+operator runtime when source-work workflows are enabled. For the repository demo
+stack, use the <a href="../local-development/">Local Development</a> runbook.</p>
 <h3 id="provider-package-examples">Provider package examples<a class="headerlink" href="#provider-package-examples" title="Permanent link">&para;</a></h3>
 <p>Install only the provider packages your application enables. Provider workspaces live under <code>integrations/{category}/{provider}</code> and publish as <code>@cognidesk/integration-{category}-{provider}</code> packages.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">pnpm</label><label for="__tabbed_2_2">npm</label></div>
