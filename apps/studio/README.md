@@ -1,4 +1,4 @@
-# Cognidesk Studio
+# @cognidesk/studio
 
 Cognidesk Studio is the local web application for inspecting a Cognidesk target,
 viewing conversations and telemetry-backed dashboards, and launching operator
