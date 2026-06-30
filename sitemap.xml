@@ -2,958 +2,958 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://cognidesk.cognilabz.com/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/core/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/http/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/journey-index-json/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/model/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/otel/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/react/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/storage/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/studio-contracts/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/test-harness/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/ui/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/voice-websocket/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/cobrowsing/cognidesk/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/cobrowsing/cognidesk/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/cobrowsing/cognidesk/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/community/forum/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/community/forum/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/community/forum/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/8x8/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/8x8/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/8x8/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/aircall/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/aircall/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/aircall/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/amazon-connect/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/amazon-connect/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/five9/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/five9/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/five9/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/genesys-cloud/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/genesys-cloud/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/genesys-engage/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/genesys-engage/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/genesys-engage/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/genesys-pureconnect/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/genesys-pureconnect/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/genesys-pureconnect/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/nextiva/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/nextiva/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/nextiva/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/nice-cxone/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/nice-cxone/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/nice-cxone/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/ringcentral/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/ringcentral/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/talkdesk/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/talkdesk/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/talkdesk/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/zoom/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/zoom/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/contact-center/zoom/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ecommerce/shopify/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ecommerce/shopify/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ecommerce/stripe/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ecommerce/stripe/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/gmail/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/gmail/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/imap/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/imap/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/mailgun/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/mailgun/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/outlook/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/outlook/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/outlook/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/postmark/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/postmark/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/ses/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/ses/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/smtp/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/email/smtp/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/form/cognidesk/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/form/cognidesk/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/form/cognidesk/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/help-center/cognidesk/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/help-center/cognidesk/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/help-center/cognidesk/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/marketplace/amazon/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/marketplace/amazon/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/marketplace/amazon/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/marketplace/ebay/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/marketplace/ebay/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/marketplace/ebay/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/messaging/discord/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/messaging/discord/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/messaging/rcs/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/messaging/rcs/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/messaging/whatsapp/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/messaging/whatsapp/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/review/appstore/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/review/appstore/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/review/appstore/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/review/googleplay/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/review/googleplay/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/review/googleplay/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/sms/twilio/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/sms/twilio/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/social/instagram/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/social/instagram/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/social/messenger/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/social/messenger/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/social/tiktok/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/social/tiktok/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/dynamics365/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/dynamics365/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/dynamics365/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/freshdesk/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/freshdesk/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/freshdesk/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/front/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/front/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/front/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/gorgias/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/gorgias/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/gorgias/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/help-scout/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/help-scout/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/help-scout/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/hubspot/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/hubspot/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/hubspot/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/intercom/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/intercom/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/intercom/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/kustomer/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/kustomer/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/kustomer/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/oracle-service/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/oracle-service/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/oracle-service/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/pega-customer-service/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/pega-customer-service/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/pega-customer-service/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/salesforce/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/salesforce/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/salesforce/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/sap-service-cloud/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/sap-service-cloud/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/sap-service-cloud/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/servicenow/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/servicenow/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/servicenow/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/zendesk/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/zendesk/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/zendesk/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/zoho-desk/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/zoho-desk/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/ticketing/zoho-desk/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/video/whereby/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/video/whereby/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/video/whereby/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/video/zoom/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/video/zoom/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/video/zoom/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/aws-speech/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/aws-speech/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/azure-speech/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/azure-speech/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/deepgram/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/deepgram/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/elevenlabs/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/elevenlabs/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/google-speech/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/google-speech/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/openai/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/openai/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/sip/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/sip/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/sip/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/twilio/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/twilio/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/vonage/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/vonage/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/workplace/slack/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/workplace/slack/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/workplace/teams/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/workplace/teams/dist/manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/integrations/workplace/teams/dist/runtime/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/core/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/http/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/integration-kit/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/integration-kit/dist/category-profiles/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/integration-kit/dist/speech/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/integration-kit/dist/testing/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/journey-index-json/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/model/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/otel/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/react/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/storage/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/storage/dist/conformance/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/storage/dist/postgres/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/storage/dist/sqlite/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/studio-contracts/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/test-harness/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/test-harness/dist/providers/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/ui/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/api-reference/generated/packages/voice-websocket/dist/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/community/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/community/changelog/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/community/contributing/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/community/repository-map/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/concepts/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/concepts/agents/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/concepts/architecture/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/concepts/journeys/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/concepts/knowledge-sources/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/concepts/runtime-events/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/concepts/tools/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/concepts/transport-neutrality/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/examples/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/examples/flight-demo/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/getting-started/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/getting-started/installation/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/getting-started/local-development/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/getting-started/quick-start/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/agents-and-instructions/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/ai-agents-and-skills/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/custom-events/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/http-transport/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/journeys/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/knowledge-sources/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/models-and-providers/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/observability/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/omnichannel-changes/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/provider-integrations-catalog/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/provider-packages/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/react-ui/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/sse-streaming/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/storage/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/tools/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/guides/voice/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/studio/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/studio/agent-configuration/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/studio/observability-dashboards/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/studio/operator-workflows/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/studio/security-admin/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
     <url>
          <loc>https://cognidesk.cognilabz.com/studio/target-manifest/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-06-30</lastmod>
     </url>
 </urlset>
