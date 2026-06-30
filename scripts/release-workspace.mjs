@@ -15,6 +15,7 @@ export const appWorkspacePatterns = ["apps/*"];
 export const publishableWorkspacePatterns = [
   ...platformWorkspacePatterns,
   ...providerWorkspacePatterns,
+  ...appWorkspacePatterns,
 ];
 export const workspacePatterns = [
   ...publishableWorkspacePatterns,

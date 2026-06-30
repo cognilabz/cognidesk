@@ -24,6 +24,7 @@ test("discovers publishable packages and nested provider workspaces", async () =
       "@cognidesk/core",
       "@cognidesk/integration-email-gmail",
       "@cognidesk/react",
+      "@cognidesk/studio",
       "@cognidesk/test-app",
     ]);
 
@@ -31,6 +32,7 @@ test("discovers publishable packages and nested provider workspaces", async () =
       "@cognidesk/core",
       "@cognidesk/integration-email-gmail",
       "@cognidesk/react",
+      "@cognidesk/studio",
     ]);
     assert.deepEqual(platformPackageWorkspaces(root).map((pkg) => pkg.name), [
       "@cognidesk/core",
@@ -207,6 +209,14 @@ async function withFixtureWorkspace(callback) {
       name: "@cognidesk/test-app",
       version: "0.0.0",
       private: true,
+    });
+    await writePackage(root, "apps/studio", {
+      name: "@cognidesk/studio",
+      version: "0.1.0",
+      dependencies: {
+        "@cognidesk/core": "workspace:*",
+      },
+      publishConfig: { access: "public" },
     });
 
     await callback(root);
