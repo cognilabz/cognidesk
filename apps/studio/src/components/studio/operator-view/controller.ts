@@ -53,7 +53,7 @@ export function useOperatorController(props: OperatorViewProps) {
   const assistantMessageIdRef = useRef<string | null>(null);
   const operatorSessionIdRef = useRef<string | null>(null);
   const activeTurnSessionIdRef = useRef<string | null>(null);
-  const initialOpenSessionIdRef = useRef(props.initialSessions[0]?.id ?? null);
+  const initialOpenSessionIdRef = useRef<string | null>(props.initialSessions[0]?.id ?? null);
   const persistQueueRef = useRef(Promise.resolve());
   const [operatorSessionId, setOperatorSessionId] = useState<string | null>(null);
   const [sessions, setSessions] = useState<OperatorSessionRow[]>(props.initialSessions);
