@@ -68,6 +68,7 @@ const runtime = createRuntime({
 | `@cognidesk/storage` | Storage adapters |
 | `@cognidesk/otel` | OpenTelemetry instrumentation |
 | `@cognidesk/integration-{category}-{provider}` | External Provider Integration packages installed individually, such as `@cognidesk/integration-email-gmail`, `@cognidesk/integration-workplace-slack`, and `@cognidesk/integration-voice-openai` |
+| `@cognidesk/studio` | Studio operations web application for inspecting configured targets, conversations, telemetry, dashboards, and operator workflows |
 | `@cognidesk/voice-websocket` | Voice WebSocket adapter |
 | `@cognidesk/journey-index-json` | JSON-based journey index |
 
@@ -104,8 +105,8 @@ corepack pnpm demo
 
 Open `http://localhost:5173` for the demo frontend,
 `http://localhost:8787/api` for the API, and `http://localhost:3000` for
-Cognidesk Studio. The default local Studio login is
-`admin@local.cognidesk.dev` / `cognidesk-studio-admin`.
+Cognidesk Studio. On a fresh Studio database, open `/login` and create the
+first Admin account; Studio no longer ships known local credentials.
 
 Docker uses the same config and model credentials:
 

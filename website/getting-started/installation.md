@@ -42,7 +42,14 @@ Install only the adapters and surfaces your application uses:
 | `@cognidesk/connections` | Reviewed OpenAPI/MCP connection helpers for selected operation aliases |
 | `@cognidesk/evals` | Eval-suite helpers built on the test harness |
 | `@cognidesk/test-harness` | Runtime scenario harness and provider conformance checks |
+| `@cognidesk/studio` | Studio operations web application for inspecting configured targets, conversations, telemetry, dashboards, and operator workflows |
 | `@cognidesk/studio-adapter` | Optional Studio target introspection adapter |
+
+`@cognidesk/studio` is the published Studio app package. It still needs normal
+application configuration, including a target manifest, Studio database
+settings, auth secrets, and the operator runtime when source-work workflows are
+enabled. For the repository demo stack, use the [Local Development](local-development.md)
+runbook.
 
 ### Provider package examples
 
