@@ -582,11 +582,11 @@ function JourneyGroup(props: {
 }) {
   const Icon = props.icon === "state-machine" ? Workflow : Bot;
   return (
-    <div className="mt-6 grid gap-1">
+    <div className="mt-6 grid min-w-0 gap-1">
       <span className={`px-1 py-2 text-xs text-slate-500 ${props.collapsed ? "hidden" : ""}`}>{props.title}</span>
       {props.journeys.map((journey) => (
         <button
-          className={`flex min-h-10 items-center gap-2 rounded-lg px-3 text-left text-sm ${
+          className={`flex min-h-10 w-full min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-lg px-3 text-left text-sm ${
             props.activeJourney?.id === journey.id ? "bg-white text-slate-950 shadow-sm ring-1 ring-slate-200" : "text-slate-600 hover:bg-slate-100"
           } ${props.collapsed ? "justify-center px-0" : ""}`}
           key={journey.id}
@@ -597,8 +597,8 @@ function JourneyGroup(props: {
           }}
           title={journey.id}
         >
-          <Icon size={15} />
-          <span className={`truncate ${props.collapsed ? "hidden" : ""}`}>{journey.id}</span>
+          <Icon className="shrink-0" size={15} />
+          <span className={`min-w-0 flex-1 truncate ${props.collapsed ? "hidden" : ""}`}>{journey.id}</span>
         </button>
       ))}
     </div>
