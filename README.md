@@ -69,6 +69,7 @@ const runtime = createRuntime({
 | `@cognidesk/otel` | OpenTelemetry instrumentation |
 | `@cognidesk/integration-{category}-{provider}` | External Provider Integration packages installed individually, such as `@cognidesk/integration-email-gmail`, `@cognidesk/integration-workplace-slack`, and `@cognidesk/integration-voice-openai` |
 | `@cognidesk/studio` | Studio operations web application for inspecting configured targets, conversations, telemetry, dashboards, and operator workflows |
+| `@cognidesk/studio-operator-runtime` | WebSocket runtime for Studio operator sessions and source-workspace sandboxes |
 | `@cognidesk/voice-websocket` | Voice WebSocket adapter |
 | `@cognidesk/journey-index-json` | JSON-based journey index |
 

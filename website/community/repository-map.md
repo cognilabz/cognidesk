@@ -41,7 +41,7 @@ update when behavior changes.
 |------|----------------|
 | `apps/flight-demo/` | Reference flight-support application with journeys, tools, knowledge, HTTP transport, React UI, voice, and observability. |
 | `apps/studio/` | Cognidesk Studio web application, published as `@cognidesk/studio`. |
-| `apps/studio-operator-runtime/` | WebSocket operator runtime that executes Studio source-workspace tasks in disposable sandboxes. |
+| `apps/studio-operator-runtime/` | WebSocket operator runtime published as `@cognidesk/studio-operator-runtime`; executes Studio source-workspace tasks in disposable sandboxes. |
 | `observability/` | Grafana dashboards and OpenTelemetry, Prometheus, Tempo, Loki, and Promtail configuration. |
 | `deploy/studio/` | Studio deployment overlays and supporting deployment configuration. |
 | `scripts/` | Release, package publishing, provider catalog, and docs-generation helpers. |

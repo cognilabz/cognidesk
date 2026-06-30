@@ -1,4 +1,4 @@
-# Studio Operator Runtime
+# @cognidesk/studio-operator-runtime
 
 The Studio operator runtime is a WebSocket service used by Cognidesk Studio to
 run operator sessions against disposable source sandboxes.
@@ -28,6 +28,13 @@ The service listens on `ws://127.0.0.1:4099/ws` by default.
 
 The Dockerfile installs the Codex CLI plus the expected shell tooling for local
 compose runs.
+
+## Package
+
+The runtime is published as `@cognidesk/studio-operator-runtime` for deployments
+that install Studio services from npm. The package includes the runtime source,
+Dockerfile, and start scripts; production deployments still need their own
+process supervisor, sandbox isolation, credentials, and network policy.
 
 ## Configuration
 

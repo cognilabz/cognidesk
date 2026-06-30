@@ -6,31 +6,33 @@ Cognidesk Studio is the operations surface for a configured Cognidesk target. It
 
 ## Package
 
-Studio is published as `@cognidesk/studio` for deployments that install the
-operations app from npm:
+Studio is published as `@cognidesk/studio`, and the operator execution service
+is published as `@cognidesk/studio-operator-runtime`, for deployments that
+install Studio services from npm:
 
 === "pnpm"
 
     ```bash
-    pnpm add @cognidesk/studio
+    pnpm add @cognidesk/studio @cognidesk/studio-operator-runtime
     ```
 
 === "npm"
 
     ```bash
-    npm install @cognidesk/studio
+    npm install @cognidesk/studio @cognidesk/studio-operator-runtime
     ```
 
 === "yarn"
 
     ```bash
-    yarn add @cognidesk/studio
+    yarn add @cognidesk/studio @cognidesk/studio-operator-runtime
     ```
 
-The package contains the Studio web application source and scripts. Running it
-still requires a target manifest, Studio database settings, auth secrets, and
-the Studio operator runtime when Operator source workflows are enabled. For a
-complete local stack, use the [local development runbook](../getting-started/local-development.md).
+The packages contain the Studio web application source, operator runtime source,
+and service scripts. Running them still requires a target manifest, Studio
+database settings, auth secrets, and the Studio operator runtime configuration
+when Operator source workflows are enabled. For a complete local stack, use the
+[local development runbook](../getting-started/local-development.md).
 
 ## What Studio helps with
 
