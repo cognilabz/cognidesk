@@ -35,6 +35,7 @@ const prepareRelease = args.includes("--prepare-release") || autoPatchExisting |
 const skipInstall = args.includes("--skip-install");
 const provenance = args.includes("--provenance")
   || (!args.includes("--no-provenance") && process.env.GITHUB_ACTIONS === "true");
+let dryRunPreparedPlatformVersion;
 
 function readOption(name) {
   const index = args.indexOf(name);
@@ -84,6 +85,7 @@ function prepareStablePlatformRelease() {
   console.log(`  ${dryRun ? "Would update" : "Updated"} ${packages.length} platform SDK packages.`);
 
   if (dryRun) {
+    dryRunPreparedPlatformVersion = nextVersion;
     console.log("  Dry run: package manifests were not changed.");
     return;
   }
@@ -173,6 +175,9 @@ if (!distTag) {
 if (prepareRelease) prepareStablePlatformRelease();
 
 const allPackages = sortByInternalDependencies(packageWorkspaces(root));
+if (dryRunPreparedPlatformVersion) {
+  updatePackageTrain(allPackages.filter(isPlatformPackage), dryRunPreparedPlatformVersion);
+}
 const packages = packageFilter
   ? allPackages.filter((pkg) => pkg.name === packageFilter || pkg.dir === packageFilter)
   : allPackages;
