@@ -36,6 +36,7 @@ export async function startRuntimeVoiceConversation<TConversationContext = unkno
     ...optionalStringField("id", input.id),
     agentId: input.agentId,
     context: input.context,
+    ...(input.privacy ? { privacy: input.privacy } : {}),
     channel: "voice",
   });
   return startVoiceSegment({

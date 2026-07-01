@@ -91,12 +91,39 @@ export const StudioAgentIntrospectionSchema = z.object({
 });
 export type StudioAgentIntrospection = z.infer<typeof StudioAgentIntrospectionSchema>;
 
+export const StudioCustomerRelationAttributeSchema = z.object({
+  label: z.string().min(1),
+  value: z.string().min(1),
+  kind: z.string().min(1).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+}).passthrough();
+export type StudioCustomerRelationAttribute = z.infer<typeof StudioCustomerRelationAttributeSchema>;
+
+export const StudioCustomerRelationPrivacySchema = z.object({
+  label: z.string().min(1).optional(),
+  description: z.string().min(1).optional(),
+  policyIds: z.array(z.string().min(1)).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+}).passthrough();
+export type StudioCustomerRelationPrivacy = z.infer<typeof StudioCustomerRelationPrivacySchema>;
+
+export const StudioCustomerRelationSchema = z.object({
+  id: z.string().min(1).optional(),
+  label: z.string().min(1).optional(),
+  relationLabel: z.string().min(1).optional(),
+  attributes: z.array(StudioCustomerRelationAttributeSchema).default([]),
+  privacy: StudioCustomerRelationPrivacySchema.optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+}).passthrough();
+export type StudioCustomerRelation = z.infer<typeof StudioCustomerRelationSchema>;
+
 export const StudioConversationSummarySchema = z.object({
   id: z.string(),
   agentId: z.string(),
   lifecycle: z.enum(["active", "handoff", "closed"]),
   createdAt: z.string(),
   updatedAt: z.string(),
+  customerRelation: StudioCustomerRelationSchema.optional(),
   activeJourneyId: z.string().optional(),
   activeStateIds: z.array(z.string()).default([]),
   eventCount: z.number().int().optional(),

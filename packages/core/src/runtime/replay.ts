@@ -49,6 +49,11 @@ export function replayRuntimeEvents(events: RuntimeEvent[]) {
     }
     if (event.type === "message.completed") {
       if (!pendingRole) continue;
+      if (typeof event.data.text !== "string" || event.data.text.length === 0) {
+        pendingRole = null;
+        pendingStarted = null;
+        continue;
+      }
       messages.push({
         id: event.id,
         offset: event.offset,

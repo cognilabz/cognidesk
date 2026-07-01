@@ -40,6 +40,7 @@ import type {
   RuntimeSnapshot,
 } from "../types.js";
 import type { PrivacyHooks } from "../privacy.js";
+import type { RuntimePrivacySettings } from "../privacy.js";
 import type { AgentLogLevel } from "../definition.js";
 import type { RuntimeTelemetryOptions } from "../telemetry.js";
 
@@ -117,7 +118,9 @@ export interface RuntimeConfigurationSource {
 }
 
 export interface CreateRuntimeConversationInput<TConversationContext = unknown>
-  extends CreateConversationInput<TConversationContext> {}
+  extends CreateConversationInput<TConversationContext> {
+  privacy?: RuntimePrivacySettings;
+}
 
 export interface ListRuntimeConversationsOptions extends ListConversationsOptions {}
 

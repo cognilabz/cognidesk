@@ -11,6 +11,7 @@ import type { ConversationRecord } from "../../storage.js";
 import { setPathValue } from "../context.js";
 import { isAbortLikeError } from "../errors.js";
 import { createToolConfirmationPromptId } from "../journey-state.js";
+import { redactTelemetryAttributes } from "../privacy.js";
 import type { RuntimeEventEmitter, RuntimeOptions } from "../types.js";
 import type { ConversationChannel } from "../../types.js";
 import { evaluateToolPolicyUse, policyBlockForEvent } from "../policy-enforcement.js";
@@ -136,10 +137,11 @@ export async function runStateToolRuns(args: {
           },
         },
       }, async () => {
-        addTelemetryContentEvent(args.options, telemetryEventNames.toolInput, {
+        const inputTelemetry = await redactTelemetryAttributes(args.options, args.conversation.id, telemetryEventNames.toolInput, {
           "cognidesk.tool.name": toolRun.tool.name,
           "cognidesk.tool.input": parsedInput.data,
         });
+        if (inputTelemetry) addTelemetryContentEvent(args.options, telemetryEventNames.toolInput, inputTelemetry);
         const output = await executeToolWithRetry({
           options: args.options,
           tool: toolRun.tool,
@@ -151,10 +153,11 @@ export async function runStateToolRuns(args: {
           ...(args.signal ? { signal: args.signal } : {}),
         });
         const parsed = toolRun.tool.output.parse(output);
-        addTelemetryContentEvent(args.options, telemetryEventNames.toolOutput, {
+        const outputTelemetry = await redactTelemetryAttributes(args.options, args.conversation.id, telemetryEventNames.toolOutput, {
           "cognidesk.tool.name": toolRun.tool.name,
           "cognidesk.tool.output": parsed,
         });
+        if (outputTelemetry) addTelemetryContentEvent(args.options, telemetryEventNames.toolOutput, outputTelemetry);
         return parsed;
       });
       logger.debug({ toolName: toolRun.tool.name }, "State tool output validated");

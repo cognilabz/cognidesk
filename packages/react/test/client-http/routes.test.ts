@@ -286,8 +286,9 @@ describe("createCognideskClient HTTP route calls", () => {
 
       const created = await client.createConversation({
         agentId: "agent_primary",
-        context: { locale: "en" },
+        context: { locale: "en", customerId: "customer_1" },
         channel,
+        privacy: { traceContent: "none", masks: [{ pattern: "ABC\\d+", replacement: "[booking]" }] },
         chatStart: {
           type: "message",
           text: "Welcome aboard.",
@@ -309,7 +310,8 @@ describe("createCognideskClient HTTP route calls", () => {
       });
       await client.startVoiceConversation({
         agentId: "agent_primary",
-        context: { locale: "en" },
+        context: { locale: "en", customer: { id: "voice_customer_1" } },
+        privacy: { traceContent: "none", customerRelationVisibility: "id" },
         chatStart: {
           type: "message",
           text: "Welcome by voice.",
@@ -378,8 +380,9 @@ describe("createCognideskClient HTTP route calls", () => {
           url: "http://localhost/api/conversations",
           body: {
             agentId: "agent_primary",
-            context: { locale: "en" },
+            context: { locale: "en", customerId: "customer_1" },
             channel,
+            privacy: { traceContent: "none", masks: [{ pattern: "ABC\\d+", replacement: "[booking]" }] },
             chatStart: {
               type: "message",
               text: "Welcome aboard.",
@@ -400,7 +403,8 @@ describe("createCognideskClient HTTP route calls", () => {
           url: "http://localhost/api/voice/conversations",
           body: {
             agentId: "agent_primary",
-            context: { locale: "en" },
+            context: { locale: "en", customer: { id: "voice_customer_1" } },
+            privacy: { traceContent: "none", customerRelationVisibility: "id" },
             chatStart: {
               type: "message",
               text: "Welcome by voice.",

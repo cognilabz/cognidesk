@@ -3,6 +3,7 @@ import {
   mergeStudioTargetManifest,
   roleHasPermission,
   StudioConfigurationSurfaceSchema,
+  StudioConversationSummarySchema,
   StudioTargetManifestSchema,
 } from "../src/index.js";
 
@@ -182,5 +183,23 @@ describe("studio contracts", () => {
       downgradedFrom: "full-api-verified",
     });
     expect(surface.providerReadiness[0]?.remediationActions[0]?.metadata).toEqual({ route: "/settings/providers" });
+  });
+
+  it("carries a generic customer relation identifier without Studio masking assumptions", () => {
+    const summary = StudioConversationSummarySchema.parse({
+      id: "conversation-1",
+      agentId: "support-agent",
+      lifecycle: "active",
+      createdAt: "2026-07-01T08:00:00.000Z",
+      updatedAt: "2026-07-01T08:01:00.000Z",
+      customerRelation: {
+        id: "customer-42",
+      },
+    });
+
+    expect(summary.customerRelation).toMatchObject({
+      id: "customer-42",
+      attributes: [],
+    });
   });
 });

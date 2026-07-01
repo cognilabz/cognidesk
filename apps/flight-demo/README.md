@@ -22,6 +22,27 @@ Copy `config.example.json`, `config.openrouter.example.json`, `config.providers.
 
 By default the server starts without external API credentials. It uses a deterministic local demo Model Set and builds an in-memory Knowledge Index from `knowledge/documents.json` when `.data/knowledge-index.json` is missing or generated for another embedding provider.
 
+## Privacy Consent Prompt
+
+The customer-facing app shows a GDPR consent prompt when the page loads. The
+choice is stored in local storage under
+`cognidesk.flightDemo.privacyConsent.v1` and reused for later page loads.
+
+If the customer chooses `No`, new Cognidesk Conversations are created with these
+SDK privacy settings:
+
+- `traceContent: "none"` so message text is not written into trace, replay, or
+  telemetry content surfaces.
+- `customerRelationVisibility: "none"` so the demo does not expose a generic
+  customer relation in Studio unless an app changes this policy.
+- Explicit demo-owned mask rules for email addresses, phone numbers, and Flight
+  Demo booking references such as `CD-CL102-4821`.
+
+If the customer chooses `Consent`, the demo does not pass session privacy
+settings and keeps local runtime events readable for development. The SDK does
+not ship default privacy masks; the demo masks live in `src/privacy.ts` and are
+passed to new ChatWidget, chat, and voice Conversations at session start.
+
 ### External Integration Opt-In
 
 Default local mode is dependency-free: no real model calls, no external embedding service, no voice provider secrets, and no live Discord, SMTP/IMAP, or WhatsApp Journeys are required. The app still starts with mocked flight-service APIs and a deterministic local Model Set.

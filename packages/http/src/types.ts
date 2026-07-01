@@ -24,6 +24,7 @@ import type {
   ResolveChannelOutputInput,
   ResolveChannelOutputResult,
   RuntimeEvent,
+  RuntimePrivacySettings,
   RuntimeSnapshot,
   StartVoiceConversationInput,
   StartVoiceResult,
@@ -133,6 +134,7 @@ interface BaseCreateConversationBody {
   id?: string;
   agentId?: string;
   context?: unknown;
+  privacy?: RuntimePrivacySettings;
 }
 
 export interface CreateConversationBody extends BaseCreateConversationBody {

@@ -126,6 +126,18 @@ export function channelSetRows(configuration: StudioConfigurationSurface | null)
   ]) ?? [];
 }
 
+export function channelWidgetRows(configuration: StudioConfigurationSurface | null) {
+  return configuration?.channels.map((channel) => [
+    channel.id ?? channel.channel,
+    channel.channel,
+    channel.enabled ? "Enabled" : "Disabled",
+    channel.behavior?.allowWidgets === undefined ? "Not specified" : channel.behavior.allowWidgets ? "Enabled" : "Disabled",
+    channel.behavior?.allowMarkdown === undefined ? "-" : channel.behavior.allowMarkdown ? "Yes" : "No",
+    channel.behavior?.draftFirst === undefined ? "-" : channel.behavior.draftFirst ? "Yes" : "No",
+    summarizeOptionalRecord(channel.behavior),
+  ]) ?? [];
+}
+
 export function channelFlowRows(configuration: StudioConfigurationSurface | null) {
   return configuration?.channels.flatMap((channel) =>
     channel.flowActivations.map((activation) => [
@@ -138,6 +150,44 @@ export function channelFlowRows(configuration: StudioConfigurationSurface | null
       summarizeOptionalRecord(activation.metadata),
     ])
   ) ?? [];
+}
+
+export type JourneyChannelActivationRow = {
+  channelId: string;
+  channel: string;
+  channelEnabled: boolean;
+  activation: "explicit-enabled" | "explicit-disabled" | "implicit-allowed" | "channel-disabled";
+  widgets: "enabled" | "disabled" | "not-specified";
+  providerPackages: string;
+  policyIds: string;
+  reason: string;
+};
+
+export function journeyChannelActivationRows(
+  configuration: StudioConfigurationSurface | null,
+  journeyId: string | undefined,
+): JourneyChannelActivationRow[] {
+  if (!configuration || !journeyId) return [];
+  return configuration.channels.map((channel) => {
+    const activation = channel.flowActivations.find((candidate) => candidate.journeyId === journeyId);
+    const widgets = channel.behavior?.allowWidgets === undefined
+      ? "not-specified"
+      : channel.behavior.allowWidgets ? "enabled" : "disabled";
+    return {
+      channelId: channel.id ?? channel.channel,
+      channel: channel.channel,
+      channelEnabled: channel.enabled,
+      activation: !channel.enabled
+        ? "channel-disabled"
+        : activation
+          ? activation.enabled ? "explicit-enabled" : "explicit-disabled"
+          : "implicit-allowed",
+      widgets,
+      providerPackages: activation?.providerPackageIds?.join(", ") || "-",
+      policyIds: activation?.policyIds?.join(", ") || "-",
+      reason: activation?.reason ?? "-",
+    };
+  });
 }
 
 export function channelPolicyRows(configuration: StudioConfigurationSurface | null) {

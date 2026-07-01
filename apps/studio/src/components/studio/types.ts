@@ -1,5 +1,6 @@
 import type {
   StudioDashboardArtifact,
+  StudioCustomerRelation,
 } from "@cognidesk/studio-contracts";
 
 export type Health = {
@@ -102,6 +103,7 @@ export type StudioConversationRow = {
   agentId: string;
   lifecycle: "active" | "handoff" | "closed";
   customerLabel: string;
+  customerRelation?: StudioCustomerRelation | undefined;
   summary: string;
   createdAt: string;
   updatedAt: string;

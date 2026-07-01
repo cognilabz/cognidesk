@@ -26,7 +26,7 @@ import type {
 import { isAbortLikeError } from "./errors.js";
 import { resolveActiveStates } from "./journey-state.js";
 import { applyModelPromptProfile } from "./prompt-profiles.js";
-import { redactModelInput } from "./privacy.js";
+import { redactModelInput, redactTelemetryAttributes } from "./privacy.js";
 import { executeToolWithRetry } from "./state-runners.js";
 import { createToolResultMessage, uniqueTools } from "./tools.js";
 import type { RuntimeEventEmitter, RuntimeOptions, StateMachineTurnResult } from "./types.js";
@@ -67,17 +67,18 @@ export async function generateTextWithTrace(args: {
     },
     metric,
   }, async (span) => {
-    addTelemetryContentEvent(args.options, telemetryEventNames.modelInput, {
+    const redactedInput = await redactModelInput(args.options, args.conversationId, args.input);
+    const inputTelemetry = await redactTelemetryAttributes(args.options, args.conversationId, telemetryEventNames.modelInput, {
       "cognidesk.model.role": args.input.role,
       "cognidesk.prompt.task": args.input.promptTask,
-      "cognidesk.model.messages": args.input.messages,
-      "cognidesk.model.prompt_payload": args.input.promptPayload,
-      "cognidesk.model.tools": args.input.tools?.map((tool) => ({
+      "cognidesk.model.messages": redactedInput.messages,
+      "cognidesk.model.prompt_payload": redactedInput.promptPayload,
+      "cognidesk.model.tools": redactedInput.tools?.map((tool) => ({
         name: tool.name,
         description: tool.description,
       })),
     });
-    const redactedInput = await redactModelInput(args.options, args.conversationId, args.input);
+    if (inputTelemetry) addTelemetryContentEvent(args.options, telemetryEventNames.modelInput, inputTelemetry);
     const output = await waitForAbort(args.model.generateText({
       ...redactedInput,
       messages: await applyModelPromptProfile({
@@ -98,13 +99,14 @@ export async function generateTextWithTrace(args: {
       applyUsageToTelemetrySpan(span, output.usage);
       metric.tokenUsage = output.usage;
     }
-    addTelemetryContentEvent(args.options, telemetryEventNames.modelOutput, {
+    const outputTelemetry = await redactTelemetryAttributes(args.options, args.conversationId, telemetryEventNames.modelOutput, {
       "cognidesk.model.role": args.input.role,
       "cognidesk.model.text": output.text,
       "cognidesk.model.structured": output.structured,
       "cognidesk.model.tool_calls": output.toolCalls,
       "cognidesk.model.usage": output.usage,
     });
+    if (outputTelemetry) addTelemetryContentEvent(args.options, telemetryEventNames.modelOutput, outputTelemetry);
     return output;
   }).catch((error) => {
     logger.error({
@@ -361,10 +363,11 @@ export async function executeModelToolCalls(args: {
           },
         },
       }, async () => {
-        addTelemetryContentEvent(args.options, telemetryEventNames.toolInput, {
+        const toolInputTelemetry = await redactTelemetryAttributes(args.options, args.conversation.id, telemetryEventNames.toolInput, {
           "cognidesk.tool.name": toolDefinition.name,
           "cognidesk.tool.input": parsedInput.data,
         });
+        if (toolInputTelemetry) addTelemetryContentEvent(args.options, telemetryEventNames.toolInput, toolInputTelemetry);
         const output = await executeToolWithRetry({
           options: args.options,
           tool: toolDefinition,
@@ -376,10 +379,11 @@ export async function executeModelToolCalls(args: {
           ...(args.signal ? { signal: args.signal } : {}),
         });
         const parsed = toolDefinition.output.parse(output);
-        addTelemetryContentEvent(args.options, telemetryEventNames.toolOutput, {
+        const toolOutputTelemetry = await redactTelemetryAttributes(args.options, args.conversation.id, telemetryEventNames.toolOutput, {
           "cognidesk.tool.name": toolDefinition.name,
           "cognidesk.tool.output": parsed,
         });
+        if (toolOutputTelemetry) addTelemetryContentEvent(args.options, telemetryEventNames.toolOutput, toolOutputTelemetry);
         return parsed;
       });
       logger.debug({ toolName: toolDefinition.name }, "Model tool output validated");

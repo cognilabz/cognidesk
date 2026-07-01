@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  cognideskSessionContextKey,
   createAgent,
   createRuntime,
   defineChannelEvent,
@@ -206,6 +207,60 @@ describe("channel event intake runtime", () => {
           streamId: "thread_123",
         },
       });
+    });
+
+    it("passes privacy settings when Channel Events start a new Conversation", async () => {
+      const storage = new RecordingStorage();
+      const runtime = createRuntime({
+        storage,
+        agent: createAgent("agent_primary", {
+          instructions: "Help customers with flights.",
+        }).compile(),
+        models: createModels(),
+      });
+
+      const result = await runtime.handleChannelEvent({
+        createConversation: {
+          agentId: "agent_primary",
+          context: { customerId: "customer_1" },
+          privacy: {
+            traceContent: "none",
+            customerRelationVisibility: "none",
+            masks: [{ pattern: "CD-[A-Z]{2}\\d{3}-\\d{4}", replacement: "[booking]" }],
+          },
+        },
+        event: {
+          nature: "message",
+          direction: "inbound",
+          intent: "customer-message",
+          channel: "chat",
+          payload: { text: "Please check CD-CL102-4821." },
+        },
+      });
+
+      const conversation = result.conversation;
+      expect(conversation).toBeDefined();
+      if (!conversation) throw new Error("Expected Channel Event to create a Conversation.");
+
+      expect(result.intake).toMatchObject({
+        outcome: "accepted",
+        bindingOutcome: "start-new",
+        conversationId: conversation.id,
+      });
+      expect(conversation.context).toMatchObject({
+        customerId: "customer_1",
+        [cognideskSessionContextKey]: {
+          privacy: {
+            traceContent: "none",
+            customerRelationVisibility: "none",
+            masks: [{ pattern: "CD-[A-Z]{2}\\d{3}-\\d{4}", replacement: "[booking]" }],
+          },
+        },
+      });
+
+      const rawEvents = JSON.stringify(await runtime.listEvents(conversation.id));
+      expect(rawEvents).not.toContain("CD-CL102-4821");
+      expect(rawEvents).toContain("message.completed");
     });
 
     it("records non-message Channel Events without running a model", async () => {

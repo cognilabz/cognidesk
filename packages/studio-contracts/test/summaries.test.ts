@@ -33,4 +33,34 @@ describe("studio summary contracts", () => {
       contentSnippet: expect.stringContaining("online check-in"),
     });
   });
+
+  it("preserves alternate knowledge detail fields for older adapters", () => {
+    const summary = StudioKnowledgeSummarySchema.parse({
+      name: "official-sources",
+      entries: [{
+        id: "source-1",
+        title: "Passenger rights",
+        url: "https://example.test/passenger-rights",
+      }],
+      documents: [{
+        id: "source-2",
+        title: "Delay compensation",
+        url: "https://example.test/delay-compensation",
+      }],
+    });
+
+    expect(summary).toMatchObject({
+      name: "official-sources",
+      entries: [{
+        id: "source-1",
+        title: "Passenger rights",
+        url: "https://example.test/passenger-rights",
+      }],
+      documents: [{
+        id: "source-2",
+        title: "Delay compensation",
+        url: "https://example.test/delay-compensation",
+      }],
+    });
+  });
 });

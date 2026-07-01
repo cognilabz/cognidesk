@@ -19,6 +19,7 @@ import type {
 } from "../types.js";
 import { defineChannelContext } from "../types.js";
 import { evaluateToolPolicyUse, policyBlockForEvent } from "./policy-enforcement.js";
+import { redactTelemetryAttributes } from "./privacy.js";
 import { executeToolWithRetry } from "./state-runners/retry.js";
 import type {
   PendingSupportAction,
@@ -230,10 +231,11 @@ export async function resolvePendingSupportAction(
         },
       },
     }, async () => {
-      addTelemetryContentEvent(deps.options, telemetryEventNames.toolInput, {
+      const inputTelemetry = await redactTelemetryAttributes(deps.options, conversation.id, telemetryEventNames.toolInput, {
         "cognidesk.tool.name": tool.name,
         "cognidesk.tool.input": parsedInput.data,
       });
+      if (inputTelemetry) addTelemetryContentEvent(deps.options, telemetryEventNames.toolInput, inputTelemetry);
       const output = await executeToolWithRetry({
         options: deps.options,
         tool,
@@ -245,10 +247,11 @@ export async function resolvePendingSupportAction(
         ...(input.signal ? { signal: input.signal } : {}),
       });
       const parsed = tool.output.parse(output);
-      addTelemetryContentEvent(deps.options, telemetryEventNames.toolOutput, {
+      const outputTelemetry = await redactTelemetryAttributes(deps.options, conversation.id, telemetryEventNames.toolOutput, {
         "cognidesk.tool.name": tool.name,
         "cognidesk.tool.output": parsed,
       });
+      if (outputTelemetry) addTelemetryContentEvent(deps.options, telemetryEventNames.toolOutput, outputTelemetry);
       return parsed;
     });
     await emit({
@@ -384,7 +387,7 @@ async function appendApprovalResolution(
       ...(telemetry ? { telemetry } : {}),
     });
     if (!stored) throw pendingSupportActionUnavailableError(action.approvalId);
-    recordStoredRuntimeEvent(options, stored);
+    await recordStoredRuntimeEvent(options, stored);
     events.push(stored);
     return stored;
   }
@@ -436,15 +439,16 @@ function pendingSupportActionUnavailableError(approvalId: string) {
   return new Error(`Pending support action '${approvalId}' is not available.`);
 }
 
-function recordStoredRuntimeEvent(options: RuntimeOptions, event: RuntimeEvent) {
+async function recordStoredRuntimeEvent(options: RuntimeOptions, event: RuntimeEvent) {
   recordRuntimeEventMetric(options, {
     "cognidesk.runtime.event.type": event.type,
   });
-  addTelemetryContentEvent(options, telemetryEventNames.runtimeEvent, {
+  const telemetry = await redactTelemetryAttributes(options, event.conversationId, telemetryEventNames.runtimeEvent, {
     "cognidesk.runtime.event.type": event.type,
     "cognidesk.runtime.event.offset": event.offset,
     "cognidesk.runtime.event.data": event.data,
   });
+  if (telemetry) addTelemetryContentEvent(options, telemetryEventNames.runtimeEvent, telemetry);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

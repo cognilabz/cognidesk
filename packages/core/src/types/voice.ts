@@ -1,4 +1,5 @@
 import type { ConversationRecord, RuntimeEventInput } from "../storage.js";
+import type { RuntimePrivacySettings } from "../privacy.js";
 import type { RuntimeEvent } from "./events.js";
 export type { ConversationChannel } from "./providers.js";
 
@@ -73,6 +74,7 @@ export interface StartVoiceConversationInput<TConversationContext = unknown> {
   id?: string;
   agentId: string;
   context: TConversationContext;
+  privacy?: RuntimePrivacySettings;
   client?: VoiceStartClientHints;
   app?: unknown;
 }

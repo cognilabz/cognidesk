@@ -1,4 +1,4 @@
-import { defineChannelContext, type AgentChatStartAction, type AgentChatStartBehavior, type ConversationRecord, type RuntimeEvent } from "@cognidesk/core";
+import { defineChannelContext, type AgentChatStartAction, type AgentChatStartBehavior, type ConversationRecord, type RuntimeEvent, type RuntimePrivacySettings } from "@cognidesk/core";
 import { parseOptionalInteger, normalizeBasePath, stripBasePath } from "../path.js";
 import { emptyResponse, HttpInputError, json, type ResponseOptions } from "../responses.js";
 import { streamEvents } from "../sse.js";
@@ -92,6 +92,7 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             agentId,
             ...optionalChannelProperty(body),
             context: body.context ?? {},
+            ...(body.privacy !== undefined ? { privacy: body.privacy as RuntimePrivacySettings } : {}),
           });
           const events = await emitChatStartEvents({
             runtime: options.runtime,
@@ -164,6 +165,7 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             ...optionalStringProperty(body, "id"),
             agentId,
             context: body.context ?? {},
+            ...(body.privacy !== undefined ? { privacy: body.privacy as RuntimePrivacySettings } : {}),
             ...optionalVoiceClient(body),
             ...(body.app !== undefined ? { app: body.app } : {}),
           });

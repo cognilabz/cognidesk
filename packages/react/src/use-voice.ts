@@ -141,6 +141,7 @@ export function useVoice(options: UseVoiceOptions): UseVoiceResult {
         const created = await options.client.createConversation({
           agentId,
           context: contextPayload,
+          ...(options.privacy !== undefined ? { privacy: options.privacy } : {}),
           channel: "voice",
           ...(chatStart !== undefined ? { chatStart } : {}),
           ...(options.app !== undefined ? { app: options.app } : {}),

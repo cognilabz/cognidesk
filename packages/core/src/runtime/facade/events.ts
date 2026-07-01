@@ -22,6 +22,7 @@ import {
   createGeneratedPreambleMessages,
   normalizeGeneratedPreamble,
 } from "../rendering.js";
+import { redactTelemetryAttributes } from "../privacy.js";
 import type {
   EmitCustomEventInput,
   EmitGeneratedPreambleInput,
@@ -46,11 +47,12 @@ export async function emitRuntimeEvent<TEvent extends RuntimeEventInput>(
   recordRuntimeEventMetric(options, {
     "cognidesk.runtime.event.type": stored.type,
   });
-  addTelemetryContentEvent(options, telemetryEventNames.runtimeEvent, {
+  const telemetry = await redactTelemetryAttributes(options, stored.conversationId, telemetryEventNames.runtimeEvent, {
     "cognidesk.runtime.event.type": stored.type,
     "cognidesk.runtime.event.offset": stored.offset,
     "cognidesk.runtime.event.data": stored.data,
   });
+  if (telemetry) addTelemetryContentEvent(options, telemetryEventNames.runtimeEvent, telemetry);
   return stored;
 }
 

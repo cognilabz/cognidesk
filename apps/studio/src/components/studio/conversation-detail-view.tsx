@@ -1,10 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type WheelEvent } from "react";
-import { ArrowLeft, GitBranch, ListChecks, MessageSquare, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { ArrowLeft, ChevronDown, GitBranch, ListChecks, MessageSquare, SlidersHorizontal, X } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import type { StudioAgentIntrospection } from "@cognidesk/studio-contracts";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { JourneyGraph } from "../journey-graph";
 import type { StudioConversationRow } from "./types";
 import { formatDateTime } from "./format";
@@ -46,6 +55,7 @@ export function ConversationDetailView(props: {
     [detailMessage, props.events],
   );
   const detailEventRows = useMemo(() => eventTableRows(props.events), [props.events]);
+  const customerRelation = props.conversation?.customerRelation ?? null;
 
   return (
     <section>
@@ -67,6 +77,8 @@ export function ConversationDetailView(props: {
           <Metric label="Messages" value={String(transcriptRows.length)} detail={props.eventsError ?? `${props.events.length} runtime events`} tone="slate" />
           <Metric label="Traces" value={String(traceIds.length)} detail={traceIds[0] ?? "No trace IDs"} tone="blue" />
         </section>
+
+        {customerRelation ? <CustomerRelationPanel relation={customerRelation} /> : null}
 
         <Panel className="mx-auto w-full max-w-5xl">
           <PanelHeader
@@ -179,6 +191,28 @@ export type BubbleAnalysis = {
 };
 
 type BubbleDetailTab = "message" | "journey" | "events";
+type EventTableMatchFilter = "related" | "trace" | "journey" | "unmatched";
+
+export type EventTableFilterState = {
+  query: string;
+  types: string[];
+  signals: string[];
+  matches: EventTableMatchFilter[];
+};
+
+const emptyEventTableFilter: EventTableFilterState = {
+  query: "",
+  types: [],
+  signals: [],
+  matches: [],
+};
+
+const eventMatchFilterOptions: Array<EventHeaderFilterOption<EventTableMatchFilter>> = [
+  { value: "related", label: "Bubble related", description: "Events directly tied to the selected bubble" },
+  { value: "trace", label: "Trace", description: "Events in the same telemetry trace" },
+  { value: "journey", label: "Journey", description: "Events in the related journey context" },
+  { value: "unmatched", label: "Unmatched", description: "Events outside bubble, trace, and journey matches" },
+];
 
 export function messageTranscriptRows(events: unknown[]): TranscriptRow[] {
   const rows: TranscriptRow[] = [];
@@ -304,6 +338,16 @@ function BubbleDetailDialog(props: {
 }) {
   const [activeTab, setActiveTab] = useState<BubbleDetailTab>(props.journey ? "journey" : "message");
   const modalScrollerRef = useRef<HTMLDivElement | null>(null);
+  const [modalPortalContainer, setModalPortalContainer] = useState<HTMLDivElement | null>(null);
+  const [eventFilterMenuOpen, setEventFilterMenuOpen] = useState(false);
+  const setModalScroller = useCallback((node: HTMLDivElement | null) => {
+    modalScrollerRef.current = node;
+    setModalPortalContainer(node);
+  }, []);
+  const handleDialogOpenChange = useCallback((open: boolean) => {
+    if (!open && eventFilterMenuOpen) return;
+    props.onOpenChange(open);
+  }, [eventFilterMenuOpen, props.onOpenChange]);
   const tabs: Array<{ id: BubbleDetailTab; label: string; count?: number; icon: typeof MessageSquare }> = [
     { id: "message", label: "Message", icon: MessageSquare },
     { id: "journey", label: "Journey", icon: GitBranch },
@@ -319,8 +363,33 @@ function BubbleDetailDialog(props: {
     return () => window.cancelAnimationFrame(animationFrame);
   }, [activeTab, props.message, props.open]);
 
+  useEffect(() => {
+    const scroller = modalScrollerRef.current;
+    if (!props.open || !scroller) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      if (isEventFilterMenuTarget(event.target)) {
+        scrollEventFilterMenuByWheel(event);
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
+      if (!(event.target instanceof Node) || !scroller.contains(event.target)) return;
+      if (event.deltaY === 0) return;
+      const deltaY = wheelDeltaPixels(event, scroller.clientHeight);
+      if (scrollModalBodyBy(scroller, deltaY)) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    document.addEventListener("wheel", handleWheel, { capture: true, passive: false });
+    return () => document.removeEventListener("wheel", handleWheel, { capture: true });
+  }, [modalPortalContainer, props.open]);
+
   return (
-    <DialogPrimitive.Root open={props.open} onOpenChange={props.onOpenChange}>
+    <DialogPrimitive.Root open={props.open} onOpenChange={handleDialogOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
           className="fixed inset-0 bg-slate-950/45"
@@ -330,11 +399,16 @@ function BubbleDetailDialog(props: {
           className="overflow-y-auto overscroll-contain rounded-lg border border-slate-200 bg-white text-slate-950 antialiased shadow-lg outline-none transition-none [scrollbar-gutter:stable]"
           data-conversation-bubble-modal="true"
           data-conversation-bubble-modal-body="true"
-          ref={modalScrollerRef}
+          ref={setModalScroller}
           tabIndex={-1}
+          onEscapeKeyDown={(event) => {
+            if (eventFilterMenuOpen || isEventFilterMenuTarget(event.target)) event.preventDefault();
+          }}
+          onInteractOutside={(event) => {
+            if (eventFilterMenuOpen || isEventFilterMenuTarget(event.target)) event.preventDefault();
+          }}
           onKeyDown={handleModalBodyKeyDown}
-          onMouseDown={(event) => event.currentTarget.focus({ preventScroll: true })}
-          onWheelCapture={handleModalBodyWheel}
+          onMouseDown={handleModalBodyMouseDown}
           style={{
             height: "80vh",
             left: "10vw",
@@ -407,7 +481,9 @@ function BubbleDetailDialog(props: {
                   <BubbleAnalysisPanel
                     allEventRows={props.allEventRows}
                     analysis={props.analysis}
+                    dropdownPortalContainer={modalPortalContainer}
                     message={props.message}
+                    onFilterMenuOpenChange={setEventFilterMenuOpen}
                   />
                 ) : null}
             </div>
@@ -420,7 +496,14 @@ function BubbleDetailDialog(props: {
   );
 }
 
+function handleModalBodyMouseDown(event: MouseEvent<HTMLDivElement>) {
+  if (!shouldFocusModalBody(event.target, event.currentTarget)) return;
+  event.currentTarget.focus({ preventScroll: true });
+}
+
 function handleModalBodyKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+  if (isEventFilterMenuTarget(event.target)) return;
+
   const scroller = event.currentTarget;
   const pageDelta = Math.max(120, scroller.clientHeight * 0.85);
   let handled = false;
@@ -435,24 +518,48 @@ function handleModalBodyKeyDown(event: KeyboardEvent<HTMLDivElement>) {
   if (handled) event.preventDefault();
 }
 
-function handleModalBodyWheel(event: WheelEvent<HTMLDivElement>) {
-  if (event.deltaY === 0) return;
-
-  const deltaY = wheelDeltaPixels(event);
-  if (scrollModalBodyBy(event.currentTarget, deltaY)) event.preventDefault();
+function isEventFilterMenuTarget(target: EventTarget | null) {
+  return target instanceof Element && Boolean(target.closest("[data-conversation-event-filter-menu]"));
 }
 
-function wheelDeltaPixels(event: WheelEvent<HTMLDivElement>) {
+function shouldFocusModalBody(target: EventTarget | null, modalBody: HTMLDivElement) {
+  if (target === modalBody) return true;
+  if (!(target instanceof Element)) return true;
+  if (isEventFilterMenuTarget(target)) return false;
+
+  return !target.closest(
+    "a[href],button,input,select,textarea,[role='button'],[role='menuitem'],[role='menuitemcheckbox'],[role='tab'],[tabindex]",
+  );
+}
+
+function scrollEventFilterMenuByWheel(event: WheelEvent) {
+  if (!(event.target instanceof Element)) return false;
+
+  const menu = event.target.closest("[data-conversation-event-filter-menu]");
+  const scroller = event.target.closest<HTMLElement>("[data-conversation-event-filter-scroll]")
+    ?? menu?.querySelector<HTMLElement>("[data-conversation-event-filter-scroll]");
+  if (!scroller) return false;
+
+  const currentScrollTop = scroller.scrollTop;
+  scrollElementTo(scroller, currentScrollTop + wheelDeltaPixels(event, scroller.clientHeight));
+  return scroller.scrollTop !== currentScrollTop;
+}
+
+function wheelDeltaPixels(event: WheelEvent, pageHeight: number) {
   if (event.deltaMode === 1) return event.deltaY * 16;
-  if (event.deltaMode === 2) return event.deltaY * event.currentTarget.clientHeight;
+  if (event.deltaMode === 2) return event.deltaY * pageHeight;
   return event.deltaY;
 }
 
 function scrollModalBodyBy(scroller: HTMLDivElement, deltaY: number) {
-  return scrollModalBodyTo(scroller, scroller.scrollTop + deltaY);
+  return scrollElementTo(scroller, scroller.scrollTop + deltaY);
 }
 
 function scrollModalBodyTo(scroller: HTMLDivElement, nextScrollTop: number) {
+  return scrollElementTo(scroller, nextScrollTop);
+}
+
+function scrollElementTo(scroller: HTMLElement, nextScrollTop: number) {
   const maxScrollTop = scroller.scrollHeight - scroller.clientHeight;
   if (maxScrollTop <= 0) return false;
 
@@ -479,6 +586,62 @@ function BubbleMessagePanel(props: { message: TranscriptRow }) {
   );
 }
 
+function CustomerRelationPanel(props: { relation: NonNullable<StudioConversationRow["customerRelation"]> }) {
+  const detail = props.relation.privacy?.label ?? props.relation.relationLabel ?? "SDK provided";
+  return (
+    <Panel className="mx-auto w-full max-w-5xl">
+      <PanelHeader title="Customer relation" detail={detail} />
+      <div className="grid gap-3 p-5 text-sm md:grid-cols-3">
+        <PrivacyField label="Relation" value={props.relation.relationLabel ?? "SDK provided"} />
+        <PrivacyField label="Customer ID" value={props.relation.id ?? "-"} />
+        <PrivacyField label="Label" value={props.relation.label ?? "-"} />
+        <div className="grid gap-1 md:col-span-3">
+          <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Attributes</span>
+          {props.relation.attributes.length ? (
+            <div className="flex flex-wrap gap-2">
+              {props.relation.attributes.map((attribute) => (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700"
+                  key={`${attribute.label}:${attribute.value}:${attribute.kind ?? "unknown"}`}
+                  title={attribute.kind}
+                >
+                  <span className="font-medium">{attribute.label}</span>
+                  <span>{attribute.value}</span>
+                </span>
+              ))}
+            </div>
+          ) : (
+            <span className="text-slate-500">-</span>
+          )}
+        </div>
+        {props.relation.privacy ? (
+          <div className="grid gap-2 rounded-lg border border-slate-200 p-3 md:col-span-3">
+            <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Privacy</span>
+            {props.relation.privacy.label ? <strong className="font-medium text-slate-950">{props.relation.privacy.label}</strong> : null}
+            {props.relation.privacy.description ? <p className="text-sm leading-6 text-slate-600">{props.relation.privacy.description}</p> : null}
+            {props.relation.privacy.policyIds?.length ? (
+              <div className="flex flex-wrap gap-2">
+                {props.relation.privacy.policyIds.map((policyId) => (
+                  <span className="rounded-full border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600" key={policyId}>{policyId}</span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </Panel>
+  );
+}
+
+function PrivacyField(props: { label: string; value: string }) {
+  return (
+    <div className="grid gap-1 rounded-lg border border-slate-200 p-3">
+      <span className="text-xs font-medium uppercase tracking-wide text-slate-500">{props.label}</span>
+      <strong className="break-words font-medium text-slate-950">{props.value}</strong>
+    </div>
+  );
+}
+
 function JourneyDetailPanel(props: {
   activeStateIds: string[];
   eventCount: number;
@@ -500,7 +663,7 @@ function JourneyDetailPanel(props: {
   }
 
   return (
-    <section className="grid min-w-0 gap-3" data-conversation-bubble-journey-panel="true">
+    <section className="grid min-h-[calc(80vh-11rem)] min-w-0 grid-rows-[auto_minmax(360px,1fr)] gap-3" data-conversation-bubble-journey-panel="true">
       <div className="rounded-lg border border-slate-200 p-3">
         <JourneyContextSummary
           focusLabel="Bubble"
@@ -513,7 +676,7 @@ function JourneyDetailPanel(props: {
       <JourneyGraph
         journey={props.journey}
         activeStateIds={props.activeStateIds}
-        className="h-[320px] max-h-[44vh] min-h-[280px]"
+        className="h-full min-h-[360px]"
         focusMode="center"
         interactive
       />
@@ -550,7 +713,13 @@ function JourneyContextSummary(props: {
   );
 }
 
-function BubbleAnalysisPanel(props: { message: TranscriptRow | null; analysis: BubbleAnalysis; allEventRows: EventRow[] }) {
+function BubbleAnalysisPanel(props: {
+  message: TranscriptRow | null;
+  analysis: BubbleAnalysis;
+  allEventRows: EventRow[];
+  dropdownPortalContainer: HTMLElement | null;
+  onFilterMenuOpenChange: (open: boolean) => void;
+}) {
   if (!props.message) {
     return (
       <div className="grid h-full min-h-64 place-items-center text-center text-sm text-slate-500">
@@ -582,7 +751,9 @@ function BubbleAnalysisPanel(props: { message: TranscriptRow | null; analysis: B
       </div>
       <EventGraph rows={props.analysis.nearbyRows.length ? props.analysis.nearbyRows : props.analysis.relatedRows} />
       <FullEventTable
+        dropdownPortalContainer={props.dropdownPortalContainer}
         journeyKeys={journeyKeys}
+        onFilterMenuOpenChange={props.onFilterMenuOpenChange}
         relatedKeys={relatedKeys}
         rows={props.allEventRows}
         traceKeys={traceKeys}
@@ -629,16 +800,41 @@ function FullEventTable(props: {
   relatedKeys: Set<string>;
   traceKeys: Set<string>;
   journeyKeys: Set<string>;
+  dropdownPortalContainer: HTMLElement | null;
+  onFilterMenuOpenChange: (open: boolean) => void;
 }) {
+  const [filter, setFilter] = useState<EventTableFilterState>(emptyEventTableFilter);
+  const typeOptions = useMemo(() => eventValueOptions(props.rows, (row) => row.type), [props.rows]);
+  const signalOptions = useMemo(() => eventValueOptions(props.rows, (row) => row.signal), [props.rows]);
+  const matchOptions = useMemo(() => eventMatchFilterOptions.map((option) => ({
+    ...option,
+    count: props.rows.filter((row) => eventRowMatchesRelation(row, option.value, {
+      relatedKeys: props.relatedKeys,
+      traceKeys: props.traceKeys,
+      journeyKeys: props.journeyKeys,
+    })).length,
+  })), [props.journeyKeys, props.relatedKeys, props.rows, props.traceKeys]);
+  const filteredRows = useMemo(
+    () => filterEventTableRows(props.rows, filter, {
+      relatedKeys: props.relatedKeys,
+      traceKeys: props.traceKeys,
+      journeyKeys: props.journeyKeys,
+    }),
+    [filter, props.journeyKeys, props.relatedKeys, props.rows, props.traceKeys],
+  );
+  const filtersActive = !sameEventTableFilter(filter, emptyEventTableFilter);
+
   return (
     <section data-conversation-event-list="true">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">All conversation events</span>
-        <span className="text-xs text-slate-500 dark:text-slate-400">{props.rows.length} rows</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400">
+          {filteredRows.length === props.rows.length ? `${props.rows.length} rows` : `${filteredRows.length} of ${props.rows.length} rows`}
+        </span>
       </div>
       {props.rows.length ? (
         <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950/70">
-          <table className="w-full min-w-[840px] table-fixed border-collapse bg-white text-xs dark:bg-slate-950/70">
+          <table className="w-full min-w-[920px] table-fixed border-collapse bg-white text-xs dark:bg-slate-950/70">
             <thead>
               <tr className="bg-slate-50 text-left text-slate-500 dark:bg-slate-900 dark:text-slate-300">
                 <th className="w-20 border-b border-slate-200 px-3 py-2 font-medium dark:border-slate-700">Offset</th>
@@ -647,9 +843,77 @@ function FullEventTable(props: {
                 <th className="w-36 border-b border-slate-200 px-3 py-2 font-medium dark:border-slate-700">Match</th>
                 <th className="border-b border-slate-200 px-3 py-2 font-medium dark:border-slate-700">Summary</th>
               </tr>
+              <tr className="bg-white text-left text-slate-500 dark:bg-slate-950 dark:text-slate-300">
+                <th className="border-b border-slate-200 px-3 py-2 align-middle font-medium dark:border-slate-700">
+                  <button
+                    aria-label="Reset event filters"
+                    className="inline-grid size-8 place-items-center rounded-md border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50"
+                    disabled={!filtersActive}
+                    title="Reset event filters"
+                    type="button"
+                    onClick={() => setFilter(emptyEventTableFilter)}
+                  >
+                    <X className="size-4" aria-hidden="true" />
+                  </button>
+                </th>
+                <th className="border-b border-slate-200 px-3 py-2 align-middle font-medium dark:border-slate-700">
+                  <EventHeaderFilterMenu
+                    dataFilter="type"
+                    emptyLabel="Any type"
+                    label="Type"
+                    manyLabel="types"
+                    options={typeOptions}
+                    portalContainer={props.dropdownPortalContainer}
+                    selectedValues={filter.types}
+                    onOpenChange={props.onFilterMenuOpenChange}
+                    onClear={() => setFilter((current) => ({ ...current, types: [] }))}
+                    onToggle={(type) => setFilter((current) => ({ ...current, types: toggleSelectedValue(current.types, type) }))}
+                  />
+                </th>
+                <th className="border-b border-slate-200 px-3 py-2 align-middle font-medium dark:border-slate-700">
+                  <EventHeaderFilterMenu
+                    dataFilter="signal"
+                    emptyLabel="Any signal"
+                    label="Signal"
+                    manyLabel="signals"
+                    options={signalOptions}
+                    portalContainer={props.dropdownPortalContainer}
+                    selectedValues={filter.signals}
+                    onOpenChange={props.onFilterMenuOpenChange}
+                    onClear={() => setFilter((current) => ({ ...current, signals: [] }))}
+                    onToggle={(signal) => setFilter((current) => ({ ...current, signals: toggleSelectedValue(current.signals, signal) }))}
+                  />
+                </th>
+                <th className="border-b border-slate-200 px-3 py-2 align-middle font-medium dark:border-slate-700">
+                  <EventHeaderFilterMenu
+                    dataFilter="match"
+                    emptyLabel="Any relation"
+                    label="Match"
+                    manyLabel="relations"
+                    options={matchOptions}
+                    portalContainer={props.dropdownPortalContainer}
+                    selectedValues={filter.matches}
+                    onOpenChange={props.onFilterMenuOpenChange}
+                    onClear={() => setFilter((current) => ({ ...current, matches: [] }))}
+                    onToggle={(match) => setFilter((current) => ({ ...current, matches: toggleSelectedValue(current.matches, match) }))}
+                  />
+                </th>
+                <th className="border-b border-slate-200 px-3 py-2 align-middle font-medium dark:border-slate-700">
+                  <label className="block">
+                    <span className="sr-only">Search event summary, type, offset, or trace</span>
+                    <input
+                      className="h-8 w-full min-w-0 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-950 outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                      data-conversation-event-filter="query"
+                      placeholder="Search events..."
+                      value={filter.query}
+                      onChange={(event) => setFilter((current) => ({ ...current, query: event.target.value }))}
+                    />
+                  </label>
+                </th>
+              </tr>
             </thead>
             <tbody>
-              {props.rows.map((row) => {
+              {filteredRows.map((row) => {
                 const traceMatch = props.traceKeys.has(row.key);
                 const journeyMatch = props.journeyKeys.has(row.key);
                 const relatedMatch = props.relatedKeys.has(row.key);
@@ -668,9 +932,10 @@ function FullEventTable(props: {
                     <td className="border-b border-slate-100 px-3 py-2 align-top text-slate-700 dark:border-slate-800 dark:text-slate-300">{row.signal}</td>
                     <td className="border-b border-slate-100 px-3 py-2 align-top dark:border-slate-800">
                       <span className="flex flex-wrap gap-1">
+                        {relatedMatch ? <EventMatchBadge label="Bubble" /> : null}
                         {traceMatch ? <EventMatchBadge label="Trace" /> : null}
                         {journeyMatch ? <EventMatchBadge label="Journey" /> : null}
-                        {!traceMatch && !journeyMatch ? <span className="text-slate-400 dark:text-slate-500">-</span> : null}
+                        {!relatedMatch && !traceMatch && !journeyMatch ? <span className="text-slate-400 dark:text-slate-500">-</span> : null}
                       </span>
                     </td>
                     <td className="border-b border-slate-100 px-3 py-2 align-top dark:border-slate-800">
@@ -681,6 +946,11 @@ function FullEventTable(props: {
               })}
             </tbody>
           </table>
+          {filteredRows.length === 0 ? (
+            <div className="border-t border-slate-100 p-5 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
+              No events match the active filters.
+            </div>
+          ) : null}
         </div>
       ) : (
         <p className="rounded-lg border border-dashed border-slate-300 p-5 text-sm text-slate-500">
@@ -691,12 +961,248 @@ function FullEventTable(props: {
   );
 }
 
+type EventHeaderFilterOption<T extends string> = {
+  value: T;
+  label: string;
+  description?: string;
+  count?: number;
+};
+
+function EventHeaderFilterMenu<T extends string>(props: {
+  dataFilter: "type" | "signal" | "match";
+  emptyLabel: string;
+  label: string;
+  manyLabel: string;
+  options: Array<EventHeaderFilterOption<T>>;
+  portalContainer: HTMLElement | null;
+  selectedValues: T[];
+  onClear: () => void;
+  onOpenChange: (open: boolean) => void;
+  onToggle: (value: T) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+  const active = props.selectedValues.length > 0;
+  const valueLabel = selectedValuesLabel(props.options, props.selectedValues, props.emptyLabel, props.manyLabel);
+  const handleOpenChange = useCallback((nextOpen: boolean) => {
+    setOpen(nextOpen);
+    props.onOpenChange(nextOpen);
+  }, [props.onOpenChange]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      const menu = document.querySelector<HTMLElement>(`[data-conversation-event-filter-menu="${props.dataFilter}"]`);
+      const selectedOption = menu?.querySelector<HTMLElement>("[data-conversation-event-filter-option][data-state='checked']");
+      const firstOption = menu?.querySelector<HTMLElement>("[data-conversation-event-filter-option]");
+      const scrollArea = menu?.querySelector<HTMLElement>("[data-conversation-event-filter-scroll]");
+      (selectedOption ?? firstOption ?? scrollArea ?? menu)?.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [open, props.dataFilter]);
+
+  useEffect(() => {
+    const scroller = scrollAreaRef.current;
+    if (!open || !scroller) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      scrollElementTo(scroller, scroller.scrollTop + wheelDeltaPixels(event, scroller.clientHeight));
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    scroller.addEventListener("wheel", handleWheel, { passive: false });
+    return () => scroller.removeEventListener("wheel", handleWheel);
+  }, [open]);
+
+  return (
+    <DropdownMenu modal={false} open={open} onOpenChange={handleOpenChange}>
+      <DropdownMenuTrigger asChild>
+        <button
+          aria-label={`Filter events by ${props.label.toLowerCase()}`}
+          className={`group inline-flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-md border px-2.5 text-xs font-medium outline-none transition focus:ring-2 focus:ring-blue-100 ${
+            active
+              ? "border-blue-200 bg-blue-50 text-blue-800 hover:border-blue-300 hover:bg-blue-100 dark:border-blue-400/40 dark:bg-blue-400/10 dark:text-blue-100"
+              : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          }`}
+          data-conversation-event-filter={props.dataFilter}
+          data-filter-active={active ? "true" : "false"}
+          type="button"
+        >
+          <span className="flex min-w-0 items-center gap-1.5">
+            <SlidersHorizontal className={`size-3.5 shrink-0 ${active ? "text-blue-600 dark:text-blue-200" : "text-slate-400"}`} aria-hidden="true" />
+            <span className="truncate">{valueLabel}</span>
+          </span>
+          <ChevronDown className="size-3.5 shrink-0 text-slate-400 transition group-data-[state=open]:rotate-180" aria-hidden="true" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="z-[1100] w-72 rounded-lg border-slate-200 bg-white p-2 text-slate-950 shadow-xl shadow-slate-950/10 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+        data-conversation-event-filter-menu={props.dataFilter}
+        portalContainer={props.portalContainer ?? undefined}
+        sideOffset={6}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+        }}
+        onEscapeKeyDown={(event) => {
+          event.stopPropagation();
+        }}
+        onInteractOutside={(event) => {
+          if (isEventFilterMenuTarget(event.target)) event.preventDefault();
+        }}
+      >
+        <DropdownMenuLabel className="flex items-center justify-between gap-3 px-2 py-1.5">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{props.label}</span>
+          <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+            active
+              ? "bg-blue-50 text-blue-700 dark:bg-blue-400/10 dark:text-blue-200"
+              : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300"
+          }`}
+          >
+            {active ? `${props.selectedValues.length} selected` : "All"}
+          </span>
+        </DropdownMenuLabel>
+        <DropdownMenuItem
+          className="rounded-md px-2 py-2 text-xs text-slate-600 focus:bg-slate-100 focus:text-slate-950 dark:text-slate-300 dark:focus:bg-slate-800 dark:focus:text-slate-50"
+          onSelect={(event) => {
+            event.preventDefault();
+            props.onClear();
+          }}
+        >
+          <span className="inline-grid size-4 place-items-center rounded border border-slate-200 bg-slate-50 text-[10px] text-slate-400 dark:border-slate-700 dark:bg-slate-900">
+            *
+          </span>
+          <span>{props.emptyLabel}</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator className="my-2 bg-slate-100 dark:bg-slate-800" />
+        <div
+          className="max-h-72 overflow-y-auto overscroll-contain pr-1"
+          data-conversation-event-filter-scroll="true"
+          ref={scrollAreaRef}
+          tabIndex={-1}
+        >
+          {props.options.length ? props.options.map((option) => (
+            <DropdownMenuCheckboxItem
+              checked={props.selectedValues.includes(option.value)}
+              className="items-start rounded-md py-2 pr-2 text-xs focus:bg-blue-50 focus:text-slate-950 data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-800 dark:focus:bg-blue-400/10 dark:focus:text-slate-50 dark:data-[state=checked]:bg-blue-400/10 dark:data-[state=checked]:text-blue-100"
+              data-conversation-event-filter-option={option.value}
+              key={option.value}
+              onCheckedChange={() => props.onToggle(option.value)}
+              onSelect={(event) => event.preventDefault()}
+            >
+              <span className="grid min-w-0 flex-1 gap-0.5">
+                <span className="truncate font-medium">{option.label}</span>
+                {option.description ? <span className="line-clamp-2 text-[11px] font-normal leading-4 text-slate-500 dark:text-slate-400">{option.description}</span> : null}
+              </span>
+              {typeof option.count === "number" ? (
+                <span className="ml-2 shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+                  {option.count}
+                </span>
+              ) : null}
+            </DropdownMenuCheckboxItem>
+          )) : (
+            <div className="px-2 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
+              No filter values found.
+            </div>
+          )}
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function EventMatchBadge(props: { label: string }) {
   return (
     <span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-200">
       {props.label}
     </span>
   );
+}
+
+export function filterEventTableRows(
+  rows: EventRow[],
+  filter: EventTableFilterState,
+  keys: {
+    relatedKeys: ReadonlySet<string>;
+    traceKeys: ReadonlySet<string>;
+    journeyKeys: ReadonlySet<string>;
+  },
+) {
+  const query = filter.query.trim().toLowerCase();
+  return rows.filter((row) => {
+    if (filter.types.length && !filter.types.includes(row.type)) return false;
+    if (filter.signals.length && !filter.signals.includes(row.signal)) return false;
+
+    if (filter.matches.length && !filter.matches.some((match) => eventRowMatchesRelation(row, match, keys))) return false;
+
+    if (!query) return true;
+    return [
+      row.offset,
+      row.createdAt,
+      row.type,
+      row.signal,
+      row.traceId,
+      row.summary,
+    ].some((value) => value.toLowerCase().includes(query));
+  });
+}
+
+function eventValueOptions(rows: EventRow[], select: (row: EventRow) => string): Array<EventHeaderFilterOption<string>> {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    const value = select(row);
+    if (!value || value === "-") continue;
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([value, count]) => ({ value, label: value, count }));
+}
+
+function selectedValuesLabel<T extends string>(options: Array<EventHeaderFilterOption<T>>, selectedValues: T[], emptyLabel: string, manyLabel: string) {
+  if (!selectedValues.length) return emptyLabel;
+  if (selectedValues.length === 1) {
+    return options.find((option) => option.value === selectedValues[0])?.label ?? selectedValues[0];
+  }
+  return `${selectedValues.length} ${manyLabel}`;
+}
+
+function toggleSelectedValue<T extends string>(values: T[], value: T) {
+  return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
+}
+
+function eventRowMatchesRelation(
+  row: EventRow,
+  match: EventTableMatchFilter,
+  keys: {
+    relatedKeys: ReadonlySet<string>;
+    traceKeys: ReadonlySet<string>;
+    journeyKeys: ReadonlySet<string>;
+  },
+) {
+  const relatedMatch = keys.relatedKeys.has(row.key);
+  const traceMatch = keys.traceKeys.has(row.key);
+  const journeyMatch = keys.journeyKeys.has(row.key);
+  if (match === "related") return relatedMatch;
+  if (match === "trace") return traceMatch;
+  if (match === "journey") return journeyMatch;
+  return !relatedMatch && !traceMatch && !journeyMatch;
+}
+
+function sameEventTableFilter(left: EventTableFilterState, right: EventTableFilterState) {
+  return left.query === right.query
+    && sameStringSelection(left.types, right.types)
+    && sameStringSelection(left.signals, right.signals)
+    && sameStringSelection(left.matches, right.matches);
+}
+
+function sameStringSelection(left: readonly string[], right: readonly string[]) {
+  if (left.length !== right.length) return false;
+  const rightValues = new Set(right);
+  return left.every((value) => rightValues.has(value));
 }
 
 function EventMiniTable(props: { title: string; rows: EventRow[]; emptyText: string }) {
@@ -872,7 +1378,7 @@ function numericEventOffset(row: EventRow) {
   return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER;
 }
 
-function eventTableRows(events: unknown[]): EventRow[] {
+export function eventTableRows(events: unknown[]): EventRow[] {
   return events.map((event, index) => {
     const record = asRecord(event);
     const data = asRecord(record?.data);

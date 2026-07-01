@@ -3,11 +3,14 @@ import { eq } from "drizzle-orm";
 import {
   StudioAgentIntrospectionSchema,
   StudioConfigurationSurfaceSchema,
+  StudioConfigurationMutationResultSchema,
   StudioConversationSummarySchema,
   StudioDashboardDataQuerySchema,
   StudioTargetManifestSchema,
   type StudioAgentIntrospection,
   type StudioConfigurationSurface,
+  type StudioConfigurationMutationOperation,
+  type StudioConfigurationMutationResult,
   type StudioConversationSummary,
   type StudioDashboardDataQuery,
   type StudioTargetManifest,
@@ -95,6 +98,27 @@ export async function fetchConfigurationSurface(): Promise<StudioConfigurationSu
   const response = await adapterFetch(manifest, "/configuration");
   if (!response.ok) throw new Error(`Studio Adapter configuration returned ${response.status}`);
   return StudioConfigurationSurfaceSchema.parse(await response.json());
+}
+
+export async function requestConfigurationChange(input: {
+  reason: string;
+  operations: StudioConfigurationMutationOperation[];
+  actor?: { id?: string; role?: string };
+}): Promise<{ status: number; result: StudioConfigurationMutationResult }> {
+  const manifest = await currentTarget();
+  const response = await adapterFetch(manifest, "/configuration/changes", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      requestId: randomUUID(),
+      targetId: manifest.target.id,
+      reason: input.reason,
+      operations: input.operations,
+      ...(input.actor ? { actor: input.actor } : {}),
+    }),
+  });
+  const result = StudioConfigurationMutationResultSchema.parse(await response.json());
+  return { status: response.status, result };
 }
 
 export async function fetchTargetConversations(
@@ -297,7 +321,8 @@ function studioConversationRowFromSummary(summary: StudioConversationSummary): S
     id: summary.id,
     agentId: summary.agentId,
     lifecycle: summary.lifecycle,
-    customerLabel: `Conversation ${summary.id.slice(0, 8)}`,
+    ...(summary.customerRelation ? { customerRelation: summary.customerRelation } : {}),
+    customerLabel: summary.customerRelation?.label ?? (summary.customerRelation?.id ? `Customer ${summary.customerRelation.id}` : `Conversation ${summary.id.slice(0, 8)}`),
     summary: summarizeTargetConversation(summary),
     createdAt: summary.createdAt,
     updatedAt: summary.updatedAt,

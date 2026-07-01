@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Bot, PanelLeftClose, PanelLeftOpen, Workflow } from "lucide-react";
 import type { StudioAgentIntrospection, StudioConfigurationSurface, StudioJourneySummary } from "@cognidesk/studio-contracts";
 import { JourneyGraph } from "@/components/journey-graph";
@@ -14,15 +15,18 @@ import {
   channelConfigurationRows,
   channelPolicyRows,
   channelSetRows,
+  channelWidgetRows,
   integrationLifecycleRows,
+  journeyChannelActivationRows,
   providerCredentialRows,
   providerPackageRows,
   providerReadinessRows,
   toolRows,
   widgetRows,
+  type JourneyChannelActivationRow,
 } from "./data";
 import { formatDateTime } from "./format";
-import { DataTable, EmptyState, PageHeader, Panel, PanelHeader } from "./ui";
+import { Button, DataTable, EmptyState, PageHeader, Panel, PanelHeader } from "./ui";
 
 type AgentSection = "overview" | "instructions" | "configuration" | "journeys" | "tools" | "knowledge" | "widgets";
 
@@ -45,15 +49,15 @@ export function AgentsView(props: {
   configurationError?: string | null;
 }) {
   const { error, introspection } = props;
-  const [section, setSection] = useState<AgentSection>("journeys");
-  const [activeJourneyId, setActiveJourneyId] = useState(introspection?.journeys[0]?.id ?? "");
+  const [section, setSection] = useState<AgentSection>("overview");
+  const [activeJourneyId, setActiveJourneyId] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const configuration = props.configuration ?? introspection?.configurationSurface ?? null;
   const stateMachines = introspection?.journeys.filter((journey) => journey.kind === "stateMachine") ?? [];
   const delegations = introspection?.journeys.filter((journey) => journey.kind === "delegation") ?? [];
   const activeJourney = useMemo(() => {
     if (!introspection) return null;
-    return introspection.journeys.find((journey) => journey.id === activeJourneyId) ?? introspection.journeys[0] ?? null;
+    return introspection.journeys.find((journey) => journey.id === activeJourneyId) ?? null;
   }, [activeJourneyId, introspection]);
 
   if (!introspection && !configuration) {
@@ -106,9 +110,9 @@ export function AgentsView(props: {
   } else if (section === "knowledge") {
     sectionContent = <KnowledgeSection introspection={introspection} />;
   } else if (section === "widgets") {
-    sectionContent = <Panel><PanelHeader title="Widgets" /><DataTable columns={["Kind"]} rows={widgetRows(introspection)} emptyText="No widgets returned." /></Panel>;
+    sectionContent = <WidgetsSection introspection={introspection} configuration={configuration} />;
   } else {
-    sectionContent = <JourneyDetail journey={activeJourney} />;
+    sectionContent = <JourneyDetail journey={activeJourney} configuration={configuration} />;
   }
 
   return (
@@ -144,13 +148,17 @@ export function AgentsView(props: {
             </button>
           ))}
         </div>
-        <JourneyGroup collapsed={sidebarCollapsed} title="State Machine Journeys" icon="state-machine" journeys={stateMachines} activeJourney={activeJourney} setSection={setSection} setActiveJourneyId={setActiveJourneyId} />
-        <JourneyGroup collapsed={sidebarCollapsed} title="Delegation Journeys" icon="delegation" journeys={delegations} activeJourney={activeJourney} setSection={setSection} setActiveJourneyId={setActiveJourneyId} />
+        {section === "journeys" ? (
+          <>
+            <JourneyGroup collapsed={sidebarCollapsed} title="State Machine Journeys" icon="state-machine" journeys={stateMachines} activeJourney={activeJourney} setSection={setSection} setActiveJourneyId={setActiveJourneyId} />
+            <JourneyGroup collapsed={sidebarCollapsed} title="Delegation Journeys" icon="delegation" journeys={delegations} activeJourney={activeJourney} setSection={setSection} setActiveJourneyId={setActiveJourneyId} />
+          </>
+        ) : null}
       </aside>
       <section className="min-w-0 overflow-hidden">
         <PageHeader
           eyebrow="Agent builder"
-          title={section === "journeys" ? activeJourney?.id ?? "Journeys" : titleForSection(section)}
+          title={section === "journeys" ? activeJourney?.id ?? "Select a journey" : titleForSection(section)}
         />
         <div className="max-w-full overflow-hidden p-8">{sectionContent}</div>
       </section>
@@ -179,7 +187,7 @@ function ConfigurationSection(props: {
           detail={`Captured ${formatDateTime(configuration.capturedAt)}`}
         />
         <DataTable
-          columns={["Set", "State", "Channel IDs", "Channels", "Conversation continuity", "Metadata"]}
+          columns={["Set", "State", "Channel IDs", "Channel kinds", "Conversation continuity", "Metadata"]}
           rows={channelSetRows(configuration)}
           emptyText="No channel sets returned."
         />
@@ -267,6 +275,38 @@ function ConfigurationSection(props: {
           columns={["Provider", "Requirement", "State", "Scopes", "Expires", "Message"]}
           rows={providerCredentialRows(configuration)}
           emptyText="No credential status returned."
+        />
+      </Panel>
+    </div>
+  );
+}
+
+function WidgetsSection(props: {
+  introspection: StudioAgentIntrospection;
+  configuration: StudioConfigurationSurface | null;
+}) {
+  return (
+    <div className="grid min-w-0 gap-4">
+      <Panel>
+        <PanelHeader
+          title="Registered widgets"
+          detail={`${props.introspection.agent.widgetCount} agent-level widgets reported`}
+        />
+        <DataTable
+          columns={["Kind"]}
+          rows={widgetRows(props.introspection)}
+          emptyText="No registered agent widgets were returned by introspection."
+        />
+      </Panel>
+      <Panel>
+        <PanelHeader
+          title="Channel widget policy"
+          detail="Whether each channel allows widget UI in assistant responses."
+        />
+        <DataTable
+          columns={["Channel", "Kind", "State", "Widgets", "Markdown", "Draft first", "Policy fields"]}
+          rows={channelWidgetRows(props.configuration)}
+          emptyText="No channel widget policy returned."
         />
       </Panel>
     </div>
@@ -605,7 +645,7 @@ function JourneyGroup(props: {
   );
 }
 
-function JourneyDetail({ journey }: { journey: StudioJourneySummary | null }) {
+function JourneyDetail({ journey, configuration }: { journey: StudioJourneySummary | null; configuration: StudioConfigurationSurface | null }) {
   if (!journey) return <EmptyState title="No journey selected" text="Select a journey from the left side." />;
   if (journey.kind === "delegation") {
     return (
@@ -627,6 +667,7 @@ function JourneyDetail({ journey }: { journey: StudioJourneySummary | null }) {
             emptyText="No tools or knowledge linked to this journey."
           />
         </Panel>
+        <JourneyChannelActivationPanel journey={journey} configuration={configuration} />
       </div>
     );
   }
@@ -642,12 +683,154 @@ function JourneyDetail({ journey }: { journey: StudioJourneySummary | null }) {
         <PanelHeader title="States" />
         <DataTable columns={["State", "Type", "Transitions", "Actions", "Requires visit"]} rows={activeJourneyRows(journey)} />
       </Panel>
+      <JourneyChannelActivationPanel journey={journey} configuration={configuration} />
       <Panel>
         <PanelHeader title="Examples" />
         <pre className="whitespace-pre-wrap px-5 py-4 font-mono text-sm leading-7 text-slate-800">{journey.examples.join("\n") || "No examples returned."}</pre>
       </Panel>
     </div>
   );
+}
+
+function JourneyChannelActivationPanel(props: {
+  journey: StudioJourneySummary;
+  configuration: StudioConfigurationSurface | null;
+}) {
+  const router = useRouter();
+  const [isRefreshing, startRefresh] = useTransition();
+  const [busyChannelId, setBusyChannelId] = useState<string | null>(null);
+  const [status, setStatus] = useState<{ tone: "success" | "error"; message: string } | null>(null);
+  const rows = useMemo(
+    () => journeyChannelActivationRows(props.configuration, props.journey.id),
+    [props.configuration, props.journey.id],
+  );
+
+  async function toggleJourneyChannel(row: JourneyChannelActivationRow) {
+    if (row.activation === "channel-disabled") return;
+    const nextEnabled = row.activation !== "explicit-enabled";
+    setBusyChannelId(row.channelId);
+    setStatus(null);
+    try {
+      const response = await fetch("/api/studio/configuration/changes", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          reason: `${nextEnabled ? "Enable" : "Disable"} journey '${props.journey.id}' for channel '${row.channelId}'.`,
+          operations: [{
+            op: "set-flow-enabled",
+            channelId: row.channelId,
+            journeyId: props.journey.id,
+            value: nextEnabled,
+          }],
+        }),
+      });
+      const payload = await response.json() as { message?: string; error?: string; status?: string; accepted?: boolean; applied?: boolean };
+      if (!response.ok) {
+        throw new Error(payload.message ?? payload.error ?? `Configuration change failed with ${response.status}.`);
+      }
+      setStatus({
+        tone: "success",
+        message: payload.message ?? (payload.applied ? "Configuration change applied." : payload.accepted ? "Configuration change accepted." : "Configuration change submitted."),
+      });
+      startRefresh(() => router.refresh());
+    } catch (error) {
+      setStatus({
+        tone: "error",
+        message: error instanceof Error ? error.message : "Configuration change failed.",
+      });
+    } finally {
+      setBusyChannelId(null);
+    }
+  }
+
+  return (
+    <Panel>
+      <PanelHeader
+        title="Channel activation"
+        detail="Journey availability and widget policy by channel."
+        actions={status ? (
+          <span className={`max-w-md text-right text-xs font-medium ${status.tone === "success" ? "text-emerald-700" : "text-rose-700"}`}>
+            {status.message}
+          </span>
+        ) : null}
+      />
+      {rows.length ? (
+        <div className="max-w-full overflow-x-auto overscroll-x-contain">
+          <table className="w-full min-w-[920px] table-fixed border-collapse text-sm">
+            <thead>
+              <tr>
+                {["Channel", "Kind", "Channel state", "Journey", "Widgets", "Providers", "Policies", "Reason", "Action"].map((column) => (
+                  <th className="border-b border-slate-200 px-4 py-3 text-left font-medium text-slate-500" key={column}>{column}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={`${props.journey.id}-${row.channelId}`}>
+                  <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">
+                    <span className="block break-words font-medium text-slate-950">{row.channelId}</span>
+                  </td>
+                  <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">{row.channel}</td>
+                  <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">{row.channelEnabled ? "Enabled" : "Disabled"}</td>
+                  <td className="border-b border-slate-100 px-4 py-3 align-top">
+                    <ActivationBadge activation={row.activation} />
+                  </td>
+                  <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">{labelWidgetPolicy(row.widgets)}</td>
+                  <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">
+                    <span className="block break-words [overflow-wrap:anywhere]">{row.providerPackages}</span>
+                  </td>
+                  <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">
+                    <span className="block break-words [overflow-wrap:anywhere]">{row.policyIds}</span>
+                  </td>
+                  <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">
+                    <span className="block break-words [overflow-wrap:anywhere]">{row.reason}</span>
+                  </td>
+                  <td className="border-b border-slate-100 px-4 py-3 align-top">
+                    <Button
+                      className="min-w-24"
+                      disabled={row.activation === "channel-disabled" || busyChannelId === row.channelId || isRefreshing}
+                      {...(row.activation === "channel-disabled" ? { title: "Enable the channel before changing journey availability." } : {})}
+                      onClick={() => void toggleJourneyChannel(row)}
+                    >
+                      {busyChannelId === row.channelId ? "Saving" : row.activation === "explicit-enabled" ? "Disable" : "Enable"}
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <EmptyState title="No channel activation" text="No channel configuration surface was returned for this journey." />
+      )}
+    </Panel>
+  );
+}
+
+function ActivationBadge(props: { activation: JourneyChannelActivationRow["activation"] }) {
+  const labels = {
+    "explicit-enabled": "Explicit enabled",
+    "explicit-disabled": "Explicit disabled",
+    "implicit-allowed": "Implicit allowed",
+    "channel-disabled": "Channel disabled",
+  };
+  const classes = {
+    "explicit-enabled": "border-emerald-200 bg-emerald-50 text-emerald-700",
+    "explicit-disabled": "border-rose-200 bg-rose-50 text-rose-700",
+    "implicit-allowed": "border-blue-200 bg-blue-50 text-blue-700",
+    "channel-disabled": "border-slate-200 bg-slate-50 text-slate-500",
+  };
+  return (
+    <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${classes[props.activation]}`}>
+      {labels[props.activation]}
+    </span>
+  );
+}
+
+function labelWidgetPolicy(value: JourneyChannelActivationRow["widgets"]) {
+  if (value === "enabled") return "Enabled";
+  if (value === "disabled") return "Disabled";
+  return "Not specified";
 }
 
 function ConfigBlock(props: { title: string; body: string }) {

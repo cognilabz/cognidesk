@@ -15,6 +15,12 @@ import {
 import "@cognidesk/ui/styles.css";
 import "streamdown/styles.css";
 import "./styles.css";
+import {
+  createFlightDemoPrivacySettings,
+  flightDemoPrivacyConsentStorageKey,
+  parseFlightPrivacyConsent,
+  type FlightPrivacyConsent,
+} from "./privacy";
 
 const agentId = "flight-service";
 const apiBaseUrl = import.meta.env.VITE_COGNIDESK_API_URL ?? "http://localhost:8787/api";
@@ -48,6 +54,7 @@ function App() {
     return new URL(window.location.href).searchParams.get("conversationId");
   });
   const [newSessionMode, setNewSessionMode] = useState<SessionMode | null>(null);
+  const [flightPrivacyConsent, setFlightPrivacyConsent] = useState<FlightPrivacyConsent | null>(loadFlightPrivacyConsent);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [activeConversationEventState, setActiveConversationEventState] = useState<{
     conversationId: string | null;
@@ -72,6 +79,7 @@ function App() {
     },
   }), []);
   const chatWidgets = useMemo(() => ({ confirmation: ConfirmationWidget }), []);
+  const sessionPrivacy = useMemo(() => createFlightDemoPrivacySettings(flightPrivacyConsent ?? "no"), [flightPrivacyConsent]);
   const refreshConversations = useCallback(async () => {
     try {
       const result = await client.listConversations({ agentId, limit: 50 });
@@ -96,11 +104,20 @@ function App() {
     setActiveConversationId(conversationId);
     void refreshConversations();
   }, [refreshConversations]);
+  const handleFlightPrivacyConsent = useCallback((consent: FlightPrivacyConsent) => {
+    saveFlightPrivacyConsent(consent);
+    setFlightPrivacyConsent(consent);
+  }, []);
+  const requestFlightPrivacyConsentChange = useCallback(() => {
+    clearFlightPrivacyConsent();
+    setFlightPrivacyConsent(null);
+  }, []);
   const voice = useVoice({
     client,
     agentId,
     ...(activeConversationId ? { conversationId: activeConversationId } : {}),
     initialContext: {},
+    ...(sessionPrivacy ? { privacy: sessionPrivacy } : {}),
     chatStart: () => createFlightChatStart({
       returningCustomer: visibleConversations.length > 0,
       locale: navigator.language,
@@ -211,6 +228,7 @@ function App() {
   };
 
   const startChatSession = () => {
+    if (!flightPrivacyConsent) return;
     if (voice.status === "connected") voice.stop();
     setActiveConversationId(null);
     setNewSessionMode("chat");
@@ -219,6 +237,7 @@ function App() {
     void client.createConversation({
       agentId,
       context: {},
+      ...(sessionPrivacy ? { privacy: sessionPrivacy } : {}),
       channel: "chat",
       chatStart: createFlightChatStart({
         returningCustomer: visibleConversations.length > 0,
@@ -235,6 +254,7 @@ function App() {
   };
 
   const startVoiceSession = () => {
+    if (!flightPrivacyConsent) return;
     setNewSessionMode("voice");
     if (voice.status === "requestingPermission" || voice.status === "connecting" || voice.status === "connected") return;
     void voice.start().catch((error) => {
@@ -383,7 +403,19 @@ function App() {
           ))}
           {visibleConversations.length === 0 ? <span className="demo-empty">No conversations yet</span> : null}
         </ul>
-        {conversationError ? <span className="demo-sidebar-error">{conversationError}</span> : null}
+        <div className="demo-sidebar-footer">
+          <button
+            type="button"
+            className="demo-privacy-status"
+            aria-label="Change GDPR consent"
+            onClick={requestFlightPrivacyConsentChange}
+          >
+            <span>GDPR</span>
+            <strong>{formatFlightPrivacyConsent(flightPrivacyConsent)}</strong>
+            <small>Change</small>
+          </button>
+          {conversationError ? <span className="demo-sidebar-error">{conversationError}</span> : null}
+        </div>
       </aside>
       <section className={panelClassName}>
         {showSessionPicker ? (
@@ -415,6 +447,7 @@ function App() {
                 activeConversationId={visibleConversationId}
                 client={client}
                 sessionMode={sessionMode}
+                privacy={sessionPrivacy}
                 widgets={chatWidgets}
                 appearance={chatAppearance}
                 voice={voice}
@@ -426,6 +459,9 @@ function App() {
           </>
         )}
       </section>
+      {flightPrivacyConsent === null ? (
+        <PrivacyConsentDialog onChoose={handleFlightPrivacyConsent} />
+      ) : null}
     </main>
   );
 }
@@ -541,6 +577,37 @@ function SessionModePicker(props: {
   );
 }
 
+function PrivacyConsentDialog(props: {
+  onChoose: (consent: FlightPrivacyConsent) => void;
+}) {
+  return (
+    <div className="demo-consent-overlay">
+      <section
+        className="demo-consent-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="demo-consent-title"
+        aria-describedby="demo-consent-detail"
+      >
+        <span>GDPR</span>
+        <strong id="demo-consent-title">Consent for local demo traces?</strong>
+        <p id="demo-consent-detail">
+          Consent keeps full message content in this browser's local demo session.
+          No starts sessions with message content hidden and demo masks applied.
+        </p>
+        <div className="demo-consent-actions">
+          <button type="button" className="demo-consent-primary" onClick={() => props.onChoose("consent")}>
+            Consent
+          </button>
+          <button type="button" onClick={() => props.onChoose("no")}>
+            No
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function VoiceBar(props: {
   voice: UseVoiceResult;
   canChangeMode: boolean;
@@ -588,6 +655,7 @@ function ChatSession(props: {
   activeConversationId: string | null;
   client: CognideskClient;
   sessionMode: SessionMode | null;
+  privacy: ReturnType<typeof createFlightDemoPrivacySettings>;
   widgets: { confirmation: typeof ConfirmationWidget };
   appearance: {
     variables: Record<string, string>;
@@ -606,6 +674,7 @@ function ChatSession(props: {
         client={props.client}
         agentId={agentId}
         {...(props.activeConversationId ? { conversationId: props.activeConversationId } : { channel: "chat" as const })}
+        {...(props.privacy ? { privacy: props.privacy } : {})}
         title={props.sessionMode === "voice" ? "Flight support transcript" : "Flight support"}
         placeholder="Ask about booking, ticket status, or flight info"
         widgets={props.widgets}
@@ -825,6 +894,37 @@ function saveConversationHistoryPrefs(history: ConversationHistoryPrefs) {
   } catch {
     // Local history actions are best-effort in private or restricted browser modes.
   }
+}
+
+function loadFlightPrivacyConsent(): FlightPrivacyConsent | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return parseFlightPrivacyConsent(window.localStorage.getItem(flightDemoPrivacyConsentStorageKey));
+  } catch {
+    return null;
+  }
+}
+
+function saveFlightPrivacyConsent(consent: FlightPrivacyConsent) {
+  try {
+    window.localStorage.setItem(flightDemoPrivacyConsentStorageKey, consent);
+  } catch {
+    // Consent persistence is best-effort in private or restricted browser modes.
+  }
+}
+
+function clearFlightPrivacyConsent() {
+  try {
+    window.localStorage.removeItem(flightDemoPrivacyConsentStorageKey);
+  } catch {
+    // Consent persistence is best-effort in private or restricted browser modes.
+  }
+}
+
+function formatFlightPrivacyConsent(consent: FlightPrivacyConsent | null) {
+  if (consent === "consent") return "Consent";
+  if (consent === "no") return "No consent";
+  return "Choose";
 }
 
 function normalizeConversationHistoryPrefs(value: unknown): ConversationHistoryPrefs {

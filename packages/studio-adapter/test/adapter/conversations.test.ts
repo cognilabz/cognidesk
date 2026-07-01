@@ -1,4 +1,4 @@
-import type { ConversationRecord, RuntimeEvent } from "@cognidesk/core";
+import { withCognideskSessionContext, type ConversationRecord, type RuntimeEvent } from "@cognidesk/core";
 import { createAgent, createCognideskStudioAdapter, describe, expect, it } from "./helpers.js";
 
 describe("studio adapter conversations", () => {
@@ -77,20 +77,127 @@ describe("studio adapter conversations", () => {
     });
     expect(missing.status).toBe(404);
   });
+
+  it("derives a generic customer relation id from conversation context", async () => {
+    const agent = createAgent("test-agent", {
+      instructions: "Test agent instructions",
+    }).compile();
+    const conversation = conversationRecord("conversation_customer", {
+      customerId: "customer_123",
+      customer: {
+        id: "customer_123",
+        name: "Michael Kubini",
+        email: "michael.kubini@example.com",
+      },
+    });
+    const adapter = createCognideskStudioAdapter({
+      targetId: "test-target",
+      agent,
+      allowUnauthenticated: true,
+      runtime: {
+        async listEvents(conversationId) {
+          return [runtimeEvent(conversationId, {
+            text: "Reach me at +43 664 1234567 or m i c h a e l . k u b i n y @ m e . com",
+          })];
+        },
+      },
+      conversations: {
+        async getConversation(conversationId) {
+          return conversationId === conversation.id ? conversation : null;
+        },
+      },
+    });
+
+    const response = await adapter.handle(new Request("http://local/api/studio/conversations/conversation_customer"));
+    const body = await response.json();
+
+    expect(body).toMatchObject({
+      conversation: {
+        customerRelation: {
+          id: "customer_123",
+        },
+      },
+    });
+  });
+
+  it("does not infer customer relation from raw contact context or events", async () => {
+    const agent = createAgent("test-agent", {
+      instructions: "Test agent instructions",
+    }).compile();
+    const conversation = conversationRecord("conversation_raw_customer", {
+      customer: {
+        name: "Michael Kubini",
+        email: "michael.kubini@example.com",
+      },
+    });
+    const adapter = createCognideskStudioAdapter({
+      targetId: "test-target",
+      agent,
+      allowUnauthenticated: true,
+      runtime: {
+        async listEvents(conversationId) {
+          return [runtimeEvent(conversationId, {
+            text: "Reach me at +43 664 1234567 or michael.kubini@example.com",
+          })];
+        },
+      },
+      conversations: {
+        async getConversation(conversationId) {
+          return conversationId === conversation.id ? conversation : null;
+        },
+      },
+    });
+
+    const response = await adapter.handle(new Request("http://local/api/studio/conversations/conversation_raw_customer"));
+    const body = await response.json();
+
+    expect(body.conversation.customerRelation).toBeUndefined();
+  });
+
+  it("hides the generic customer relation when session privacy disallows it", async () => {
+    const agent = createAgent("test-agent", {
+      instructions: "Test agent instructions",
+    }).compile();
+    const conversation = conversationRecord("conversation_private_customer", withCognideskSessionContext({
+      customerId: "customer_123",
+    }, {
+      privacy: { traceContent: "none" },
+    }));
+    const adapter = createCognideskStudioAdapter({
+      targetId: "test-target",
+      agent,
+      allowUnauthenticated: true,
+      runtime: {
+        async listEvents(conversationId) {
+          return [runtimeEvent(conversationId)];
+        },
+      },
+      conversations: {
+        async getConversation(conversationId) {
+          return conversationId === conversation.id ? conversation : null;
+        },
+      },
+    });
+
+    const response = await adapter.handle(new Request("http://local/api/studio/conversations/conversation_private_customer"));
+    const body = await response.json();
+
+    expect(body.conversation.customerRelation).toBeUndefined();
+  });
 });
 
-function conversationRecord(id: string): ConversationRecord {
+function conversationRecord(id: string, context: Record<string, unknown> = {}): ConversationRecord {
   return {
     id,
     agentId: "test-agent",
     lifecycle: "active",
-    context: {},
+    context,
     createdAt: "2026-06-26T08:00:00.000Z",
     updatedAt: "2026-06-26T08:05:00.000Z",
   };
 }
 
-function runtimeEvent(conversationId: string): RuntimeEvent {
+function runtimeEvent(conversationId: string, data: RuntimeEvent["data"] = { text: "Hello from the runtime." }): RuntimeEvent {
   return {
     id: "event_direct",
     conversationId,
@@ -98,6 +205,6 @@ function runtimeEvent(conversationId: string): RuntimeEvent {
     type: "message.completed",
     createdAt: "2026-06-26T08:01:00.000Z",
     telemetry: { traceId: "trace_direct" },
-    data: { text: "Hello from the runtime." },
+    data,
   };
 }

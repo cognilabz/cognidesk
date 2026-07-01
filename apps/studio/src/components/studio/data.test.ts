@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StudioAgentIntrospection, StudioConfigurationSurface } from "@cognidesk/studio-contracts";
-import { agentPolicyRows, channelBehaviorRows, channelHandoffRows, integrationLifecycleRows, providerPackageRows } from "./data";
+import { agentPolicyRows, channelBehaviorRows, channelHandoffRows, channelWidgetRows, integrationLifecycleRows, journeyChannelActivationRows, providerPackageRows } from "./data";
 
 describe("studio configuration data rows", () => {
   it("keeps provider requirements and channel behavior visible", () => {
@@ -157,4 +157,75 @@ describe("studio configuration data rows", () => {
       ["Handoff policy", "destinations"],
     ]);
   });
+
+  it("shows journey activation and widget policy by channel", () => {
+    const configuration: StudioConfigurationSurface = {
+      targetId: "flight-demo-local",
+      capturedAt: "2026-06-17T00:00:00.000Z",
+      channelSets: [],
+      channels: [
+        channel("chat", "chat", true, true, [{ journeyId: "handoff", enabled: true, providerPackageIds: ["messaging.discord"], policyIds: ["handoff-policy"] }]),
+        channel("voice", "voice", true, false, [{ journeyId: "handoff", enabled: false, providerPackageIds: [], policyIds: [], reason: "Voice consent missing" }]),
+        channel("email", "email", true, false, []),
+        channel("legacy", "messaging", false, false, [{ journeyId: "handoff", enabled: true, providerPackageIds: [], policyIds: [] }]),
+      ],
+      providerPackages: [],
+      capabilityAvailability: [],
+      credentialStatuses: [],
+      providerReadiness: [],
+      policyIds: [],
+    };
+
+    expect(journeyChannelActivationRows(configuration, "handoff")).toEqual([
+      expect.objectContaining({
+        channelId: "chat",
+        activation: "explicit-enabled",
+        widgets: "enabled",
+        providerPackages: "messaging.discord",
+        policyIds: "handoff-policy",
+      }),
+      expect.objectContaining({
+        channelId: "voice",
+        activation: "explicit-disabled",
+        widgets: "disabled",
+        reason: "Voice consent missing",
+      }),
+      expect.objectContaining({
+        channelId: "email",
+        activation: "implicit-allowed",
+        widgets: "disabled",
+      }),
+      expect.objectContaining({
+        channelId: "legacy",
+        activation: "channel-disabled",
+      }),
+    ]);
+    expect(channelWidgetRows(configuration).map((row) => [row[0], row[3]])).toEqual([
+      ["chat", "Enabled"],
+      ["voice", "Disabled"],
+      ["email", "Disabled"],
+      ["legacy", "Disabled"],
+    ]);
+  });
 });
+
+function channel(
+  id: string,
+  kind: string,
+  enabled: boolean,
+  allowWidgets: boolean,
+  flowActivations: StudioConfigurationSurface["channels"][number]["flowActivations"],
+): StudioConfigurationSurface["channels"][number] {
+  return {
+    id,
+    channel: kind,
+    enabled,
+    channelSetIds: [],
+    providerPackageIds: [],
+    enabledCapabilities: [],
+    policyIds: [],
+    policyDetails: [],
+    flowActivations,
+    behavior: { allowWidgets },
+  };
+}

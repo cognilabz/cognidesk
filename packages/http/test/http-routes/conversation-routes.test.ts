@@ -164,6 +164,7 @@ describe("HTTP conversation routes", () => {
 
   it("emits chat start messages during conversation creation", async () => {
     const runtime = new FakeRuntime();
+    const createConversation = vi.spyOn(runtime, "createConversation");
     const handler = createCognideskHttpHandler({
       runtime,
       agentId: "agent_primary",
@@ -172,7 +173,8 @@ describe("HTTP conversation routes", () => {
     const response = await handler.handle(new Request("http://localhost/conversations", {
       method: "POST",
       body: JSON.stringify({
-        context: { locale: "en" },
+        context: { locale: "en", customerId: "customer_1" },
+        privacy: { traceContent: "none", masks: [{ pattern: "ABC\\d+", replacement: "[booking]" }] },
         chatStart: {
           type: "message",
           text: "Welcome aboard.",
@@ -182,6 +184,11 @@ describe("HTTP conversation routes", () => {
     }));
 
     expect(response.status).toBe(201);
+    expect(createConversation).toHaveBeenCalledWith(expect.objectContaining({
+      agentId: "agent_primary",
+      context: { locale: "en", customerId: "customer_1" },
+      privacy: { traceContent: "none", masks: [{ pattern: "ABC\\d+", replacement: "[booking]" }] },
+    }));
     const created = await response.json() as { conversation: ConversationRecord; events: RuntimeEvent[] };
     expect(created.conversation.id).toBe("conversation_1");
     expect(created.events).toEqual([

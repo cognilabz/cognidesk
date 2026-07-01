@@ -71,6 +71,35 @@ await runtime.initialize();
 
 **Returns:** `Runtime`
 
+## Runtime privacy
+
+`@cognidesk/core` exports the `RuntimePrivacySettings` contract used by Core,
+HTTP, React, Voice, and Studio adapter surfaces. Pass it when creating a
+Conversation:
+
+```typescript
+await runtime.createConversation({
+  agentId: "support",
+  context: { customerId: "customer_123" },
+  privacy: {
+    traceContent: "none",
+    customerRelationVisibility: "none",
+    masks: [
+      {
+        name: "email",
+        pattern: "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}",
+        flags: "gi",
+        replacement: "[email]",
+      },
+    ],
+  },
+});
+```
+
+The SDK does not include default mask rules. `traceContent: "none"` removes
+message/content payloads from trace surfaces while keeping structural events
+such as Journey activation, state entry, actions, and lifecycle events.
+
 ## tool(name, options)
 
 Defines a typed tool.

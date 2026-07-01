@@ -46,6 +46,17 @@ creates the conversation as soon as the widget mounts:
   agentId="flight-support"
   autoStart
   initialContext={{ locale: navigator.language }}
+  privacy={{
+    traceContent: "none",
+    masks: [
+      {
+        name: "email",
+        pattern: "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}",
+        flags: "gi",
+        replacement: "[email]",
+      },
+    ],
+  }}
   app={{ surface: "flight-demo", returningCustomer: true }}
   chatStart={({ app }) => ({
     type: "message",
@@ -56,6 +67,65 @@ creates the conversation as soon as the widget mounts:
   })}
 />
 ```
+
+## Session privacy
+
+Pass `privacy` when the widget or hook may create a new Conversation. The same
+settings are stored with the Conversation and reused for later messages, replay,
+events, telemetry, and Studio adapter reads.
+
+```tsx
+const privacy = {
+  traceContent: "none",
+  customerRelationVisibility: "none",
+  masks: [
+    {
+      name: "phone",
+      pattern: "(^|[^A-Z0-9])(\\+?\\d[\\d ().-]{6,}\\d)(?=$|[^A-Z0-9])",
+      flags: "gi",
+      replacement: "$1[phone]",
+    },
+  ],
+} as const;
+
+<ChatWidget client={client} agentId="flight-support" privacy={privacy} />;
+
+const chat = useChat({ client, agentId: "flight-support", privacy });
+const voice = useVoice({ client, agentId: "flight-support", privacy });
+```
+
+The React package does not add default mask rules. Provide the masks that match
+your app, tenant, or session consent.
+
+For consent prompts, keep the prompt and persistence in your app and pass the
+resulting SDK privacy settings only when a new Conversation can be created:
+
+```tsx
+const consent = localStorage.getItem("myapp.privacyConsent.v1");
+const privacy = consent === "no"
+  ? {
+      traceContent: "none",
+      masks: [
+        {
+          name: "email",
+          pattern: "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}",
+          flags: "gi",
+          replacement: "[email]",
+        },
+      ],
+    } as const
+  : undefined;
+
+<ChatWidget
+  client={client}
+  agentId="flight-support"
+  {...(privacy ? { privacy } : {})}
+/>;
+```
+
+Do not duplicate redaction in React components. The SDK runtime applies the
+settings to stored events, replay, snapshots, telemetry, model inputs, and
+privacy hooks.
 
 ## useChat hook
 

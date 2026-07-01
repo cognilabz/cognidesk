@@ -40,6 +40,60 @@ Paths below include the `basePath` value from the handler example.
 | POST | `/api/conversations/:id/preambles` | Generate and emit a wait-time preamble |
 | POST | `/api/conversations/:id/compact` | Compact conversation history |
 
+## Session privacy payloads
+
+`POST /api/conversations` and `POST /api/voice/conversations` accept a
+`privacy` object beside `agentId`, `context`, `channel`, and `chatStart`.
+
+```json
+{
+  "agentId": "support",
+  "context": { "customerId": "customer_123" },
+  "channel": "chat",
+  "privacy": {
+    "traceContent": "none",
+    "customerRelationVisibility": "none",
+    "masks": [
+      {
+        "name": "email",
+        "pattern": "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}",
+        "flags": "gi",
+        "replacement": "[email]"
+      }
+    ]
+  }
+}
+```
+
+Channel Event adapters can pass the same object when the event should start a
+new Conversation:
+
+```json
+{
+  "createConversation": {
+    "agentId": "support",
+    "context": { "customerId": "customer_123" },
+    "privacy": {
+      "traceContent": "none",
+      "masks": [
+        { "name": "booking", "pattern": "CD-[A-Z]{2}\\d{3}-\\d{4}", "replacement": "[booking]" }
+      ]
+    }
+  },
+  "event": {
+    "channel": "email",
+    "nature": "message",
+    "direction": "inbound",
+    "intent": "customer-message",
+    "text": "Please check CD-CL102-4821."
+  }
+}
+```
+
+There are no built-in mask rules. `traceContent: "none"` removes message and
+content payloads from trace surfaces while preserving structural workflow
+events such as Journey activation and state entry.
+
 ## Framework integration
 
 Mount the handler anywhere you can construct a Web `Request`.

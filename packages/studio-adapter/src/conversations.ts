@@ -1,4 +1,4 @@
-import type { CognideskRuntime, ConversationRecord } from "@cognidesk/core";
+import { runtimeCustomerRelationForContext, type CognideskRuntime, type ConversationRecord } from "@cognidesk/core";
 import {
   StudioConversationSummarySchema,
   type StudioConversationSummary,
@@ -11,12 +11,14 @@ export async function summarizeConversation(
 ): Promise<StudioConversationSummary> {
   const events = await runtime.listEvents(conversation.id, 0);
   const snapshot = runtime.getSnapshot ? await runtime.getSnapshot(conversation.id) : null;
+  const customerRelation = runtimeCustomerRelationForContext(conversation.context);
   return StudioConversationSummarySchema.parse({
     id: conversation.id,
     agentId: conversation.agentId,
     lifecycle: conversation.lifecycle,
     createdAt: conversation.createdAt,
     updatedAt: conversation.updatedAt,
+    ...(customerRelation ? { customerRelation } : {}),
     activeJourneyId: snapshot?.activeJourneyId,
     activeStateIds: snapshot?.activeStateIds ?? [],
     eventCount: events.length,

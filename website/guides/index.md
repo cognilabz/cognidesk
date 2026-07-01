@@ -16,6 +16,7 @@ guide assumes you've read the [Concepts](../concepts/index.md) section.
 - [Knowledge Sources](knowledge-sources.md) — integrate retrieval-augmented context
 - [Journeys](journeys.md) — build state machine conversation flows
 - [Custom Events](custom-events.md) — define and emit app-specific events
+- [Privacy](privacy.md) — pass session privacy settings, masks, trace-content policy, and customer relation visibility
 
 ## Infrastructure
 

@@ -7,6 +7,7 @@ import type {
   ResolveChannelOutputInput as CoreResolveChannelOutputInput,
   ResolveChannelOutputResult as CoreResolveChannelOutputResult,
   RuntimeEvent,
+  RuntimePrivacySettings,
 } from "@cognidesk/core";
 import type { AppearanceConfiguration } from "@cognidesk/ui";
 import type { ReactNode } from "react";
@@ -128,6 +129,7 @@ export interface CreateConversationInput {
   context?: unknown;
   id?: string;
   channel?: ConversationChannelInput;
+  privacy?: RuntimePrivacySettings;
   chatStart?: ChatStartAction;
   app?: unknown;
 }
@@ -263,7 +265,7 @@ export interface CognideskClient {
   recordChannelOutputResolution(input: ChannelOutputResolutionEventInput): Promise<HandleChannelEventResult>;
   requestChannelHandoff(input: ChannelHandoffEventInput): Promise<HandleChannelEventResult>;
   requestChannelHandoffReview(input: ChannelHandoffReviewEventInput): Promise<HandleChannelEventResult>;
-  startVoiceConversation(input: { agentId?: string; context?: unknown; id?: string; client?: VoiceStartClientHints; chatStart?: ChatStartAction; app?: unknown }): Promise<StartVoiceResult>;
+  startVoiceConversation(input: { agentId?: string; context?: unknown; id?: string; privacy?: RuntimePrivacySettings; client?: VoiceStartClientHints; chatStart?: ChatStartAction; app?: unknown }): Promise<StartVoiceResult>;
   startVoiceSegment(conversationId: string, input?: { client?: VoiceStartClientHints; initialGreeting?: string; app?: unknown }): Promise<StartVoiceResult>;
   sendMessage(conversationId: string, message: string, options?: { channel?: ConversationChannelInput; turn?: unknown; app?: unknown }): Promise<SendMessageResult>;
   submitWidget(conversationId: string, input: { promptId: string; widgetKind: string; output: unknown }): Promise<{ event: RuntimeEvent }>;
@@ -320,6 +322,7 @@ export interface ChatWidgetProps {
   agentId?: string;
   channel?: ConversationChannelInput;
   initialContext?: unknown;
+  privacy?: RuntimePrivacySettings;
   app?: unknown;
   chatStart?: ChatStartBehavior;
   autoStart?: boolean;
@@ -340,6 +343,7 @@ export interface UseChatOptions {
   agentId?: string;
   channel?: ConversationChannelInput;
   initialContext?: unknown;
+  privacy?: RuntimePrivacySettings;
   app?: unknown;
   chatStart?: ChatStartBehavior;
   autoStart?: boolean;
@@ -360,6 +364,7 @@ export interface UseVoiceOptions {
   conversationId?: string;
   agentId?: string;
   initialContext?: unknown;
+  privacy?: RuntimePrivacySettings;
   chatStart?: ChatStartBehavior;
   mediaConstraints?: MediaStreamConstraints;
   /**

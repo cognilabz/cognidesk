@@ -135,6 +135,7 @@ nav:
       - Knowledge Sources: guides/knowledge-sources.md
       - Journeys: guides/journeys.md
       - Custom Events: guides/custom-events.md
+      - Privacy: guides/privacy.md
       - Storage: guides/storage.md
       - Models & Providers: guides/models-and-providers.md
       - Provider Integrations: guides/provider-packages.md

@@ -61,6 +61,10 @@ export function conversationMessagesFromEvents(events: RuntimeEvent[]): Conversa
       continue;
     }
     if (!pendingRole) continue;
+    if (typeof event.data.text !== "string" || event.data.text.length === 0) {
+      pendingRole = null;
+      continue;
+    }
     messages.push({
       role: pendingRole,
       content: event.data.text,

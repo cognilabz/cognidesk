@@ -1,5 +1,6 @@
 import { replayRuntimeEvents } from "../replay.js";
 import { defineChannelContext } from "../../types.js";
+import { withCognideskSessionContext } from "../../privacy.js";
 import type {
   CreateRuntimeConversationInput,
   ListRuntimeConversationsOptions,
@@ -18,9 +19,15 @@ export async function createRuntimeConversation<TConversationContext = unknown>(
   emit: RuntimeEventEmitter,
   input: CreateRuntimeConversationInput<TConversationContext>,
 ): Promise<ConversationRecord<TConversationContext>> {
-  const normalizedInput = input.channel
-    ? { ...input, channel: defineChannelContext(input.channel) }
-    : input;
+  const { privacy, ...conversationInput } = input;
+  const context = withCognideskSessionContext(conversationInput.context, {
+    ...(privacy ? { privacy } : {}),
+  });
+  const normalizedInput = {
+    ...conversationInput,
+    context,
+    ...(conversationInput.channel ? { channel: defineChannelContext(conversationInput.channel) } : {}),
+  };
   const conversation = await options.storage.createConversation(normalizedInput);
   await options.storage.saveSnapshot({
     conversationId: conversation.id,

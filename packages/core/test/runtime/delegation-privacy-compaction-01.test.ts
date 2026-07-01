@@ -5,6 +5,7 @@ import {
   buildJourneyIndex,
   createAgent,
   defineChannelContext,
+  runtimeCustomerRelationForContext,
   createRuntime,
   customRuntimeEvent,
   endConversationTool,
@@ -292,6 +293,107 @@ describe("runtime delegation, privacy, and compaction 01", () => {
     expect((await runtime.listEvents(conversation.id)).find((event) => event.type === "custom.audit.note")?.data).toEqual({
       note: "[event]",
     });
+  });
+
+  it("applies session privacy settings from conversation start to context, relation, events, and traces", async () => {
+    const storage = new RecordingStorage();
+    const runtime = createRuntime({ storage });
+    const conversation = await runtime.createConversation({
+      agentId: "agent_primary",
+      context: {
+        customerId: "customer_1",
+        customer: {
+          id: "customer_1",
+          name: "Michael",
+          email: "michael@example.com",
+        },
+        note: "Email michael@example.com about booking ABC123.",
+      },
+      privacy: {
+        traceContent: "none",
+        customerRelationVisibility: "id",
+        masks: [
+          {
+            name: "email",
+            pattern: "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}",
+            flags: "gi",
+            replacement: "[email]",
+          },
+          {
+            name: "phone",
+            pattern: "(^|[^A-Z0-9])(\\+?\\d[\\d ().-]{6,}\\d)(?=$|[^A-Z0-9])",
+            flags: "gi",
+            replacement: "$1[phone]",
+          },
+          { pattern: "ABC\\d+", replacement: "[booking]" },
+        ],
+      },
+    });
+
+    const relation = runtimeCustomerRelationForContext(conversation.context);
+    expect(JSON.stringify(conversation.context)).not.toContain("michael@example.com");
+    expect(JSON.stringify(conversation.context)).not.toContain("ABC123");
+    expect(relation).toMatchObject({
+      id: "customer_1",
+    });
+
+    const event = await runtime.emit({
+      conversationId: conversation.id,
+      telemetry: { traceId: "trace_raw", spanId: "span_raw" },
+      type: "custom.audit.note",
+      data: {
+        note: "Email michael@example.com, call +43 664 1234567, booking ABC123.",
+      },
+    });
+    const stateEvent = await runtime.emit({
+      conversationId: conversation.id,
+      telemetry: { traceId: "trace_state", spanId: "span_state" },
+      type: "journey.state.entered",
+      data: {
+        journeyId: "secure-email-login",
+        stateId: "collectAccount",
+      },
+    });
+    await runtime.emit({
+      conversationId: conversation.id,
+      type: "message.started",
+      data: { role: "user" },
+    });
+    const messageEvent = await runtime.emit({
+      conversationId: conversation.id,
+      telemetry: { traceId: "trace_message", spanId: "span_message" },
+      type: "message.completed",
+      data: {
+        text: "Email michael@example.com, call +43 664 1234567, booking ABC123.",
+      },
+    });
+
+    expect(event.data).toEqual({ contentHidden: true });
+    expect(stateEvent.data).toEqual({
+      journeyId: "secure-email-login",
+      stateId: "collectAccount",
+    });
+    expect(messageEvent.data).toEqual({});
+    const events = await runtime.listEvents(conversation.id);
+    expect(JSON.stringify(events)).not.toContain("michael@example.com");
+    expect(JSON.stringify(events)).toContain("secure-email-login");
+    expect((await runtime.replayConversation({ conversationId: conversation.id })).messages).toEqual([]);
+  });
+
+  it("does not apply built-in mask rules when only custom session masks are configured", async () => {
+    const runtime = createRuntime({ storage: new RecordingStorage() });
+    const conversation = await runtime.createConversation({
+      agentId: "agent_primary",
+      context: {
+        note: "Email michael@example.com about booking ABC123.",
+      },
+      privacy: {
+        masks: [{ pattern: "ABC\\d+", replacement: "[booking]" }],
+      },
+    });
+
+    expect(JSON.stringify(conversation.context)).toContain("michael@example.com");
+    expect(JSON.stringify(conversation.context)).toContain("[booking]");
   });
 
   it("applies channel-specific privacy hooks to persisted channel events", async () => {

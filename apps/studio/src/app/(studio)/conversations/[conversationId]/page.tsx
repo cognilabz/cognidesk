@@ -1,4 +1,5 @@
 import { ConversationDetailView } from "@/components/studio/conversation-detail-view";
+import type { StudioConversationRow } from "@/components/studio/types";
 import { loadIntrospectionResult, requireStudioPageContext } from "@/server/studio-page-data";
 import { fetchConversationEvents, fetchConversationSnapshot, fetchTargetConversation } from "@/server/target";
 import type { Metadata } from "next";

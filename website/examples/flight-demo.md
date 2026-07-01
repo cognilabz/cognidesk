@@ -24,9 +24,35 @@ The demo is intentionally small enough to run locally, but it uses the same runt
 
 ## Customer experience
 
-The customer-facing app starts with a simple choice: chat or voice. Both modes create Cognidesk conversations against the same `flight-service` agent, and the conversation sidebar makes it easy to resume local sessions.
+The customer-facing app starts with a GDPR consent prompt on page load, stores
+the answer in local storage, and then lets the customer choose chat or voice. If
+the answer is `No`, the demo passes SDK `privacy` settings when the Conversation
+starts: `traceContent: "none"`, `customerRelationVisibility: "none"`, and
+explicit demo masks for email addresses, phone numbers, and booking references.
+If the answer is `Consent`, the local demo keeps runtime events readable for
+development.
+
+Both chat and voice create Cognidesk conversations against the same
+`flight-service` agent, and the conversation sidebar makes it easy to resume
+local sessions.
 
 ![Flight Demo chat session before the first customer request](../assets/screenshots/flight-demo-chat-empty.png)
+
+### GDPR consent in the demo
+
+The demo's GDPR selector is shown when the frontend loads and no prior answer is
+stored. The answer is saved in browser local storage under
+`cognidesk.flightDemo.privacyConsent.v1`.
+
+| Choice | Session behavior |
+|--------|------------------|
+| `Consent` | The demo omits `privacy` when creating new chat, widget-created, or voice Conversations. Local runtime events keep full demo content for development. |
+| `No` | The demo passes `privacy` with `traceContent: "none"`, `customerRelationVisibility: "none"`, and explicit masks for email, phone, and `CD-CL102-4821`-style booking references. |
+
+The selector does not implement its own redaction. It only decides which
+`RuntimePrivacySettings` object to pass into the SDK. Core then applies the
+existing privacy pipeline to stored events, replay, snapshots, telemetry, model
+inputs, and Studio adapter reads.
 
 The booking flow shows why the demo is useful as a reference app. A normal support request activates the `book-flight` state-machine journey, extracts route and date, calls mocked flight-service tools, and emits a choice widget for the available itinerary.
 

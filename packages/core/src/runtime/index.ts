@@ -482,6 +482,7 @@ export class CognideskRuntime {
         ...(input.createConversation?.id ? { id: input.createConversation.id } : {}),
         agentId,
         context: (input.createConversation?.context ?? input.binding?.conversationContext ?? input.conversationContext ?? {}) as unknown,
+        ...(input.createConversation?.privacy !== undefined ? { privacy: input.createConversation.privacy } : {}),
         channel: input.createConversation?.channel ?? channelEvent.channel,
       });
       return {

@@ -20,8 +20,8 @@ export const StudioKnowledgeSummarySchema = z.object({
     metadata: z.record(z.string(), z.unknown()).optional(),
     content: z.string().optional(),
     contentSnippet: z.string().optional(),
-  })).optional(),
-});
+  }).passthrough()).optional(),
+}).passthrough();
 export type StudioKnowledgeSummary = z.infer<typeof StudioKnowledgeSummarySchema>;
 
 export const StudioWidgetSummarySchema = z.object({

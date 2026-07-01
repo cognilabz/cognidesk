@@ -145,6 +145,48 @@ describe("HTTP channel-event routes", () => {
       }));
     });
 
+    it("forwards privacy settings for channel events that start conversations", async () => {
+      const runtime = new FakeRuntime();
+      const handleChannelEvent = vi.spyOn(runtime, "handleChannelEvent");
+      const handler = createCognideskHttpHandler({
+        runtime,
+        agentId: "agent_primary",
+      });
+
+      const response = await handler.handle(new Request("http://localhost/channel-events", {
+        method: "POST",
+        body: JSON.stringify({
+          createConversation: {
+            context: { customerId: "customer_1" },
+            privacy: {
+              traceContent: "none",
+              customerRelationVisibility: "none",
+              masks: [{ pattern: "CD-[A-Z]{2}\\d{3}-\\d{4}", replacement: "[booking]" }],
+            },
+          },
+          event: {
+            channel: "chat",
+            nature: "message",
+            direction: "inbound",
+            intent: "customer-message",
+            text: "Please check CD-CL102-4821.",
+          },
+        }),
+      }));
+
+      expect(response.status).toBe(200);
+      expect(handleChannelEvent).toHaveBeenCalledWith(expect.objectContaining({
+        createConversation: expect.objectContaining({
+          context: { customerId: "customer_1" },
+          privacy: {
+            traceContent: "none",
+            customerRelationVisibility: "none",
+            masks: [{ pattern: "CD-[A-Z]{2}\\d{3}-\\d{4}", replacement: "[booking]" }],
+          },
+        }),
+      }));
+    });
+
     it("uses top-level nature for wrapped channel events and rejects top-level kind", () => {
       const input = createChannelEventInput({
         nature: "message",

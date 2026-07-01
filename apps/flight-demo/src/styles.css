@@ -225,6 +225,56 @@ input {
   color: #b91c1c;
 }
 
+.demo-sidebar-footer {
+  display: grid;
+  gap: 8px;
+}
+
+.demo-privacy-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  align-items: center;
+  border: 1px solid rgb(15 118 110 / 36%);
+  border-radius: 6px;
+  background: #ecfdf5;
+  color: #102033;
+  cursor: pointer;
+  padding: 9px 10px;
+  text-align: left;
+}
+
+.demo-privacy-status:hover,
+.demo-privacy-status:focus-visible {
+  border-color: #0f766e;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(15 118 110 / 16%);
+}
+
+.demo-privacy-status span {
+  grid-column: 1 / -1;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.demo-privacy-status strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #102033;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.demo-privacy-status small {
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .demo-panel {
   display: grid;
   gap: 12px;
@@ -589,6 +639,79 @@ input {
 
 .demo-mode-card-primary small {
   color: rgb(226 232 240 / 88%);
+}
+
+.demo-consent-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgb(15 23 42 / 36%);
+  padding: 18px;
+}
+
+.demo-consent-dialog {
+  display: grid;
+  gap: 14px;
+  width: min(100%, 430px);
+  border: 1px solid rgb(148 163 184 / 45%);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 28px 80px rgb(15 23 42 / 22%);
+  padding: clamp(20px, 5vw, 28px);
+}
+
+.demo-consent-dialog span {
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.demo-consent-dialog strong {
+  color: #102033;
+  font-size: 25px;
+  line-height: 1.12;
+}
+
+.demo-consent-dialog p {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.demo-consent-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.demo-consent-actions button {
+  min-height: 44px;
+  border: 1px solid rgb(148 163 184 / 55%);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #102033;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 10px 12px;
+}
+
+.demo-consent-actions button:hover,
+.demo-consent-actions button:focus-visible {
+  border-color: #0f766e;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(15 118 110 / 16%);
+}
+
+.demo-consent-actions .demo-consent-primary {
+  border-color: #0f766e;
+  background: #0f766e;
+  color: #ffffff;
 }
 
 .demo-voice-stage {

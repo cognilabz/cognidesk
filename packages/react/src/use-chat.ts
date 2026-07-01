@@ -67,6 +67,7 @@ export function useChat(options: UseChatOptions) {
       const result = await options.client.createConversation({
         agentId,
         context,
+        ...(options.privacy !== undefined ? { privacy: options.privacy } : {}),
         ...(options.channel !== undefined ? { channel: options.channel } : {}),
         ...(chatStart !== undefined ? { chatStart } : {}),
         ...(options.app !== undefined ? { app: options.app } : {}),

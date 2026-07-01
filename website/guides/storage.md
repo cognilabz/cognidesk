@@ -129,6 +129,28 @@ then create or resume the Conversation with `context.customerId`. Built-in
 storage adapters also accept `context.customer.id` for applications that prefer
 to keep the identifier inside their own nested `customer` object.
 
+Studio and adapter customer relations use that same existing context. When
+privacy allows it, Cognidesk surfaces only a generic relation `{ id }` derived
+from `context.customerId` or `context.customer.id`. No other customer profile
+fields are required, and no duplicate customer relation field needs to be added
+for Studio.
+
+```typescript
+await runtime.createConversation({
+  agentId: "support",
+  context: {
+    customerId: customer.id,
+  },
+  privacy: {
+    traceContent: "none",
+    customerRelationVisibility: "none",
+  },
+});
+```
+
+With `traceContent: "none"`, the generic relation is hidden unless the session
+sets `customerRelationVisibility: "id"` explicitly.
+
 ## Custom storage adapters
 
 Implement the storage interface to use your own database:

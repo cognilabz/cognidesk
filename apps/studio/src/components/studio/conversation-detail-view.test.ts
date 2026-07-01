@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StudioAgentIntrospection } from "@cognidesk/studio-contracts";
-import { bubbleAnalysisForMessage, detailJourneyContextForMessage, detailJourneyForContext, messageTranscriptRows } from "./conversation-detail-view";
+import { bubbleAnalysisForMessage, detailJourneyContextForMessage, detailJourneyForContext, eventTableRows, filterEventTableRows, messageTranscriptRows, type EventRow } from "./conversation-detail-view";
 
 describe("messageTranscriptRows", () => {
   it("builds a readable transcript from message lifecycle events", () => {
@@ -28,6 +28,24 @@ describe("messageTranscriptRows", () => {
       { role: "customer", text: "Hello" },
       { role: "assistant", text: "Hi, how can I help?" },
     ]);
+  });
+
+  it("does not apply Studio-side contact masking to transcript bubbles or event summaries", () => {
+    const rows = messageTranscriptRows([
+      event(1, "channel.received", { text: "michael.kubini@example.com" }),
+      event(2, "channel.received", { text: "m i c h a e l . k u b i n y @ m e . com" }),
+      event(3, "channel.received", { text: "Call +43 664 1234567" }),
+    ]);
+
+    expect(rows.map((row) => row.text)).toEqual([
+      "michael.kubini@example.com",
+      "m i c h a e l . k u b i n y @ m e . com",
+      "Call +43 664 1234567",
+    ]);
+    expect(eventTableRows([
+      event(1, "channel.received", { text: "michael.kubini@example.com" }),
+      event(2, "channel.event.received", { payload: { text: "Call +43 664 1234567" } }),
+    ]).map((row) => row.summary).join(" ")).toContain("michael.kubini");
   });
 
   it("keeps channel-only turns in mixed runtime streams and dedupes mirrored message events", () => {
@@ -147,6 +165,46 @@ describe("messageTranscriptRows", () => {
       "tool.completed",
     ]);
   });
+
+  it("filters all-event table rows by search, type, signal, and match", () => {
+    const rows: EventRow[] = [
+      eventRow("event-1", "1", "message.completed", "assistant", "trace-a", "Welcome back."),
+      eventRow("event-2", "2", "tool.completed", "lookupTicket", "trace-a", "Completed successfully"),
+      eventRow("event-3", "3", "journey.state.entered", "ticket-purchase", "trace-b", "Entered collectRoute"),
+      eventRow("event-4", "4", "channel.received", "customer", "trace-c", "Customer said hello"),
+    ];
+    const keys = {
+      relatedKeys: new Set(["event-1", "event-3"]),
+      traceKeys: new Set(["event-1", "event-2"]),
+      journeyKeys: new Set(["event-3"]),
+    };
+
+    expect(filterEventTableRows(rows, {
+      query: "ticket",
+      types: [],
+      signals: [],
+      matches: [],
+    }, keys).map((row) => row.key)).toEqual(["event-2", "event-3"]);
+    expect(filterEventTableRows(rows, {
+      query: "",
+      types: ["tool.completed"],
+      signals: ["lookupTicket"],
+      matches: ["trace"],
+    }, keys).map((row) => row.key)).toEqual(["event-2"]);
+    expect(filterEventTableRows(rows, {
+      query: "",
+      types: ["tool.completed", "journey.state.entered"],
+      signals: [],
+      matches: [],
+    }, keys).map((row) => row.key)).toEqual(["event-2", "event-3"]);
+    expect(filterEventTableRows(rows, {
+      query: "",
+      types: [],
+      signals: [],
+      matches: ["unmatched"],
+    }, keys).map((row) => row.key)).toEqual(["event-4"]);
+  });
+
 });
 
 function event(offset: number, type: string, data: Record<string, unknown>, traceId = "trace_1") {
@@ -158,6 +216,19 @@ function event(offset: number, type: string, data: Record<string, unknown>, trac
     createdAt: "2026-06-26T08:00:00.000Z",
     telemetry: { traceId },
     data,
+  };
+}
+
+function eventRow(key: string, offset: string, type: string, signal: string, traceId: string, summary: string): EventRow {
+  return {
+    key,
+    eventIndex: Number(offset),
+    offset,
+    createdAt: "-",
+    type,
+    signal,
+    traceId,
+    summary,
   };
 }
 

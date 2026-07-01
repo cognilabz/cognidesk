@@ -12,6 +12,7 @@ import { isAbortLikeError } from "../errors.js";
 import { listConversationMessages, listVisibleCustomEventContext } from "../history.js";
 import { removeRawKnowledgeMarkers } from "../knowledge-markers.js";
 import { resolveAvailableModelTools } from "../model-runner.js";
+import { redactTelemetryAttributes } from "../privacy.js";
 import {
   applyConfiguredResponseLimits,
   buildModelVisiblePromptPayload,
@@ -64,10 +65,10 @@ export async function handleUserMessage<TTurn>(
   try {
     throwIfTurnInterrupted(turn);
     const userText = await args.redactUserMessage(conversation, args.input.text);
-    addTelemetryContentEvent(args.options, telemetryEventNames.userMessage, {
-      "cognidesk.user.message.text": args.input.text,
-      "cognidesk.user.message.redacted_text": userText,
+    const userTelemetry = await redactTelemetryAttributes(args.options, conversation.id, telemetryEventNames.userMessage, {
+      "cognidesk.user.message.text": userText,
     });
+    if (userTelemetry) addTelemetryContentEvent(args.options, telemetryEventNames.userMessage, userTelemetry);
 
     if (args.options.compaction?.beforeTurn) {
       logger.debug("Checking before-turn compaction");
