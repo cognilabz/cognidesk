@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-email-smtp",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -26,12 +26,12 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "workspace:*",
-    "@cognidesk/integration-kit": "workspace:*",
+    "@cognidesk/core": "0.0.11",
+    "@cognidesk/integration-kit": "0.0.11",
     "nodemailer": "^9.0.1"
   },
   "devDependencies": {
-    "@cognidesk/test-harness": "workspace:*",
+    "@cognidesk/test-harness": "0.0.11",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"

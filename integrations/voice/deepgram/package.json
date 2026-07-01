@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-voice-deepgram",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -26,8 +26,8 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/integration-kit": "workspace:*",
-    "@cognidesk/voice-websocket": "workspace:*",
+    "@cognidesk/integration-kit": "0.0.11",
+    "@cognidesk/voice-websocket": "0.0.11",
     "@deepgram/sdk": "^5.4.0"
   },
   "devDependencies": {

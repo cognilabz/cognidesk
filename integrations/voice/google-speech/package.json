@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-voice-google-speech",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -26,9 +26,9 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "workspace:*",
-    "@cognidesk/integration-kit": "workspace:*",
-    "@cognidesk/voice-websocket": "workspace:*",
+    "@cognidesk/core": "0.0.11",
+    "@cognidesk/integration-kit": "0.0.11",
+    "@cognidesk/voice-websocket": "0.0.11",
     "@google-cloud/speech": "^7.4.0",
     "@google-cloud/text-to-speech": "^6.4.1"
   },

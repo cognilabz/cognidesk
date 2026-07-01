@@ -191,10 +191,10 @@ importers:
         specifier: ^1.6.11
         version: 1.6.20(@better-auth/core@1.6.20(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(@opentelemetry/api@1.9.1)(better-call@1.3.6(zod@4.4.3))(jose@6.2.3)(kysely@0.29.2)(nanostores@1.3.0))(@better-auth/utils@0.4.2)(drizzle-orm@0.45.2(@libsql/client@0.17.4)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.29.2)(pg@8.22.0))
       '@cognidesk/integration-catalog':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../packages/integration-catalog
       '@cognidesk/studio-contracts':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../packages/studio-contracts
       '@libsql/client':
         specifier: ^0.17.3
@@ -309,10 +309,10 @@ importers:
   apps/studio-operator-runtime:
     dependencies:
       '@cognidesk/studio-contracts':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../packages/studio-contracts
       '@cognidesk/studio-operator-skills':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../packages/studio-operator-skills
       tsx:
         specifier: ^4.20.6
@@ -340,14 +340,14 @@ importers:
   integrations/cobrowsing/cognidesk:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -362,14 +362,14 @@ importers:
   integrations/community/forum:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -384,7 +384,7 @@ importers:
   integrations/contact-center/8x8:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -400,7 +400,7 @@ importers:
   integrations/contact-center/aircall:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -422,7 +422,7 @@ importers:
         specifier: ^3.1073.0
         version: 3.1073.0
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -438,7 +438,7 @@ importers:
   integrations/contact-center/five9:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -454,7 +454,7 @@ importers:
   integrations/contact-center/genesys-cloud:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       purecloud-platform-client-v2:
         specifier: ^255.1.0
@@ -473,7 +473,7 @@ importers:
   integrations/contact-center/genesys-engage:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       engagement-client-js:
         specifier: ^9.0.83
@@ -495,7 +495,7 @@ importers:
   integrations/contact-center/genesys-pureconnect:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -511,7 +511,7 @@ importers:
   integrations/contact-center/nextiva:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -527,7 +527,7 @@ importers:
   integrations/contact-center/nice-cxone:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -543,7 +543,7 @@ importers:
   integrations/contact-center/ringcentral:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@ringcentral/sdk':
         specifier: ^5.0.11
@@ -562,7 +562,7 @@ importers:
   integrations/contact-center/talkdesk:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -578,7 +578,7 @@ importers:
   integrations/contact-center/zoom:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -594,10 +594,10 @@ importers:
   integrations/ecommerce/shopify:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@shopify/admin-api-client':
         specifier: ^1.1.2
@@ -616,10 +616,10 @@ importers:
   integrations/ecommerce/stripe:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       stripe:
         specifier: ^22.2.2
@@ -638,14 +638,14 @@ importers:
   integrations/email/gmail:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@googleapis/gmail':
         specifier: ^17.0.0
         version: 17.0.0
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -660,10 +660,10 @@ importers:
   integrations/email/imap:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       imapflow:
         specifier: ^1.4.2
@@ -682,10 +682,10 @@ importers:
   integrations/email/mailgun:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       mailgun.js:
         specifier: ^13.2.0
@@ -704,17 +704,17 @@ importers:
   integrations/email/outlook:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@microsoft/microsoft-graph-client':
         specifier: ^3.0.7
         version: 3.0.7
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -729,10 +729,10 @@ importers:
   integrations/email/postmark:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       postmark:
         specifier: ^4.0.7
@@ -757,10 +757,10 @@ importers:
         specifier: ^3.1073.0
         version: 3.1073.0
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -776,17 +776,17 @@ importers:
   integrations/email/smtp:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       nodemailer:
         specifier: ^9.0.1
         version: 9.0.1
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -801,14 +801,14 @@ importers:
   integrations/form/cognidesk:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -823,14 +823,14 @@ importers:
   integrations/help-center/cognidesk:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -848,7 +848,7 @@ importers:
         specifier: ^1.9.0
         version: 1.9.0(@babel/core@7.29.7)
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -864,7 +864,7 @@ importers:
   integrations/marketplace/ebay:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       digital-signature-nodejs-sdk:
         specifier: ^3.0.1
@@ -886,10 +886,10 @@ importers:
   integrations/messaging/discord:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@libsql/client':
         specifier: ^0.17.3
@@ -899,7 +899,7 @@ importers:
         version: 14.26.4
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -914,17 +914,17 @@ importers:
   integrations/messaging/rcs:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@google/rcsbusinessmessaging':
         specifier: ^1.0.10
         version: 1.0.10(encoding@0.1.13)
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -939,10 +939,10 @@ importers:
   integrations/messaging/whatsapp:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       baileys:
         specifier: 7.0.0-rc13
@@ -964,10 +964,10 @@ importers:
   integrations/review/appstore:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       appstore-connect-sdk:
         specifier: ^2.0.0
@@ -989,10 +989,10 @@ importers:
   integrations/review/googleplay:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@googleapis/androidpublisher':
         specifier: ^36.0.0
@@ -1014,7 +1014,7 @@ importers:
   integrations/sms/twilio:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       twilio:
         specifier: ^6.0.2
@@ -1033,10 +1033,10 @@ importers:
   integrations/social/instagram:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       facebook-nodejs-business-sdk:
         specifier: ^24.0.1
@@ -1055,10 +1055,10 @@ importers:
   integrations/social/messenger:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       facebook-nodejs-business-sdk:
         specifier: ^24.0.1
@@ -1077,14 +1077,14 @@ importers:
   integrations/social/tiktok:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -1099,17 +1099,17 @@ importers:
   integrations/ticketing/dynamics365:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       dynamics-web-api:
         specifier: 2.5.0
         version: 2.5.0
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -1124,10 +1124,10 @@ importers:
   integrations/ticketing/freshdesk:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@freshworks/freshdesk':
         specifier: ^0.0.1
@@ -1146,10 +1146,10 @@ importers:
   integrations/ticketing/front:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -1165,10 +1165,10 @@ importers:
   integrations/ticketing/gorgias:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -1184,10 +1184,10 @@ importers:
   integrations/ticketing/help-scout:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -1203,10 +1203,10 @@ importers:
   integrations/ticketing/hubspot:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@hubspot/api-client':
         specifier: ^13.5.0
@@ -1225,10 +1225,10 @@ importers:
   integrations/ticketing/intercom:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       intercom-client:
         specifier: 7.0.3
@@ -1247,10 +1247,10 @@ importers:
   integrations/ticketing/kustomer:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       tsup:
@@ -1266,14 +1266,14 @@ importers:
   integrations/ticketing/oracle-service:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -1288,14 +1288,14 @@ importers:
   integrations/ticketing/pega-customer-service:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -1310,10 +1310,10 @@ importers:
   integrations/ticketing/salesforce:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       jsforce:
         specifier: ^3.10.16
@@ -1332,17 +1332,17 @@ importers:
   integrations/ticketing/sap-service-cloud:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@sap-cloud-sdk/http-client':
         specifier: ^4.7.0
         version: 4.7.0
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -1357,17 +1357,17 @@ importers:
   integrations/ticketing/servicenow:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@servicenow/sdk-api':
         specifier: ^4.8.0
         version: 4.8.0(jiti@2.7.0)
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -1382,10 +1382,10 @@ importers:
   integrations/ticketing/zendesk:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       node-zendesk:
         specifier: ^6.0.1
@@ -1404,14 +1404,14 @@ importers:
   integrations/ticketing/zoho-desk:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -1426,14 +1426,14 @@ importers:
   integrations/video/whereby:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -1448,17 +1448,17 @@ importers:
   integrations/video/zoom:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@zoom/rivet':
         specifier: ^0.4.0
         version: 0.4.0
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -1479,13 +1479,13 @@ importers:
         specifier: ^3.1073.0
         version: 3.1073.0
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@cognidesk/voice-websocket':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/voice-websocket
     devDependencies:
       tsup:
@@ -1501,13 +1501,13 @@ importers:
   integrations/voice/azure-speech:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@cognidesk/voice-websocket':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/voice-websocket
       microsoft-cognitiveservices-speech-sdk:
         specifier: ^1.50.0
@@ -1526,10 +1526,10 @@ importers:
   integrations/voice/deepgram:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@cognidesk/voice-websocket':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/voice-websocket
       '@deepgram/sdk':
         specifier: ^5.4.0
@@ -1548,10 +1548,10 @@ importers:
   integrations/voice/elevenlabs:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@cognidesk/voice-websocket':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/voice-websocket
       '@elevenlabs/elevenlabs-js':
         specifier: ^2.53.1
@@ -1570,13 +1570,13 @@ importers:
   integrations/voice/google-speech:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@cognidesk/voice-websocket':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/voice-websocket
       '@google-cloud/speech':
         specifier: ^7.4.0
@@ -1598,13 +1598,13 @@ importers:
   integrations/voice/openai:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@cognidesk/voice-websocket':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/voice-websocket
       openai:
         specifier: ^6.44.0
@@ -1623,10 +1623,10 @@ importers:
   integrations/voice/sip:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       drachtio-srf:
         specifier: ^5.0.24
@@ -1645,7 +1645,7 @@ importers:
   integrations/voice/twilio:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       twilio:
         specifier: ^6.0.2
@@ -1664,7 +1664,7 @@ importers:
   integrations/voice/vonage:
     dependencies:
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@vonage/server-sdk':
         specifier: ^3.27.0
@@ -1683,17 +1683,17 @@ importers:
   integrations/workplace/slack:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@slack/web-api':
         specifier: ^7.17.0
         version: 7.17.0
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -1708,17 +1708,17 @@ importers:
   integrations/workplace/teams:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/core
       '@cognidesk/integration-kit':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/integration-kit
       '@microsoft/microsoft-graph-client':
         specifier: ^3.0.7
         version: 3.0.7
     devDependencies:
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.11
         version: link:../../../packages/test-harness
       tsup:
         specifier: ^8.5.0
@@ -1733,7 +1733,7 @@ importers:
   packages/connections:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../core
       zod:
         specifier: ^4.3.6
@@ -1780,10 +1780,10 @@ importers:
   packages/evals:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../core
       '@cognidesk/test-harness':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../test-harness
     devDependencies:
       tsup:
@@ -1799,7 +1799,7 @@ importers:
   packages/http:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../core
     devDependencies:
       tsup:
@@ -1827,10 +1827,10 @@ importers:
   packages/integration-kit:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../core
       '@cognidesk/voice-websocket':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../voice-websocket
     devDependencies:
       tsup:
@@ -1846,7 +1846,7 @@ importers:
   packages/journey-index-json:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../core
     devDependencies:
       tsup:
@@ -1865,7 +1865,7 @@ importers:
   packages/model:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../core
       ai:
         specifier: ^6.0.191
@@ -1924,10 +1924,10 @@ importers:
   packages/react:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../core
       '@cognidesk/ui':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../ui
       streamdown:
         specifier: ^2.5.0
@@ -1952,7 +1952,7 @@ importers:
   packages/storage:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../core
       drizzle-orm:
         specifier: ^0.45.2
@@ -1980,10 +1980,10 @@ importers:
   packages/studio-adapter:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../core
       '@cognidesk/studio-contracts':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../studio-contracts
     devDependencies:
       tsup:
@@ -2027,7 +2027,7 @@ importers:
   packages/test-harness:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../core
       zod:
         specifier: ^4.3.6
@@ -2064,7 +2064,7 @@ importers:
   packages/voice-websocket:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.10
+        specifier: 0.0.11
         version: link:../core
       ws:
         specifier: ^8.21.0

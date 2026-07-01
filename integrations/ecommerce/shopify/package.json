@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-ecommerce-shopify",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -26,8 +26,8 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "workspace:*",
-    "@cognidesk/integration-kit": "workspace:*",
+    "@cognidesk/core": "0.0.11",
+    "@cognidesk/integration-kit": "0.0.11",
     "@shopify/admin-api-client": "^1.1.2"
   },
   "devDependencies": {
