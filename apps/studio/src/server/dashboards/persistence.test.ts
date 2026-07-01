@@ -55,12 +55,30 @@ describe("dashboard persistence", () => {
     }).onConflictDoNothing();
   });
 
-  it("seeds draft dashboards without a published timestamp and stays idempotent by slug", async () => {
+  it("does not seed demo OTEL dashboards when the target has no telemetry sources", async () => {
     await modules.ensureDemoTelemetryDashboards({
+      telemetrySources: [],
+      userId: "dashboard-owner",
+      targetId: "dashboard-target",
+    });
+
+    const dashboards = await modules.listDashboards("dashboard-target");
+    expect(dashboards).toHaveLength(0);
+  });
+
+  it("seeds draft dashboards for configured telemetry sources and stays idempotent by slug", async () => {
+    const telemetrySources = [
+      { id: "prometheus", label: "Prometheus", kind: "prometheus" as const, baseUrl: "http://localhost:9090" },
+      { id: "tempo", label: "Tempo", kind: "tempo" as const, baseUrl: "http://localhost:3200" },
+    ];
+
+    await modules.ensureDemoTelemetryDashboards({
+      telemetrySources,
       userId: "dashboard-owner",
       targetId: "dashboard-target",
     });
     await modules.ensureDemoTelemetryDashboards({
+      telemetrySources,
       userId: "dashboard-owner",
       targetId: "dashboard-target",
     });

@@ -31,6 +31,7 @@ export default async function DashboardsPage() {
 function loadDashboardsPageData() {
   return requireStudioPageContext().then(({ manifest, session }) =>
     ensureDemoTelemetryDashboards({
+      telemetrySources: manifest.telemetry.sources,
       userId: session.user.id,
       targetId: manifest.target.id,
     }).then(() =>

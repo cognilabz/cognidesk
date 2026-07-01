@@ -38,6 +38,7 @@ function DashboardRendererContent(props: {
 }) {
   const baseDatasets = props.previewDashboard.artifact.datasets;
   const [datasetOverrides, setDatasetOverrides] = useState<Record<string, StudioDashboardDataset>>({});
+  const [refreshErrors, setRefreshErrors] = useState<Record<string, string>>({});
   const [refreshingDatasetId, setRefreshingDatasetId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DashboardRendererTab>("dashboard");
   const [visibleRowsByWidget, setVisibleRowsByWidget] = useState<Record<string, number>>({});
@@ -54,6 +55,12 @@ function DashboardRendererContent(props: {
     () => datasets.filter((dataset) => dataset.mode === "live"),
     [datasets],
   );
+  const activeRefreshErrors = useMemo(
+    () => liveDatasets
+      .map((dataset) => ({ dataset, message: refreshErrors[dataset.id] }))
+      .filter((entry): entry is { dataset: StudioDashboardDataset; message: string } => Boolean(entry.message)),
+    [liveDatasets, refreshErrors],
+  );
 
   const refreshDataset = useCallback(async (dataset: StudioDashboardDataset) => {
     setRefreshingDatasetId(dataset.id);
@@ -63,8 +70,17 @@ function DashboardRendererContent(props: {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(dataset.source),
       });
-      if (!response.ok) return;
+      if (!response.ok) {
+        const message = await dashboardDataErrorMessage(response);
+        setRefreshErrors((items) => ({ ...items, [dataset.id]: message }));
+        return;
+      }
       const data = await response.json() as { dataset: StudioDashboardDataset };
+      setRefreshErrors((items) => {
+        if (!(dataset.id in items)) return items;
+        const { [dataset.id]: _removed, ...rest } = items;
+        return rest;
+      });
       setDatasetOverrides((items) => ({
         ...items,
         [dataset.id]: {
@@ -145,6 +161,19 @@ function DashboardRendererContent(props: {
         </section>
       ) : null}
 
+      {activeRefreshErrors.length ? (
+        <section className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" data-testid="dashboard-live-data-errors">
+          <p className="font-medium">Live data unavailable</p>
+          <ul className="mt-2 grid gap-1 text-xs">
+            {activeRefreshErrors.map((entry) => (
+              <li key={entry.dataset.id}>
+                <span className="font-medium">{entry.dataset.title}:</span> {entry.message}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <DashboardTabs
         activeTab={activeTab}
         datasetCount={datasets.length}
@@ -185,4 +214,17 @@ function DashboardRendererContent(props: {
       ) : null}
     </div>
   );
+}
+
+async function dashboardDataErrorMessage(response: Response) {
+  try {
+    const body = await response.json() as unknown;
+    if (body && typeof body === "object" && "error" in body) {
+      const error = (body as { error?: unknown }).error;
+      if (typeof error === "string" && error.trim()) return error;
+    }
+  } catch {
+    // Fall through to the status-based message.
+  }
+  return `Dashboard data request failed with ${response.status}`;
 }

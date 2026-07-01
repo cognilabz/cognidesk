@@ -29,12 +29,15 @@ export async function listDashboards(targetId?: string) {
 export async function ensureDemoTelemetryDashboards(input: {
   userId: string;
   targetId: string;
+  telemetrySources: Array<{ kind: "prometheus" | "tempo" | "otel-http" }>;
 }) {
+  const telemetryKinds = new Set(input.telemetrySources.map((source) => source.kind));
   const existing = await db.select({ slug: dashboardArtifacts.slug }).from(dashboardArtifacts)
     .where(eq(dashboardArtifacts.targetId, input.targetId));
   const existingSlugs = new Set(existing.map((dashboard) => dashboard.slug));
   const draftPromises = [];
   for (const seed of demoTelemetryDashboardSeeds(input.targetId)) {
+    if (!seed.requiredTelemetryKinds.every((kind) => telemetryKinds.has(kind))) continue;
     if (existingSlugs.has(seed.slug)) continue;
     draftPromises.push(
       ensureSeedDashboardDraft({

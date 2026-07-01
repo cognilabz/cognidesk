@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import { Bot, PanelLeftClose, PanelLeftOpen, Workflow } from "lucide-react";
 import type { StudioAgentIntrospection, StudioConfigurationSurface, StudioJourneySummary } from "@cognidesk/studio-contracts";
 import { JourneyGraph } from "@/components/journey-graph";
@@ -26,7 +25,7 @@ import {
   type JourneyChannelActivationRow,
 } from "./data";
 import { formatDateTime } from "./format";
-import { Button, DataTable, EmptyState, PageHeader, Panel, PanelHeader } from "./ui";
+import { DataTable, EmptyState, PageHeader, Panel, PanelHeader } from "./ui";
 
 type AgentSection = "overview" | "instructions" | "configuration" | "journeys" | "tools" | "knowledge" | "widgets";
 
@@ -112,7 +111,11 @@ export function AgentsView(props: {
   } else if (section === "widgets") {
     sectionContent = <WidgetsSection introspection={introspection} configuration={configuration} />;
   } else {
-    sectionContent = <JourneyDetail journey={activeJourney} configuration={configuration} />;
+    sectionContent = activeJourney ? (
+      <JourneyDetail journey={activeJourney} configuration={configuration} />
+    ) : (
+      <JourneyList journeys={introspection.journeys} setActiveJourneyId={setActiveJourneyId} />
+    );
   }
 
   return (
@@ -158,7 +161,7 @@ export function AgentsView(props: {
       <section className="min-w-0 overflow-hidden">
         <PageHeader
           eyebrow="Agent builder"
-          title={section === "journeys" ? activeJourney?.id ?? "Select a journey" : titleForSection(section)}
+          title={section === "journeys" ? activeJourney?.id ?? "Journeys" : titleForSection(section)}
         />
         <div className="max-w-full overflow-hidden p-8">{sectionContent}</div>
       </section>
@@ -645,6 +648,64 @@ function JourneyGroup(props: {
   );
 }
 
+function JourneyList(props: {
+  journeys: StudioJourneySummary[];
+  setActiveJourneyId: (id: string) => void;
+}) {
+  if (!props.journeys.length) return <EmptyState title="No journeys returned" text="The Studio Adapter did not report any journeys for this agent." />;
+  return (
+    <Panel>
+      <PanelHeader title="Journeys" detail={`${props.journeys.length} journeys reported by the Studio Adapter.`} />
+      <div className="max-w-full overflow-x-auto overscroll-x-contain">
+        <table className="w-full min-w-[1180px] table-fixed border-collapse text-sm">
+          <colgroup>
+            <col className="w-[260px]" />
+            <col className="w-[140px]" />
+            <col className="w-[80px]" />
+            <col className="w-[80px]" />
+            <col className="w-[110px]" />
+            <col className="w-[110px]" />
+            <col />
+          </colgroup>
+          <thead>
+            <tr>
+              {["Journey", "Type", "States", "Tools", "Knowledge", "Stickiness", "Condition"].map((column) => (
+                <th className="border-b border-slate-200 px-4 py-3 text-left font-medium text-slate-500" key={column}>{column}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {props.journeys.map((journey) => (
+              <tr className="hover:bg-slate-50" key={journey.id}>
+                <td className="border-b border-slate-100 px-4 py-3 align-top">
+                  <button
+                    className="block max-w-full truncate text-left font-medium text-slate-950 underline-offset-4 hover:underline"
+                    type="button"
+                    onClick={() => props.setActiveJourneyId(journey.id)}
+                    title={`Open ${journey.id}`}
+                  >
+                    {journey.id}
+                  </button>
+                </td>
+                <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">{journey.kind === "delegation" ? "Delegation" : "State Machine"}</td>
+                <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">{journey.graph.states.length}</td>
+                <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">{journey.tools.length}</td>
+                <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">{journey.knowledge.length}</td>
+                <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">{journey.stickiness}</td>
+                <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">
+                  <span className="block max-w-[38rem] break-words leading-6 [overflow-wrap:anywhere]" title={journey.condition}>
+                    {summarizeSnippet(journey.condition) || "-"}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Panel>
+  );
+}
+
 function JourneyDetail({ journey, configuration }: { journey: StudioJourneySummary | null; configuration: StudioConfigurationSurface | null }) {
   if (!journey) return <EmptyState title="No journey selected" text="Select a journey from the left side." />;
   if (journey.kind === "delegation") {
@@ -696,70 +757,23 @@ function JourneyChannelActivationPanel(props: {
   journey: StudioJourneySummary;
   configuration: StudioConfigurationSurface | null;
 }) {
-  const router = useRouter();
-  const [isRefreshing, startRefresh] = useTransition();
-  const [busyChannelId, setBusyChannelId] = useState<string | null>(null);
-  const [status, setStatus] = useState<{ tone: "success" | "error"; message: string } | null>(null);
   const rows = useMemo(
     () => journeyChannelActivationRows(props.configuration, props.journey.id),
     [props.configuration, props.journey.id],
   );
 
-  async function toggleJourneyChannel(row: JourneyChannelActivationRow) {
-    if (row.activation === "channel-disabled") return;
-    const nextEnabled = row.activation !== "explicit-enabled";
-    setBusyChannelId(row.channelId);
-    setStatus(null);
-    try {
-      const response = await fetch("/api/studio/configuration/changes", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          reason: `${nextEnabled ? "Enable" : "Disable"} journey '${props.journey.id}' for channel '${row.channelId}'.`,
-          operations: [{
-            op: "set-flow-enabled",
-            channelId: row.channelId,
-            journeyId: props.journey.id,
-            value: nextEnabled,
-          }],
-        }),
-      });
-      const payload = await response.json() as { message?: string; error?: string; status?: string; accepted?: boolean; applied?: boolean };
-      if (!response.ok) {
-        throw new Error(payload.message ?? payload.error ?? `Configuration change failed with ${response.status}.`);
-      }
-      setStatus({
-        tone: "success",
-        message: payload.message ?? (payload.applied ? "Configuration change applied." : payload.accepted ? "Configuration change accepted." : "Configuration change submitted."),
-      });
-      startRefresh(() => router.refresh());
-    } catch (error) {
-      setStatus({
-        tone: "error",
-        message: error instanceof Error ? error.message : "Configuration change failed.",
-      });
-    } finally {
-      setBusyChannelId(null);
-    }
-  }
-
   return (
     <Panel>
       <PanelHeader
         title="Channel activation"
-        detail="Journey availability and widget policy by channel."
-        actions={status ? (
-          <span className={`max-w-md text-right text-xs font-medium ${status.tone === "success" ? "text-emerald-700" : "text-rose-700"}`}>
-            {status.message}
-          </span>
-        ) : null}
+        detail="Read-only journey availability and widget policy by channel."
       />
       {rows.length ? (
         <div className="max-w-full overflow-x-auto overscroll-x-contain">
           <table className="w-full min-w-[920px] table-fixed border-collapse text-sm">
             <thead>
               <tr>
-                {["Channel", "Kind", "Channel state", "Journey", "Widgets", "Providers", "Policies", "Reason", "Action"].map((column) => (
+                {["Channel", "Kind", "Channel state", "Journey", "Widgets", "Providers", "Policies", "Reason"].map((column) => (
                   <th className="border-b border-slate-200 px-4 py-3 text-left font-medium text-slate-500" key={column}>{column}</th>
                 ))}
               </tr>
@@ -784,16 +798,6 @@ function JourneyChannelActivationPanel(props: {
                   </td>
                   <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700">
                     <span className="block break-words [overflow-wrap:anywhere]">{row.reason}</span>
-                  </td>
-                  <td className="border-b border-slate-100 px-4 py-3 align-top">
-                    <Button
-                      className="min-w-24"
-                      disabled={row.activation === "channel-disabled" || busyChannelId === row.channelId || isRefreshing}
-                      {...(row.activation === "channel-disabled" ? { title: "Enable the channel before changing journey availability." } : {})}
-                      onClick={() => void toggleJourneyChannel(row)}
-                    >
-                      {busyChannelId === row.channelId ? "Saving" : row.activation === "explicit-enabled" ? "Disable" : "Enable"}
-                    </Button>
                   </td>
                 </tr>
               ))}

@@ -1,5 +1,7 @@
 import { StudioDashboardSpecSchema, type StudioDashboardDataset } from "@cognidesk/studio-contracts";
 
+type DemoTelemetryKind = "prometheus" | "tempo";
+
 export function demoTelemetryDashboardSeeds(targetId: string) {
   const capturedAt = new Date().toISOString();
   const metrics = (id: string, title: string, description: string, params: Record<string, unknown>): StudioDashboardDataset => ({
@@ -34,6 +36,7 @@ export function demoTelemetryDashboardSeeds(targetId: string) {
   return [
     {
       title: "OTEL Support Workload",
+      requiredTelemetryKinds: ["prometheus"] satisfies DemoTelemetryKind[],
       slug: "otel-support-workload",
       description: "Live synthetic support workload emitted by the flight demo into the local OTEL stack.",
       datasets: [
@@ -94,6 +97,7 @@ export function demoTelemetryDashboardSeeds(targetId: string) {
     },
     {
       title: "OTEL Trace Latency",
+      requiredTelemetryKinds: ["tempo"] satisfies DemoTelemetryKind[],
       slug: "otel-trace-latency",
       description: "Live Tempo trace search for synthetic support-case spans emitted by the flight demo.",
       datasets: [
