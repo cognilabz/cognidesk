@@ -921,6 +921,8 @@
       
         
       
+        
+      
     
     
     
@@ -1096,6 +1098,29 @@
   
   <span class="md-ellipsis">
     Custom Events
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
     
   </span>
   
@@ -2014,6 +2039,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Customer experience">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gdpr-consent-in-the-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      GDPR consent in the demo
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2303,6 +2343,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Customer experience">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gdpr-consent-in-the-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      GDPR consent in the demo
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2471,8 +2526,43 @@
 </tbody>
 </table>
 <h2 id="customer-experience">Customer experience<a class="headerlink" href="#customer-experience" title="Permanent link">&para;</a></h2>
-<p>The customer-facing app starts with a simple choice: chat or voice. Both modes create Cognidesk conversations against the same <code>flight-service</code> agent, and the conversation sidebar makes it easy to resume local sessions.</p>
+<p>The customer-facing app starts with a GDPR consent prompt on page load, stores
+the answer in local storage, and then lets the customer choose chat or voice. If
+the answer is <code>No</code>, the demo passes SDK <code>privacy</code> settings when the Conversation
+starts: <code>traceContent: "none"</code>, <code>customerRelationVisibility: "none"</code>, and
+explicit demo masks for email addresses, phone numbers, and booking references.
+If the answer is <code>Consent</code>, the local demo keeps runtime events readable for
+development.</p>
+<p>Both chat and voice create Cognidesk conversations against the same
+<code>flight-service</code> agent, and the conversation sidebar makes it easy to resume
+local sessions.</p>
 <p><img alt="Flight Demo chat session before the first customer request" src="../../assets/screenshots/flight-demo-chat-empty.png" /></p>
+<h3 id="gdpr-consent-in-the-demo">GDPR consent in the demo<a class="headerlink" href="#gdpr-consent-in-the-demo" title="Permanent link">&para;</a></h3>
+<p>The demo's GDPR selector is shown when the frontend loads and no prior answer is
+stored. The answer is saved in browser local storage under
+<code>cognidesk.flightDemo.privacyConsent.v1</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Choice</th>
+<th>Session behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Consent</code></td>
+<td>The demo omits <code>privacy</code> when creating new chat, widget-created, or voice Conversations. Local runtime events keep full demo content for development.</td>
+</tr>
+<tr>
+<td><code>No</code></td>
+<td>The demo passes <code>privacy</code> with <code>traceContent: "none"</code>, <code>customerRelationVisibility: "none"</code>, and explicit masks for email, phone, and <code>CD-CL102-4821</code>-style booking references.</td>
+</tr>
+</tbody>
+</table>
+<p>The selector does not implement its own redaction. It only decides which
+<code>RuntimePrivacySettings</code> object to pass into the SDK. Core then applies the
+existing privacy pipeline to stored events, replay, snapshots, telemetry, model
+inputs, and Studio adapter reads.</p>
 <p>The booking flow shows why the demo is useful as a reference app. A normal support request activates the <code>book-flight</code> state-machine journey, extracts route and date, calls mocked flight-service tools, and emits a choice widget for the available itinerary.</p>
 <p><img alt="Flight Demo booking conversation with a flight choice widget" src="../../assets/screenshots/flight-demo-booking-chat.png" /></p>
 <p>Studio shows the same booking behavior as a state-machine flow, so the demo is not just a chat transcript. Builders can see the states, branches, tool-backed steps, and final booking path that drive the customer experience.</p>
