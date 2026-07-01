@@ -33,6 +33,7 @@ const packageFilter = readOption("--package");
 const explicitBump = readOption("--bump");
 const defaultBump = readOption("--default-bump") ?? "patch";
 const autoPatchExisting = args.includes("--auto-patch-existing");
+const prepareOnly = args.includes("--prepare-only");
 const prepareAll = args.includes("--prepare-all") || args.includes("--full-release");
 const prepareRelease = !prepareAll && (args.includes("--prepare-release") || autoPatchExisting || Boolean(explicitBump));
 const skipInstall = args.includes("--skip-install");
@@ -214,9 +215,16 @@ function publishManifest(pkg) {
 if (!distTag) {
   throw new Error("A non-empty npm dist-tag is required.");
 }
+if (prepareOnly && !prepareAll && !prepareRelease) {
+  throw new Error("--prepare-only requires --prepare-all, --prepare-release, --auto-patch-existing, or --bump.");
+}
 
 if (prepareAll) prepareFullWorkspaceRelease();
 if (prepareRelease) prepareStablePlatformRelease();
+if (prepareOnly) {
+  console.log(`Done. ${dryRun ? "Would prepare" : "Prepared"} release metadata only; no packages were published.`);
+  process.exit(0);
+}
 
 const allPackages = sortByInternalDependencies(packageWorkspaces(root));
 if (dryRunPreparedPackageVersions) {

@@ -60,6 +60,13 @@ mode when SDK packages and integrations must move together so consumers do not
 install a newly released SDK next to an integration still pinned to an older
 Core version.
 
+The preferred production path is the manual `Publish SDK and Provider Packages`
+GitHub Actions workflow with `publish_scope=all`. The workflow prepares the full
+workspace release, runs the normal release verification, commits the package and
+lockfile changes to `main`, publishes the prepared versions to npm, and creates
+the platform `vX.Y.Z` GitHub release. Use `dry_run=true` first to see the full
+publish plan without publishing.
+
 Before tagging a stable release, run:
 
 ```bash
@@ -75,12 +82,13 @@ chunk size reports. CI runs the same check with `--fail-size-budget`.
 
 The manual `Publish SDK and Provider Packages` GitHub Actions workflow uses npm
 trusted publishing through GitHub OIDC, not an npm token. For a stable SDK train
-publish, the workflow prepares the release version, runs verification, commits
-the package version changes to `main`, publishes packages to npm, and then
-creates the GitHub release. The release commit intentionally happens before npm
-publish so branch-protection failures stop the run before any package is
-published. Single-package publishes can target an independent provider package
-or an app package such as `@cognidesk/studio-operator-runtime`.
+or full workspace publish, the workflow prepares the release version, runs
+verification, commits the package version changes to `main`, publishes packages
+to npm, and then creates the GitHub release. The release commit intentionally
+happens before npm publish so branch-protection failures stop the run before any
+package is published. Single-package publishes can target an independent
+provider package or an app package such as
+`@cognidesk/studio-operator-runtime`.
 
 If `main` requires pull requests, the repository ruleset must explicitly allow
 the release workflow actor to bypass that rule for this manual release path.

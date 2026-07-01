@@ -9,12 +9,13 @@ on:
         default: true
         type: boolean
       publish_scope:
-        description: "Stable SDK release or a single provider package"
+        description: "Stable SDK release, full workspace release, or a single package"
         required: false
         default: "stable"
         type: choice
         options:
           - stable
+          - all
           - provider
       provider_package:
         description: "Provider package name or integrations/{category}/{provider} directory when publish_scope=provider"
@@ -46,17 +47,15 @@ jobs:
           publish_scope="${{ inputs.publish_scope }}"
           provider_package="${{ inputs.provider_package }}"
 
-          if [ "${publish_scope}" != "stable" ] && [ "${publish_scope}" != "provider" ]; then
-            echo "publish_scope must be stable or provider." >&2
+          if [ "${publish_scope}" != "stable" ] && [ "${publish_scope}" != "all" ] && [ "${publish_scope}" != "provider" ]; then
+            echo "publish_scope must be stable, all, or provider." >&2
             exit 1
           fi
 
-          if [ "${publish_scope}" = "provider" ]; then
-            mode="provider"
-            if [ -z "${provider_package}" ]; then
-              echo "provider_package is required when publish_scope=provider." >&2
-              exit 1
-            fi
+          mode="${publish_scope}"
+          if [ "${publish_scope}" = "provider" ] && [ -z "${provider_package}" ]; then
+            echo "provider_package is required when publish_scope=provider." >&2
+            exit 1
           fi
 
           if [ "${dry_run}" != "true" ] && [ "${GITHUB_REF}" != "refs/heads/main" ]; then
@@ -83,9 +82,13 @@ jobs:
         if: steps.publish-mode.outputs.mode == 'stable'
         run: pnpm release:prepare -- --auto-patch-existing --yes --skip-install
 
+      - name: Prepare full workspace versions
+        if: steps.publish-mode.outputs.mode == 'all'
+        run: pnpm release:prepare:all
+
       - name: Read release version
         id: release-version
-        if: steps.publish-mode.outputs.mode == 'stable'
+        if: steps.publish-mode.outputs.mode == 'stable' || steps.publish-mode.outputs.mode == 'all'
         shell: bash
         run: |
           version="$(node -e "console.log(JSON.parse(require('node:fs').readFileSync('packages/core/package.json', 'utf8')).version)")"
@@ -94,7 +97,7 @@ jobs:
           echo "Prepared release v${version}."
 
       - name: Verify stable release
-        if: steps.publish-mode.outputs.mode == 'stable'
+        if: steps.publish-mode.outputs.mode == 'stable' || steps.publish-mode.outputs.mode == 'all'
         shell: bash
         run: pnpm release:verify-stable -- --tag "${{ steps.release-version.outputs.tag }}"
 
@@ -114,23 +117,31 @@ jobs:
         run: pnpm release:verify-consumer-install
 
       - name: Refresh release lockfile
-        if: steps.publish-mode.outputs.mode == 'stable' && steps.publish-mode.outputs.dry_run != 'true'
-        run: pnpm install --lockfile-only
+        if: (steps.publish-mode.outputs.mode == 'stable' || steps.publish-mode.outputs.mode == 'all') && steps.publish-mode.outputs.dry_run != 'true'
+        run: corepack pnpm install --lockfile-only
 
       - name: Commit and push release version
-        if: steps.publish-mode.outputs.mode == 'stable' && steps.publish-mode.outputs.dry_run != 'true'
+        if: (steps.publish-mode.outputs.mode == 'stable' || steps.publish-mode.outputs.mode == 'all') && steps.publish-mode.outputs.dry_run != 'true'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet -- packages pnpm-lock.yaml; then
+          if [ "${{ steps.publish-mode.outputs.mode }}" = "all" ]; then
+            diff_paths=(packages integrations apps pnpm-lock.yaml)
+            commit_message="Release workspace ${{ steps.release-version.outputs.version }}"
+          else
+            diff_paths=(packages pnpm-lock.yaml)
+            commit_message="Release SDK ${{ steps.release-version.outputs.version }}"
+          fi
+
+          if git diff --quiet -- "${diff_paths[@]}"; then
             echo "Package versions already match v${{ steps.release-version.outputs.version }}."
             exit 0
           fi
 
-          git add packages pnpm-lock.yaml
-          git commit -m "Release SDK ${{ steps.release-version.outputs.version }}"
+          git add -- "${diff_paths[@]}"
+          git commit -m "${commit_message}"
           git push origin HEAD:main || {
             echo "Unable to push the release commit to main before npm publish." >&2
             echo "No packages have been published yet." >&2
@@ -154,7 +165,7 @@ jobs:
           pnpm release:publish -- "${args[@]}"
 
       - name: Create GitHub release
-        if: steps.publish-mode.outputs.mode == 'stable' && steps.publish-mode.outputs.dry_run != 'true'
+        if: (steps.publish-mode.outputs.mode == 'stable' || steps.publish-mode.outputs.mode == 'all') && steps.publish-mode.outputs.dry_run != 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
