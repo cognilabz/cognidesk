@@ -18,8 +18,8 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "workspace:*",
-    "@cognidesk/studio-contracts": "workspace:*"
+    "@cognidesk/core": "0.0.10",
+    "@cognidesk/studio-contracts": "0.0.10"
   },
   "devDependencies": {
     "tsup": "^8.5.0",

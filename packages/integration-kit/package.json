@@ -30,8 +30,8 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "workspace:*",
-    "@cognidesk/voice-websocket": "workspace:*"
+    "@cognidesk/core": "0.0.10",
+    "@cognidesk/voice-websocket": "0.0.10"
   },
   "devDependencies": {
     "tsup": "^8.5.0",

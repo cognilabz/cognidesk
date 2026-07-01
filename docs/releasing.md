@@ -38,6 +38,14 @@ For a non-interactive bump:
 pnpm release:prepare -- --bump minor
 ```
 
+The prepare step updates the fixed-version SDK train and exact internal SDK
+dependency pins together. To have the publish script prepare the next available
+stable patch version before publishing, run:
+
+```bash
+pnpm release:publish -- --auto-patch-existing
+```
+
 Before tagging a stable release, run:
 
 ```bash
@@ -140,3 +148,5 @@ input name is provider-oriented for historical reasons, but it also accepts
 publishable app package names. Local npm-token publishing is only a fallback for
 bootstrapping or recovering a package when trusted publishing is not available.
 Prefer the GitHub Actions workflow so npm provenance is attached to the release.
+For that local fallback, pass `--no-provenance`; the publish script enables
+provenance automatically in GitHub Actions.

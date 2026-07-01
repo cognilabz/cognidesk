@@ -8,7 +8,7 @@ import {
   isAnyPackageVersionPublished,
   nextAvailablePatchVersion,
   platformPackageWorkspaces,
-  updatePackageVersions,
+  updatePackageTrain,
   writePackages,
 } from "./release-workspace.mjs";
 
@@ -80,15 +80,17 @@ if (autoPatchExisting) {
   nextVersion = bumpStableVersion(currentVersion, bump);
 }
 
-if (nextVersion !== currentVersion) {
-  updatePackageVersions(packages, nextVersion);
+const shouldWritePackages = nextVersion !== currentVersion || autoPatchExisting;
+
+if (shouldWritePackages) {
+  updatePackageTrain(packages, nextVersion);
   writePackages(packages);
   if (!skipInstall) runPnpmInstall();
 }
 
 console.log("\nPrepared SDK release:");
 console.log(`  ${currentVersion} -> ${nextVersion} (${bump})`);
-console.log(`  ${nextVersion === currentVersion ? "Checked" : "Updated"} ${packages.length} platform SDK packages.`);
+console.log(`  ${shouldWritePackages ? "Updated" : "Checked"} ${packages.length} platform SDK packages.`);
 
 console.log("\nNext steps:");
 console.log("  pnpm check");

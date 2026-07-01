@@ -34,7 +34,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "workspace:*",
+    "@cognidesk/core": "0.0.10",
     "drizzle-orm": "^0.45.2"
   },
   "peerDependencies": {

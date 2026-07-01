@@ -1,30 +1,96 @@
 #!/usr/bin/env node
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   assertNoWorkspaceProtocolDependencies,
   assertFixedPackageVersion,
+  assertFixedStablePackageVersion,
+  bumpStableVersion,
   dependencyFields,
+  isAnyPackageVersionPublished,
   isPlatformPackage,
   isProviderPackage,
   materializeWorkspaceDependencies,
+  nextAvailablePatchVersion,
   packageWorkspaces,
+  platformPackageWorkspaces,
   readPublishedPackageState,
+  updatePackageTrain,
+  writePackages,
 } from "./release-workspace.mjs";
 
 const root = process.cwd();
 const args = process.argv.slice(2);
+const validBumps = new Set(["patch", "minor", "major"]);
 const registry = readOption("--registry") ?? process.env.NPM_CONFIG_REGISTRY ?? "https://registry.npmjs.org/";
 const dryRun = args.includes("--dry-run");
 const failOnExisting = args.includes("--fail-on-existing");
 const distTag = readOption("--tag") ?? "latest";
 const packageFilter = readOption("--package");
+const explicitBump = readOption("--bump");
+const defaultBump = readOption("--default-bump") ?? "patch";
+const autoPatchExisting = args.includes("--auto-patch-existing");
+const prepareRelease = args.includes("--prepare-release") || autoPatchExisting || Boolean(explicitBump);
+const skipInstall = args.includes("--skip-install");
+const provenance = args.includes("--provenance")
+  || (!args.includes("--no-provenance") && process.env.GITHUB_ACTIONS === "true");
 
 function readOption(name) {
   const index = args.indexOf(name);
   if (index === -1) return undefined;
   return args[index + 1];
+}
+
+function runPnpmInstall() {
+  const result = spawnSync("pnpm", ["install", "--lockfile-only"], {
+    cwd: root,
+    stdio: "inherit",
+  });
+
+  if (result.status !== 0) {
+    process.exit(result.status ?? 1);
+  }
+}
+
+function prepareStablePlatformRelease() {
+  if (!validBumps.has(defaultBump)) {
+    throw new Error(`Invalid default bump "${defaultBump}". Expected patch, minor, or major.`);
+  }
+
+  const packages = platformPackageWorkspaces(root);
+  const currentVersion = assertFixedStablePackageVersion(packages, "platform SDK packages");
+  let nextVersion;
+  let bump;
+
+  if (autoPatchExisting) {
+    nextVersion = nextAvailablePatchVersion(
+      currentVersion,
+      (version) => isAnyPackageVersionPublished(packages, version, { root, registry }),
+    );
+    bump = nextVersion === currentVersion ? "none" : "auto-patch-existing";
+  } else {
+    bump = (explicitBump ?? defaultBump).toLowerCase();
+
+    if (!validBumps.has(bump)) {
+      throw new Error(`Invalid bump "${bump}". Expected patch, minor, or major.`);
+    }
+
+    nextVersion = bumpStableVersion(currentVersion, bump);
+  }
+
+  console.log("Prepared SDK release before publish:");
+  console.log(`  ${currentVersion} -> ${nextVersion} (${bump})`);
+  console.log(`  ${dryRun ? "Would update" : "Updated"} ${packages.length} platform SDK packages.`);
+
+  if (dryRun) {
+    console.log("  Dry run: package manifests were not changed.");
+    return;
+  }
+
+  updatePackageTrain(packages, nextVersion);
+  writePackages(packages);
+  if (!skipInstall) runPnpmInstall();
 }
 
 function sortByInternalDependencies(packages) {
@@ -64,25 +130,28 @@ function sortByInternalDependencies(packages) {
   return sorted;
 }
 
-function publish(pkg) {
-  const args = [
+function npmPublishArgs(pkg) {
+  const npmArgs = [
     "publish",
     ".",
     "--access",
     pkg.packageJson.publishConfig?.access ?? "public",
     "--tag",
     distTag,
-    "--provenance",
-    "--no-git-checks",
-    "--registry",
-    registry,
   ];
+  if (provenance) npmArgs.push("--provenance");
+  npmArgs.push("--no-git-checks", "--registry", registry);
+  return npmArgs;
+}
+
+function publish(pkg) {
+  const npmArgs = npmPublishArgs(pkg);
   const originalPackageJson = readFileSync(pkg.packageJsonPath, "utf8");
   const publishPackageJson = publishManifest(pkg);
 
   try {
     writeFileSync(pkg.packageJsonPath, `${JSON.stringify(publishPackageJson, null, 2)}\n`);
-    execFileSync("npm", args, {
+    execFileSync("npm", npmArgs, {
       cwd: join(root, pkg.dir),
       stdio: "inherit",
     });
@@ -100,6 +169,8 @@ function publishManifest(pkg) {
 if (!distTag) {
   throw new Error("A non-empty npm dist-tag is required.");
 }
+
+if (prepareRelease) prepareStablePlatformRelease();
 
 const allPackages = sortByInternalDependencies(packageWorkspaces(root));
 const packages = packageFilter
@@ -130,6 +201,7 @@ console.log(`Publish plan: ${packages.length} package${packages.length === 1 ? "
 if (packageFilter) console.log(`  package filter: ${packageFilter}`);
 console.log(`  selected platform SDK packages: ${selectedPlatformPackages.length} of ${platformPackages.length} at ${platformVersion}`);
 console.log(`  selected independent provider packages: ${selectedProviderPackages.length} of ${providerPackages.length}`);
+console.log(`  provenance: ${provenance ? "enabled" : "disabled"}`);
 
 if (alreadyPublishedPlatform.length > 0 && failOnExisting) {
   const names = alreadyPublishedPlatform
@@ -151,9 +223,8 @@ for (const { pkg, packageExists, versionPublished } of decisions) {
   const firstTimePrefix = packageExists ? "" : "first-time ";
   console.log(`Publishing ${firstTimePrefix}${pkg.name}@${pkg.packageJson.version} with dist-tag "${distTag}".`);
   if (dryRun) {
-    const access = pkg.packageJson.publishConfig?.access ?? "public";
     console.log(
-      `Dry run: (cd ${pkg.dir} && npm publish . --access ${access} --tag ${distTag} --provenance --no-git-checks)`,
+      `Dry run: (cd ${pkg.dir} && npm ${npmPublishArgs(pkg).join(" ")})`,
     );
     publishedCount += 1;
     continue;

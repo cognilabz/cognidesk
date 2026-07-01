@@ -1733,7 +1733,7 @@ importers:
   packages/connections:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../core
       zod:
         specifier: ^4.3.6
@@ -1780,10 +1780,10 @@ importers:
   packages/evals:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../core
       '@cognidesk/test-harness':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../test-harness
     devDependencies:
       tsup:
@@ -1799,7 +1799,7 @@ importers:
   packages/http:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../core
     devDependencies:
       tsup:
@@ -1827,10 +1827,10 @@ importers:
   packages/integration-kit:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../core
       '@cognidesk/voice-websocket':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../voice-websocket
     devDependencies:
       tsup:
@@ -1846,7 +1846,7 @@ importers:
   packages/journey-index-json:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../core
     devDependencies:
       tsup:
@@ -1865,7 +1865,7 @@ importers:
   packages/model:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../core
       ai:
         specifier: ^6.0.191
@@ -1924,10 +1924,10 @@ importers:
   packages/react:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../core
       '@cognidesk/ui':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../ui
       streamdown:
         specifier: ^2.5.0
@@ -1952,7 +1952,7 @@ importers:
   packages/storage:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../core
       drizzle-orm:
         specifier: ^0.45.2
@@ -1980,10 +1980,10 @@ importers:
   packages/studio-adapter:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../core
       '@cognidesk/studio-contracts':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../studio-contracts
     devDependencies:
       tsup:
@@ -2027,7 +2027,7 @@ importers:
   packages/test-harness:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../core
       zod:
         specifier: ^4.3.6
@@ -2064,7 +2064,7 @@ importers:
   packages/voice-websocket:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.10
         version: link:../core
       ws:
         specifier: ^8.21.0
