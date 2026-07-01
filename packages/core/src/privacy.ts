@@ -207,8 +207,9 @@ function applyRuntimePrivacyToValueInternal(
   if (Array.isArray(value)) {
     return value.map((item) => applyRuntimePrivacyToValueInternal(item, settings, seen, depth + 1));
   }
+  if (!isPlainRecord(value)) return value;
   const record = value as Record<string, unknown>;
-  const next: Record<string, unknown> = {};
+  const next = Object.create(Object.getPrototypeOf(record)) as Record<string, unknown>;
   for (const [key, item] of Object.entries(record)) {
     if (key === cognideskSessionContextKey) {
       const metadata = redactSessionMetadata(item);
@@ -373,6 +374,12 @@ function normalizedCustomerId(value: unknown): string | undefined {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (!isRecord(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
