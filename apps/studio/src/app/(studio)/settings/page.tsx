@@ -1,27 +1,18 @@
-import { DataTable, PageHeader, Panel, PanelHeader } from "@/components/studio/ui";
+import { AccountSettingsView } from "@/components/studio/account-settings-view";
+import { PageHeader } from "@/components/studio/ui";
+import { loadAccountSettings } from "@/server/account";
 import { requireStudioPageContext } from "@/server/studio-page-data";
 
 export const runtime = "nodejs";
 
 export default async function SettingsPage() {
-  const { user } = await requireStudioPageContext();
+  const { session } = await requireStudioPageContext();
+  const account = await loadAccountSettings(session);
 
   return (
     <section>
       <PageHeader eyebrow="Account" title="User settings" />
-      <div className="grid gap-4 p-8">
-        <Panel>
-          <PanelHeader title="Profile" />
-          <DataTable
-            columns={["Setting", "Value"]}
-            rows={[
-              ["Name", user.name],
-              ["Email", user.email],
-              ["Role", user.role],
-            ]}
-          />
-        </Panel>
-      </div>
+      <AccountSettingsView account={account} />
     </section>
   );
 }

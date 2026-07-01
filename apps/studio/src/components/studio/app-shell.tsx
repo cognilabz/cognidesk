@@ -55,7 +55,7 @@ export function AppShell(props: {
     return isThemePreference(stored) ? stored : "system";
   });
   const pathname = usePathname();
-  const { refresh, replace } = useRouter();
+  const { refresh } = useRouter();
   const active = activeItem(pathname);
 
   useEffect(() => {
@@ -73,9 +73,16 @@ export function AppShell(props: {
   }, [theme]);
 
   async function signOut() {
-    await fetch("/api/auth/sign-out", { method: "POST" });
-    replace("/login");
-    refresh();
+    const response = await fetch("/api/studio/logout", {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      refresh();
+      return;
+    }
+    window.location.assign("/login");
   }
 
   return (
