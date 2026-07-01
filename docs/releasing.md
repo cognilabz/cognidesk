@@ -46,6 +46,20 @@ stable patch version before publishing, run:
 pnpm release:publish -- --auto-patch-existing
 ```
 
+To release every publishable workspace package in one graph-consistent pass,
+including provider packages and publishable apps, run:
+
+```bash
+pnpm release:publish:all
+```
+
+This computes the next unpublished patch version for every publishable package,
+updates all internal `@cognidesk/*` dependency pins to those new package
+versions, refreshes the lockfile, and publishes in dependency order. Use this
+mode when SDK packages and integrations must move together so consumers do not
+install a newly released SDK next to an integration still pinned to an older
+Core version.
+
 Before tagging a stable release, run:
 
 ```bash

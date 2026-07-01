@@ -13,10 +13,12 @@ import {
   isProviderPackage,
   materializeWorkspaceDependencies,
   nextAvailablePatchVersion,
+  nextAvailablePackagePatchVersions,
   packageWorkspaces,
   platformPackageWorkspaces,
   readPublishedPackageState,
   updatePackageTrain,
+  updatePackageVersionsAndInternalDependencies,
   writePackages,
 } from "./release-workspace.mjs";
 
@@ -31,11 +33,13 @@ const packageFilter = readOption("--package");
 const explicitBump = readOption("--bump");
 const defaultBump = readOption("--default-bump") ?? "patch";
 const autoPatchExisting = args.includes("--auto-patch-existing");
-const prepareRelease = args.includes("--prepare-release") || autoPatchExisting || Boolean(explicitBump);
+const prepareAll = args.includes("--prepare-all") || args.includes("--full-release");
+const prepareRelease = !prepareAll && (args.includes("--prepare-release") || autoPatchExisting || Boolean(explicitBump));
 const skipInstall = args.includes("--skip-install");
 const provenance = args.includes("--provenance")
   || (!args.includes("--no-provenance") && process.env.GITHUB_ACTIONS === "true");
 let dryRunPreparedPlatformVersion;
+let dryRunPreparedPackageVersions;
 
 function readOption(name) {
   const index = args.indexOf(name);
@@ -91,6 +95,45 @@ function prepareStablePlatformRelease() {
   }
 
   updatePackageTrain(packages, nextVersion);
+  writePackages(packages);
+  if (!skipInstall) runPnpmInstall();
+}
+
+function prepareFullWorkspaceRelease() {
+  if (packageFilter) {
+    throw new Error("--prepare-all cannot be combined with --package; full workspace releases must publish the full plan.");
+  }
+  if (explicitBump) {
+    throw new Error("--prepare-all computes the next available patch version for each package and does not accept --bump.");
+  }
+
+  const packages = packageWorkspaces(root);
+  const platformPackages = packages.filter(isPlatformPackage);
+  const packageVersions = nextAvailablePackagePatchVersions(
+    packages.filter((pkg) => !isPlatformPackage(pkg)),
+    (pkg, version) => readPublishedPackageState(pkg, { root, registry, version }).versionPublished,
+  );
+  const currentPlatformVersion = assertFixedStablePackageVersion(platformPackages, "platform SDK packages");
+  const nextPlatformVersion = nextAvailablePatchVersion(
+    currentPlatformVersion,
+    (version) => isAnyPackageVersionPublished(platformPackages, version, { root, registry }),
+  );
+
+  for (const pkg of platformPackages) packageVersions.set(pkg.name, nextPlatformVersion);
+
+  const changedPackages = packages.filter((pkg) => packageVersions.get(pkg.name) !== pkg.packageJson.version);
+
+  console.log("Prepared full workspace release before publish:");
+  console.log(`  platform SDK: ${currentPlatformVersion} -> ${nextPlatformVersion}`);
+  console.log(`  ${dryRun ? "Would update" : "Updated"} ${changedPackages.length} of ${packages.length} publishable packages.`);
+
+  if (dryRun) {
+    dryRunPreparedPackageVersions = packageVersions;
+    console.log("  Dry run: package manifests were not changed.");
+    return;
+  }
+
+  updatePackageVersionsAndInternalDependencies(packages, packageVersions);
   writePackages(packages);
   if (!skipInstall) runPnpmInstall();
 }
@@ -172,9 +215,13 @@ if (!distTag) {
   throw new Error("A non-empty npm dist-tag is required.");
 }
 
+if (prepareAll) prepareFullWorkspaceRelease();
 if (prepareRelease) prepareStablePlatformRelease();
 
 const allPackages = sortByInternalDependencies(packageWorkspaces(root));
+if (dryRunPreparedPackageVersions) {
+  updatePackageVersionsAndInternalDependencies(allPackages, dryRunPreparedPackageVersions);
+}
 if (dryRunPreparedPlatformVersion) {
   updatePackageTrain(allPackages.filter(isPlatformPackage), dryRunPreparedPlatformVersion);
 }

@@ -9,11 +9,13 @@ import {
   assertNoWorkspaceProtocolDependencies,
   isNpmNotFound,
   materializeWorkspaceDependencies,
+  nextAvailablePackagePatchVersions,
   nextAvailablePatchVersion,
   packageWorkspaces,
   platformPackageWorkspaces,
   providerPackageWorkspaces,
   updatePackageVersions,
+  updatePackageVersionsAndInternalDependencies,
   updatePackageTrain,
 } from "./release-workspace.mjs";
 
@@ -126,6 +128,31 @@ test("platform source version updates preserve workspace dependency links", asyn
   });
 });
 
+test("full workspace release updates package versions and internal dependency links", async () => {
+  await withFixtureWorkspace(async (root) => {
+    const packages = packageWorkspaces(root);
+    const versions = new Map([
+      ["@cognidesk/core", "1.2.4"],
+      ["@cognidesk/react", "1.2.4"],
+      ["@cognidesk/integration-email-gmail", "0.4.1"],
+      ["@cognidesk/studio", "0.1.1"],
+    ]);
+
+    updatePackageVersionsAndInternalDependencies(packages, versions);
+
+    const react = packages.find((pkg) => pkg.name === "@cognidesk/react");
+    const provider = packages.find((pkg) => pkg.name === "@cognidesk/integration-email-gmail");
+    const studio = packages.find((pkg) => pkg.name === "@cognidesk/studio");
+
+    assert.equal(react.packageJson.version, "1.2.4");
+    assert.equal(react.packageJson.dependencies["@cognidesk/core"], "1.2.4");
+    assert.equal(provider.packageJson.version, "0.4.1");
+    assert.equal(provider.packageJson.dependencies["@cognidesk/core"], "1.2.4");
+    assert.equal(studio.packageJson.version, "0.1.1");
+    assert.equal(studio.packageJson.dependencies["@cognidesk/core"], "1.2.4");
+  });
+});
+
 test("publish manifests materialize internal workspace dependency links", () => {
   const materialized = materializeWorkspaceDependencies({
     name: "@cognidesk/react",
@@ -175,6 +202,26 @@ test("stable release version advances to the next unpublished patch", () => {
   );
 });
 
+test("package release versions advance independently to the next unpublished patch", () => {
+  const packages = [
+    { name: "@cognidesk/core", packageJson: { version: "1.2.3" } },
+    { name: "@cognidesk/integration-email-gmail", packageJson: { version: "0.4.0" } },
+  ];
+  const published = new Set([
+    "@cognidesk/core@1.2.3",
+    "@cognidesk/core@1.2.4",
+    "@cognidesk/integration-email-gmail@0.4.0",
+  ]);
+
+  const versions = nextAvailablePackagePatchVersions(
+    packages,
+    (pkg, version) => published.has(`${pkg.name}@${version}`),
+  );
+
+  assert.equal(versions.get("@cognidesk/core"), "1.2.5");
+  assert.equal(versions.get("@cognidesk/integration-email-gmail"), "0.4.1");
+});
+
 test("npm not-found detection ignores spawn failures without stderr", () => {
   assert.equal(isNpmNotFound({ error: new Error("spawn npm ENOENT") }), false);
   assert.equal(isNpmNotFound({ stderr: undefined }), false);
@@ -215,6 +262,7 @@ async function withFixtureWorkspace(callback) {
       version: "0.1.0",
       dependencies: {
         "@cognidesk/core": "workspace:*",
+        "@cognidesk/integration-email-gmail": "workspace:*",
       },
       publishConfig: { access: "public" },
     });

@@ -18,6 +18,7 @@
     "release:verify-packages": "node scripts/verify-package-smoke.mjs",
     "release:verify-consumer-install": "node scripts/verify-external-consumer-install.mjs",
     "release:publish": "node scripts/publish-unpublished.mjs",
+    "release:publish:all": "node scripts/publish-unpublished.mjs --prepare-all",
     "providers:catalog:data": "pnpm --filter @cognidesk/core build && pnpm --filter @cognidesk/voice-websocket build && pnpm --filter @cognidesk/integration-kit build && tsx scripts/generate-integration-catalog.ts",
     "providers:catalog": "pnpm --filter @cognidesk/integration-catalog build && node scripts/generate-provider-integration-catalog.mjs",
     "providers:architecture": "node scripts/check-integration-package-architecture.mjs",

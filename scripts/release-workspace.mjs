@@ -213,6 +213,19 @@ export function nextAvailablePatchVersion(version, isVersionPublished) {
   return candidate;
 }
 
+export function nextAvailablePackagePatchVersions(packages, isPackageVersionPublished) {
+  const versions = new Map();
+
+  for (const pkg of packages) {
+    versions.set(pkg.name, nextAvailablePatchVersion(
+      pkg.packageJson.version,
+      (version) => isPackageVersionPublished(pkg, version),
+    ));
+  }
+
+  return versions;
+}
+
 export function readPublishedPackageState(pkg, options = {}) {
   const version = options.version ?? pkg.packageJson.version;
   const versionResult = npmView([`${pkg.name}@${version}`, "version"], options);
@@ -289,6 +302,33 @@ export function updatePackageTrain(packages, version, dependencyPackages = packa
         if (packageNames.has(dependencyName)) {
           dependencies[dependencyName] = version;
         }
+      }
+    }
+  }
+}
+
+export function updatePackageVersionsAndInternalDependencies(
+  packages,
+  packageVersions,
+  dependencyPackages = packages,
+) {
+  const dependencyVersions = new Map();
+
+  for (const pkg of dependencyPackages) {
+    dependencyVersions.set(pkg.name, packageVersions.get(pkg.name) ?? pkg.packageJson.version);
+  }
+
+  for (const pkg of packages) {
+    const version = packageVersions.get(pkg.name);
+    if (version) pkg.packageJson.version = version;
+
+    for (const field of dependencyFields) {
+      const dependencies = pkg.packageJson[field];
+      if (!dependencies) continue;
+
+      for (const dependencyName of Object.keys(dependencies)) {
+        const dependencyVersion = dependencyVersions.get(dependencyName);
+        if (dependencyVersion) dependencies[dependencyName] = dependencyVersion;
       }
     }
   }
