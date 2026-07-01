@@ -36,6 +36,9 @@ async function initialize() {
       email_verified INTEGER NOT NULL DEFAULT 0,
       image TEXT,
       role TEXT NOT NULL DEFAULT 'viewer' CHECK (role IN ('viewer', 'dashboard_editor', 'operator', 'admin')),
+      banned INTEGER NOT NULL DEFAULT 0,
+      ban_reason TEXT,
+      ban_expires INTEGER,
       created_at INTEGER NOT NULL DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)),
       updated_at INTEGER NOT NULL DEFAULT (cast(unixepoch('subsecond') * 1000 as integer))
     );
@@ -209,4 +212,14 @@ async function initialize() {
     );
     CREATE INDEX IF NOT EXISTS validation_session_idx ON validation_runs(session_id);
   `);
+
+  await ensureColumn("user", "banned", "INTEGER NOT NULL DEFAULT 0");
+  await ensureColumn("user", "ban_reason", "TEXT");
+  await ensureColumn("user", "ban_expires", "INTEGER");
+}
+
+async function ensureColumn(table: "user", column: string, definition: string) {
+  const info = await libsql.execute(`PRAGMA table_info(${table})`);
+  if (info.rows.some((row) => String(row.name) === column)) return;
+  await libsql.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
 }

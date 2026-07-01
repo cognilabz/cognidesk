@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { bubbleAnalysisForMessage, messageTranscriptRows } from "./conversation-detail-view";
+import type { StudioAgentIntrospection } from "@cognidesk/studio-contracts";
+import { bubbleAnalysisForMessage, detailJourneyContextForMessage, detailJourneyForContext, messageTranscriptRows } from "./conversation-detail-view";
 
 describe("messageTranscriptRows", () => {
   it("builds a readable transcript from message lifecycle events", () => {
@@ -59,16 +60,58 @@ describe("messageTranscriptRows", () => {
     ]);
   });
 
-  it("uses the current snapshot context when events do not expose journey fields", () => {
+  it("does not infer current snapshot context when events do not expose journey fields", () => {
     const rows = messageTranscriptRows([
       event(1, "channel.received", { text: "Can I change my ticket?" }),
       event(2, "channel.sent", { text: "I can help with that." }),
-    ], { journeyId: "refund-guidance", stateIds: ["collectTicket"] });
+    ]);
 
     expect(rows.map((row) => ({ text: row.text, journeyId: row.journeyId, stateIds: row.stateIds }))).toEqual([
-      { text: "Can I change my ticket?", journeyId: "refund-guidance", stateIds: ["collectTicket"] },
-      { text: "I can help with that.", journeyId: "refund-guidance", stateIds: ["collectTicket"] },
+      { text: "Can I change my ticket?", journeyId: undefined, stateIds: [] },
+      { text: "I can help with that.", journeyId: undefined, stateIds: [] },
     ]);
+  });
+
+  it("keeps bubble details empty when the selected message has no journey context", () => {
+    expect(detailJourneyContextForMessage({
+      key: "message-1",
+      role: "customer",
+      offset: "12",
+      createdAt: "-",
+      traceId: "-",
+      text: "Just checking in.",
+      stateIds: [],
+    })).toEqual({ stateIds: [] });
+  });
+
+  it("keeps bubble journey details empty when a message has a journey but no related step", () => {
+    expect(detailJourneyContextForMessage({
+      key: "message-1",
+      role: "assistant",
+      offset: "12",
+      createdAt: "-",
+      traceId: "-",
+      text: "The journey was activated, but no step has been entered yet.",
+      journeyId: "ticket-purchase",
+      stateIds: [],
+    })).toEqual({ stateIds: [] });
+  });
+
+  it("only resolves bubble journey graphs when the related step exists in the graph", () => {
+    const journeys = [journey("ticket-purchase", ["collectRoute", "selectFlight"])];
+
+    expect(detailJourneyForContext(journeys, {
+      journeyId: "ticket-purchase",
+      stateIds: ["collectRoute"],
+    })?.id).toBe("ticket-purchase");
+    expect(detailJourneyForContext(journeys, {
+      journeyId: "ticket-purchase",
+      stateIds: ["missingStep"],
+    })).toBeNull();
+    expect(detailJourneyForContext(journeys, {
+      journeyId: "ticket-purchase",
+      stateIds: [],
+    })).toBeNull();
   });
 
   it("builds trace and journey event details for a selected bubble", () => {
@@ -115,5 +158,34 @@ function event(offset: number, type: string, data: Record<string, unknown>, trac
     createdAt: "2026-06-26T08:00:00.000Z",
     telemetry: { traceId },
     data,
+  };
+}
+
+function journey(id: string, stateIds: string[]): StudioAgentIntrospection["journeys"][number] {
+  return {
+    id,
+    kind: "stateMachine",
+    condition: "Customer needs help buying a ticket.",
+    examples: [],
+    tags: [],
+    priority: 0,
+    stickiness: "medium",
+    alwaysInclude: false,
+    graph: {
+      id,
+      kind: "stateMachine",
+      initialStateId: stateIds[0],
+      states: stateIds.map((stateId) => ({
+        id: stateId,
+        type: "state",
+        collected: [],
+        transitions: [],
+        actions: [],
+        requiresVisit: false,
+      })),
+    },
+    mermaid: "",
+    tools: [],
+    knowledge: [],
   };
 }

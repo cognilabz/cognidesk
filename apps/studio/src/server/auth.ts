@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { admin, createAccessControl } from "better-auth/plugins";
 import { and, eq, gt } from "drizzle-orm";
 import { db, ensureStudioDatabase } from "@/server/db/client";
 import { schema, session as sessionTable, studioAuditLog, user } from "@/server/db/schema";
@@ -9,6 +10,32 @@ import type { StudioRole } from "@cognidesk/studio-contracts";
 
 const env = studioEnv();
 const trustedOrigins = studioTrustedOrigins(env.appUrl);
+
+const studioAdminStatements = {
+  user: [
+    "create",
+    "list",
+    "set-role",
+    "ban",
+    "delete",
+    "set-password",
+    "set-email",
+    "get",
+    "update",
+  ],
+  session: [
+    "list",
+    "revoke",
+    "delete",
+  ],
+} as const;
+
+const studioAdminAccessControl = createAccessControl(studioAdminStatements);
+const studioAdminRole = studioAdminAccessControl.newRole(studioAdminStatements);
+const studioUserRole = studioAdminAccessControl.newRole({
+  user: [],
+  session: [],
+});
 
 export const auth = betterAuth({
   baseURL: env.appUrl,
@@ -23,16 +50,19 @@ export const auth = betterAuth({
     minPasswordLength: 8,
     requireEmailVerification: false,
   },
-  user: {
-    additionalFields: {
-      role: {
-        type: ["viewer", "dashboard_editor", "operator", "admin"],
-        required: false,
-        defaultValue: "viewer",
-        input: false,
+  plugins: [
+    admin({
+      defaultRole: "viewer",
+      adminRoles: ["admin"],
+      ac: studioAdminAccessControl,
+      roles: {
+        viewer: studioUserRole,
+        dashboard_editor: studioUserRole,
+        operator: studioUserRole,
+        admin: studioAdminRole,
       },
-    },
-  },
+    }),
+  ],
 });
 
 export type StudioAuthSession = typeof auth.$Infer.Session & {

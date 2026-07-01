@@ -28,28 +28,19 @@ export function ConversationDetailView(props: {
   const activeStateIds = props.conversation?.activeStateIds.length
     ? props.conversation.activeStateIds
     : stringArrayField(snapshot, "activeStateIds");
-  const activeStateIdsKey = activeStateIds.join("\u0000");
-  const activeJourneyContext: JourneyStepContext = useMemo(() => ({
-    ...(activeJourneyId ? { journeyId: activeJourneyId } : {}),
-    stateIds: activeStateIds,
-  }), [activeJourneyId, activeStateIdsKey]);
   const transcriptRows = useMemo(
-    () => messageTranscriptRows(
-      props.events,
-      activeJourneyId || activeStateIds.length ? activeJourneyContext : undefined,
-    ),
-    [activeJourneyContext, activeJourneyId, activeStateIdsKey, props.events],
+    () => messageTranscriptRows(props.events),
+    [props.events],
   );
   const traceIds = props.conversation?.traceIds ?? traceIdsFromEvents(props.events);
   const [detailMessageKey, setDetailMessageKey] = useState<string | null>(null);
   const detailMessage = detailMessageKey
     ? transcriptRows.find((message) => message.key === detailMessageKey) ?? null
     : null;
-  const detailJourneyId = detailMessage?.journeyId ?? activeJourneyId;
-  const detailStateIds = detailMessage?.stateIds.length ? detailMessage.stateIds : activeStateIds;
-  const detailJourney = detailJourneyId
-    ? props.introspection?.journeys.find((journey) => journey.id === detailJourneyId) ?? null
-    : null;
+  const detailJourneyContext = detailJourneyContextForMessage(detailMessage);
+  const detailJourneyId = detailJourneyContext.journeyId;
+  const detailStateIds = detailJourneyContext.stateIds;
+  const detailJourney = detailJourneyForContext(props.introspection?.journeys, detailJourneyContext);
   const detailMessageAnalysis = useMemo(
     () => bubbleAnalysisForMessage(props.events, detailMessage),
     [detailMessage, props.events],
@@ -189,9 +180,9 @@ export type BubbleAnalysis = {
 
 type BubbleDetailTab = "message" | "journey" | "events";
 
-export function messageTranscriptRows(events: unknown[], fallbackContext?: JourneyStepContext): TranscriptRow[] {
+export function messageTranscriptRows(events: unknown[]): TranscriptRow[] {
   const rows: TranscriptRow[] = [];
-  const contexts = journeyContextsForEvents(events, hasJourneyContextEvents(events) ? undefined : fallbackContext);
+  const contexts = journeyContextsForEvents(events);
   let pendingRole: string | undefined;
   let pendingContext: JourneyStepContext | undefined;
   for (const [index, event] of events.entries()) {
@@ -212,6 +203,31 @@ export function messageTranscriptRows(events: unknown[], fallbackContext?: Journ
   }
   return dedupeTranscriptRows([...rows, ...channelTranscriptRows(events, contexts)])
     .sort((left, right) => numericOffset(left) - numericOffset(right));
+}
+
+export function detailJourneyContextForMessage(message: TranscriptRow | null): JourneyStepContext {
+  if (!message?.journeyId || message.stateIds.length === 0) return { stateIds: [] };
+  return {
+    journeyId: message.journeyId,
+    stateIds: message.stateIds,
+  };
+}
+
+export function detailJourneyForContext(
+  journeys: StudioAgentIntrospection["journeys"] | undefined,
+  context: JourneyStepContext,
+) {
+  if (!context.journeyId || context.stateIds.length === 0) return null;
+
+  const journey = journeys?.find((candidate) => candidate.id === context.journeyId) ?? null;
+  if (!journey) return null;
+
+  const graphStateIds = new Set(
+    journey.graph.states.length > 0
+      ? journey.graph.states.map((state) => state.id)
+      : [journey.id],
+  );
+  return context.stateIds.some((stateId) => graphStateIds.has(stateId)) ? journey : null;
 }
 
 function channelTranscriptRows(events: unknown[], contexts: JourneyStepContext[]): TranscriptRow[] {
@@ -499,7 +515,7 @@ function JourneyDetailPanel(props: {
         activeStateIds={props.activeStateIds}
         className="h-[320px] max-h-[44vh] min-h-[280px]"
         focusMode="center"
-        interactive={false}
+        interactive
       />
     </section>
   );
@@ -767,15 +783,6 @@ function journeyContextsForEvents(events: unknown[], fallbackContext?: JourneySt
       stateIds: directStateIds.length ? directStateIds : current.stateIds,
     });
     return current;
-  });
-}
-
-function hasJourneyContextEvents(events: unknown[]) {
-  return events.some((event) => {
-    const record = asRecord(event);
-    const data = asRecord(record?.data);
-    return Boolean(eventJourneyId(data))
-      || eventStateIds(data).length > 0;
   });
 }
 
