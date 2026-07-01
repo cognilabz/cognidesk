@@ -28,18 +28,6 @@
     "docs:serve": "node scripts/run-mkdocs.mjs serve",
     "docs:build": "node scripts/run-mkdocs.mjs build"
   },
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.2.15",
-      "@types/react-dom": "19.2.3",
-      "@esbuild-kit/core-utils>esbuild": "0.25.12",
-      "@vonage/jwt>uuid": "13.0.1",
-      "microsoft-cognitiveservices-speech-sdk>uuid": "11.1.1",
-      "next>postcss": "8.5.15",
-      "undici": "6.27.0",
-      "vite>esbuild": "0.28.1"
-    }
-  },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "tsup": "^8.5.0",

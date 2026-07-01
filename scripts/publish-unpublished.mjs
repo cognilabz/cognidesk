@@ -48,7 +48,7 @@ function readOption(name) {
 }
 
 function runPnpmInstall() {
-  const result = spawnSync("pnpm", ["install", "--lockfile-only"], {
+  const result = spawnSync("corepack", ["pnpm", "install", "--lockfile-only"], {
     cwd: root,
     stdio: "inherit",
   });
