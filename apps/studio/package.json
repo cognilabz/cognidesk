@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/studio",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
@@ -16,8 +16,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1054.0",
     "@better-auth/drizzle-adapter": "^1.6.11",
-    "@cognidesk/integration-catalog": "0.0.11",
-    "@cognidesk/studio-contracts": "0.0.11",
+    "@cognidesk/integration-catalog": "0.0.12",
+    "@cognidesk/studio-contracts": "0.0.12",
     "@libsql/client": "^0.17.3",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@streamdown/cjk": "^1.0.3",

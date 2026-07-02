@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-contact-center-nextiva",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -26,7 +26,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/integration-kit": "0.0.11"
+    "@cognidesk/integration-kit": "0.0.12"
   },
   "devDependencies": {
     "tsup": "^8.5.0",

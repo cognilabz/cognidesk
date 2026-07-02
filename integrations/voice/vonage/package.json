@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-voice-vonage",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -26,7 +26,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/integration-kit": "0.0.11",
+    "@cognidesk/integration-kit": "0.0.12",
     "@vonage/server-sdk": "^3.27.0"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-marketplace-amazon",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@amazon-sp-api-release/amazon-sp-api-sdk-js": "^1.9.0",
-    "@cognidesk/integration-kit": "0.0.11"
+    "@cognidesk/integration-kit": "0.0.12"
   },
   "devDependencies": {
     "tsup": "^8.5.0",

@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-messaging-whatsapp",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -44,8 +44,8 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "0.0.11",
-    "@cognidesk/integration-kit": "0.0.11",
+    "@cognidesk/core": "0.0.12",
+    "@cognidesk/integration-kit": "0.0.12",
     "baileys": "7.0.0-rc13",
     "qrcode-terminal": "0.12.0"
   },
