@@ -25,7 +25,7 @@ export const studioOperatorSkillPack: StudioOperatorSkillPack = {
     {
       id: "telemetry",
       title: "Query Cognidesk telemetry",
-      description: "Use configured trace and metric sources for runtime investigation and dashboard datasets.",
+      description: "Use configured trace and metric sources for runtime investigation, reporting, and dashboard datasets.",
       path: "skills/telemetry.md",
     },
     {
@@ -37,14 +37,14 @@ export const studioOperatorSkillPack: StudioOperatorSkillPack = {
     {
       id: "dashboard-authoring",
       title: "Author interactive Studio dashboards",
-      description: "Create browser-sandboxed React dashboard artifacts backed by Studio Dashboard Data Layer capabilities.",
+      description: "Create browser-sandboxed React dashboard artifacts backed by Studio data layer capabilities.",
       path: "skills/dashboard-authoring.md",
     },
   ],
   defaultSystemPrompt: [
     "You are the Cognidesk Studio Operator.",
     "You operate on a configured Studio Target using Studio APIs, telemetry APIs, and a disposable source sandbox.",
-    "Ground answers in evidence. When facts come from introspection, telemetry, dashboard datasets, or source files, cite the source.",
+    "Ground answers in evidence. When facts come from introspection, telemetry, Studio datasets, or source files, cite the source.",
     "Generated dashboards are mutable Studio artifacts and may be published through Studio artifact storage after an authorized user action.",
     "Code changes to a Cognidesk agent must stay in the source sandbox and be published through a GitHub pull request.",
     "Use target AGENTS.md instructions first, then this skill pack for Cognidesk-specific workflows.",

@@ -12,6 +12,7 @@ type ConversationRow = {
   updatedAt?: string;
   eventCount?: number;
 };
+type MetricAggregate = NonNullable<StudioDashboardWidget["aggregate"]>;
 
 export const integerFormatter = new Intl.NumberFormat();
 const metricFormatter = new Intl.NumberFormat(undefined, {
@@ -51,12 +52,18 @@ export function metricValue(widget: StudioDashboardWidget, dataset: StudioDashbo
     const metrics = conversationMetrics(rows);
     return resolvePath(metrics, widget.valuePath.replace("$metrics.", "")) ?? 0;
   }
+  const aggregateRequest = metricAggregateForWidget(widget);
+  if (aggregateRequest) {
+    return aggregateMetricValue(rowsFromUnknown(dataset?.data), aggregateRequest.path, aggregateRequest.aggregate);
+  }
   if (widget.valuePath && dataset) {
     const directValue = resolvePath(dataset.data, widget.valuePath);
     if (directValue !== undefined) return directValue;
     const normalizedValue = normalizedMetricValue(rowsFromUnknown(dataset.data), widget.valuePath);
     if (normalizedValue !== undefined) return normalizedValue;
+    return undefined;
   }
+  if (widget.valuePath) return undefined;
   return Array.isArray(dataset?.data) ? dataset.data.length : (rows.length || rowsFromUnknown(dataset?.data).length);
 }
 
@@ -189,9 +196,15 @@ export function inferSeries(rows: Array<Record<string, unknown>>, xDataKey?: str
 export function resolvePath(value: unknown, path: string): unknown {
   if (!path) return value;
   if (isRecord(value) && path in value) return value[path];
-  return path.replace(/\[(\w+)\]/g, ".$1").split(".").reduce<unknown>((current, part) => {
+  const parts = parsePath(path);
+  if (!parts) return undefined;
+  return parts.reduce<unknown>((current, part) => {
+    if (Array.isArray(current)) {
+      const index = Number(part);
+      return Number.isInteger(index) && index >= 0 ? current[index] : undefined;
+    }
     if (!isRecord(current)) return undefined;
-    return current[part];
+    return part in current ? current[part] : undefined;
   }, value);
 }
 
@@ -200,11 +213,13 @@ export function rowsFromUnknown(value: unknown): Array<Record<string, unknown>> 
   if (rows.length) return rows;
   const prometheus = prometheusRows(value);
   if (prometheus.length) return prometheus;
+  const spans = spanRows(value);
+  if (spans.length) return spans;
   const traces = traceRows(value);
   if (traces.length) return traces;
   if (Array.isArray(value)) return value.filter(isRecord);
   if (!isRecord(value)) return [];
-  for (const key of ["rows", "items", "results", "result", "data", "values", "traces", "spans"]) {
+  for (const key of ["rows", "items", "results", "result", "data", "events", "values", "traces", "spans"]) {
     const nestedRows = rowsFromUnknown(value[key]);
     if (nestedRows.length) return nestedRows;
   }
@@ -311,6 +326,16 @@ function prometheusSeriesName(metric: Record<string, unknown>, index: number) {
   return labels.length ? labels.join(", ") : `Series ${index + 1}`;
 }
 
+function spanRows(value: unknown): Array<Record<string, unknown>> {
+  if (!isRecord(value)) return [];
+  const spans = Array.isArray(value.spans)
+    ? value.spans
+    : isRecord(value.data) && Array.isArray(value.data.spans)
+      ? value.data.spans
+      : [];
+  return spans.filter(isRecord);
+}
+
 function traceRows(value: unknown): Array<Record<string, unknown>> {
   if (!isRecord(value)) return [];
   const traces = Array.isArray(value.traces)
@@ -406,6 +431,49 @@ function normalizedMetricValue(rows: Array<Record<string, unknown>>, valuePath: 
   return values[values.length - 1];
 }
 
+function metricAggregateForWidget(widget: StudioDashboardWidget): { aggregate: MetricAggregate; path?: string } | null {
+  const expression = widget.valuePath ? parseMetricAggregateExpression(widget.valuePath) : null;
+  if (widget.aggregate) {
+    return {
+      aggregate: widget.aggregate,
+      ...(expression?.path ? { path: expression.path } : widget.valuePath ? { path: widget.valuePath } : {}),
+    };
+  }
+  return expression;
+}
+
+function parseMetricAggregateExpression(valuePath: string): { aggregate: MetricAggregate; path: string } | null {
+  const trimmed = valuePath.trim();
+  const open = trimmed.indexOf("(");
+  if (open <= 0 || !trimmed.endsWith(")")) return null;
+  const aggregate = trimmed.slice(0, open);
+  if (!isMetricAggregate(aggregate)) return null;
+  const path = trimmed.slice(open + 1, -1).trim();
+  if (!path) return null;
+  return { aggregate, path };
+}
+
+function aggregateMetricValue(rows: Array<Record<string, unknown>>, path: string | undefined, aggregate: MetricAggregate) {
+  if (aggregate === "count") return rows.length;
+  if (!path) return undefined;
+  const values = rows
+    .map((row) => resolvePath(row, path))
+    .filter((value) => value !== undefined && value !== null);
+  if (aggregate === "countNonNull") return values.length;
+  const numericValues = values
+    .map(numericValue)
+    .filter((value): value is number => value !== null);
+  if (!numericValues.length) return undefined;
+  if (aggregate === "sum") return numericValues.reduce((sum, value) => sum + value, 0);
+  if (aggregate === "avg") return numericValues.reduce((sum, value) => sum + value, 0) / numericValues.length;
+  if (aggregate === "max") return Math.max(...numericValues);
+  return undefined;
+}
+
+function isMetricAggregate(value: string): value is MetricAggregate {
+  return value === "sum" || value === "avg" || value === "max" || value === "count" || value === "countNonNull";
+}
+
 function categoryLabel(value: unknown) {
   if (value === null || value === undefined || value === "") return "Unspecified";
   if (Array.isArray(value)) return value.length ? value.join(", ") : "None";
@@ -423,11 +491,15 @@ function numericValue(value: unknown) {
 }
 
 function setPath(target: Record<string, unknown>, path: string, value: unknown) {
-  if (!path.includes(".")) {
+  const parts = parsePath(path);
+  if (!parts?.length) {
     target[path] = value;
     return;
   }
-  const parts = path.split(".");
+  if (parts.length === 1) {
+    target[parts[0]!] = value;
+    return;
+  }
   let current = target;
   for (const part of parts.slice(0, -1)) {
     const next = current[part];
@@ -435,6 +507,40 @@ function setPath(target: Record<string, unknown>, path: string, value: unknown) 
     current = current[part] as Record<string, unknown>;
   }
   current[parts[parts.length - 1]!] = value;
+}
+
+function parsePath(path: string): string[] | null {
+  const parts: string[] = [];
+  let current = "";
+  for (let index = 0; index < path.length; index += 1) {
+    const char = path[index]!;
+    if (char === ".") {
+      if (current) {
+        parts.push(current);
+        current = "";
+        continue;
+      }
+      if (path[index - 1] === "]") continue;
+      return null;
+    }
+    if (char === "[") {
+      if (current) {
+        parts.push(current);
+        current = "";
+      }
+      const end = path.indexOf("]", index + 1);
+      if (end < 0) return null;
+      const content = path.slice(index + 1, end).trim();
+      if (!content) return null;
+      const quoted = (content.startsWith("\"") && content.endsWith("\"")) || (content.startsWith("'") && content.endsWith("'"));
+      parts.push(quoted ? content.slice(1, -1) : content);
+      index = end;
+      continue;
+    }
+    current += char;
+  }
+  if (current) parts.push(current);
+  return parts.every((part) => part.length > 0) ? parts : null;
 }
 
 function uniqueSeriesKey(name: string, index: number) {
@@ -450,9 +556,10 @@ function isAxisLikeKey(key: string) {
 }
 
 export function formatMetricValue(value: unknown, unit?: string) {
+  if (value === undefined || value === null) return "Missing data";
   const text = typeof value === "number"
     ? metricFormatter.format(value)
-    : String(value ?? 0);
+    : String(value);
   return unit ? `${text}${unit}` : text;
 }
 
@@ -492,7 +599,7 @@ function labelize(value: string) {
 }
 
 export function sourceFunctionText(dataset: StudioDashboardDataset) {
-  return `queryDashboardData(${JSON.stringify(dataset.source, null, 2)})`;
+  return `queryStudioData(${JSON.stringify(dataset.source, null, 2)})`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { StudioKnowledgeSummarySchema } from "../src/index.js";
+import { StudioConversationSummarySchema, StudioKnowledgeSummarySchema } from "../src/index.js";
 
 describe("studio summary contracts", () => {
   it("preserves knowledge document previews for Studio", () => {
@@ -61,6 +61,39 @@ describe("studio summary contracts", () => {
         title: "Delay compensation",
         url: "https://example.test/delay-compensation",
       }],
+    });
+  });
+
+  it("preserves conversation extension fields for dashboard datasets", () => {
+    const summary = StudioConversationSummarySchema.parse({
+      id: "conversation_123",
+      agentId: "support-agent",
+      lifecycle: "closed",
+      createdAt: "2026-06-26T08:00:00.000Z",
+      updatedAt: "2026-06-26T08:10:00.000Z",
+      totalTokens: 420,
+      modelCalls: 3,
+      usage: {
+        inputTokens: 120,
+        outputTokens: 300,
+        totalTokens: 420,
+      },
+      metrics: {
+        modelCalls: 3,
+      },
+      attributes: {
+        "gen_ai.request.model": "gpt-5-mini",
+      },
+    });
+
+    expect(summary).toMatchObject({
+      totalTokens: 420,
+      modelCalls: 3,
+      usage: { totalTokens: 420 },
+      metrics: { modelCalls: 3 },
+      attributes: {
+        "gen_ai.request.model": "gpt-5-mini",
+      },
     });
   });
 });

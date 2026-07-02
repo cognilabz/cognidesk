@@ -6,6 +6,7 @@ import {
   StudioConfigurationMutationResultSchema,
   StudioConversationSummarySchema,
   StudioDashboardDataQuerySchema,
+  StudioDataQuerySchema,
   StudioTargetManifestSchema,
   type StudioAgentIntrospection,
   type StudioConfigurationSurface,
@@ -13,6 +14,7 @@ import {
   type StudioConfigurationMutationResult,
   type StudioConversationSummary,
   type StudioDashboardDataQuery,
+  type StudioDataQuery,
   type StudioTargetManifest,
 } from "@cognidesk/studio-contracts";
 import { audit } from "@/server/audit";
@@ -168,11 +170,11 @@ export async function fetchConversationSnapshot(conversationId: string) {
   return await response.json() as { snapshot: unknown };
 }
 
-export async function queryDashboardData(query: StudioDashboardDataQuery) {
-  const parsed = StudioDashboardDataQuerySchema.parse(query);
+export async function queryStudioData(query: StudioDataQuery) {
+  const parsed = StudioDataQuerySchema.parse(query);
   const manifest = await currentTarget();
   if (parsed.targetId !== manifest.target.id) {
-    throw new Error(`Dashboard data targetId '${parsed.targetId}' does not match current Studio target '${manifest.target.id}'.`);
+    throw new Error(`Studio data targetId '${parsed.targetId}' does not match current Studio target '${manifest.target.id}'.`);
   }
   switch (parsed.capability) {
     case "cognidesk.agent":
@@ -235,6 +237,10 @@ export async function queryDashboardData(query: StudioDashboardDataQuery) {
   }
 }
 
+export async function queryDashboardData(query: StudioDashboardDataQuery) {
+  return queryStudioData(StudioDashboardDataQuerySchema.parse(query));
+}
+
 async function queryMetricData(query: StudioDashboardDataQuery) {
   const manifest = await currentTarget();
   const source = manifest.telemetry.sources.find((candidate) => candidate.kind === "prometheus");
@@ -270,18 +276,228 @@ async function queryTraceData(query: StudioDashboardDataQuery) {
   const manifest = await currentTarget();
   const source = manifest.telemetry.sources.find((candidate) => candidate.kind === "tempo");
   if (!source) throw new Error("No Tempo telemetry source configured");
+  const requestedTraceIds = traceIdsParam(query.params.traceIds);
+  const requestedTraceId = stringParam(query.params.traceId);
+  const traceIds = requestedTraceIds.length ? requestedTraceIds : requestedTraceId ? [requestedTraceId] : [];
+  if (traceIds.length) {
+    const traces = await fetchTempoTraceDetails(source, traceIds);
+    return {
+      id: randomUUID(),
+      title: "Telemetry Trace Data",
+      source: query,
+      capturedAt: new Date().toISOString(),
+      data: normalizeTempoTraceDataset(null, traces),
+    };
+  }
+
   const url = new URL("/api/search", source.baseUrl);
   const serviceName = stringParam(query.params.serviceName) ?? "cognidesk-flight-demo";
-  url.searchParams.set("tags", `service.name=${serviceName}`);
+  const traceQl = stringParam(query.params.query) ?? stringParam(query.params.q);
+  if (traceQl) url.searchParams.set("q", traceQl);
+  else url.searchParams.set("tags", stringParam(query.params.tags) ?? `service.name=${serviceName}`);
+  const limit = clampInt(numberParam(query.params.limit) ?? 20, 1, 100);
+  url.searchParams.set("limit", String(limit));
+  const start = numberParam(query.params.start);
+  const end = numberParam(query.params.end);
+  const minDuration = stringParam(query.params.minDuration);
+  const maxDuration = stringParam(query.params.maxDuration);
+  if (start !== undefined) url.searchParams.set("start", String(start));
+  if (end !== undefined) url.searchParams.set("end", String(end));
+  if (minDuration) url.searchParams.set("minDuration", minDuration);
+  if (maxDuration) url.searchParams.set("maxDuration", maxDuration);
   const response = await fetch(url, source.headers ? { headers: source.headers } : {});
   if (!response.ok) throw new Error(`Trace source returned ${response.status}`);
+  const search = await response.json() as unknown;
+  if (booleanParam(query.params.includeTraceData) || stringParam(query.params.mode) === "full") {
+    const searchTraceIds = extractTraceIds(search).slice(0, limit);
+    const traces = await fetchTempoTraceDetails(source, searchTraceIds);
+    return {
+      id: randomUUID(),
+      title: "Telemetry Trace Data",
+      source: query,
+      capturedAt: new Date().toISOString(),
+      data: normalizeTempoTraceDataset(search, traces),
+    };
+  }
   return {
     id: randomUUID(),
     title: "Telemetry Traces",
     source: query,
     capturedAt: new Date().toISOString(),
-    data: await response.json(),
+    data: search,
   };
+}
+
+async function fetchTempoTraceDetails(source: StudioTargetManifest["telemetry"]["sources"][number], traceIds: string[]) {
+  const uniqueTraceIds = [...new Set(traceIds.map((traceId) => traceId.trim()).filter(Boolean))];
+  return await Promise.all(uniqueTraceIds.map(async (traceId) => {
+    const url = new URL(`/api/traces/${encodeURIComponent(traceId)}`, source.baseUrl);
+    const response = await fetch(url, source.headers ? { headers: source.headers } : {});
+    if (!response.ok) throw new Error(`Trace source returned ${response.status} for trace ${traceId}`);
+    return {
+      traceId,
+      raw: await response.json() as unknown,
+    };
+  }));
+}
+
+export function normalizeTempoTraceDataset(
+  search: unknown,
+  traces: Array<{ traceId: string; raw: unknown }>,
+) {
+  const normalizedTraces = traces.map((trace) => {
+    const spans = spansFromTracePayload(trace.raw, trace.traceId);
+    return {
+      traceId: trace.traceId,
+      raw: trace.raw,
+      spans,
+      spanCount: spans.length,
+    };
+  });
+  return {
+    ...(search !== null ? { search } : {}),
+    traces: normalizedTraces,
+    spans: normalizedTraces.flatMap((trace) => trace.spans),
+    rawTraces: traces,
+  };
+}
+
+function spansFromTracePayload(payload: unknown, fallbackTraceId: string): Array<Record<string, unknown>> {
+  const spans: Array<Record<string, unknown>> = [];
+  for (const resourceSpan of resourceSpansFromPayload(payload)) {
+    const resource = isRecord(resourceSpan.resource) ? resourceSpan.resource : {};
+    const resourceAttributes = attributesRecord(resource.attributes);
+    const scopeSpanCandidates = [
+      ...arrayRecords(resourceSpan.scopeSpans),
+      ...arrayRecords(resourceSpan.instrumentationLibrarySpans),
+    ];
+    for (const scopeSpan of scopeSpanCandidates) {
+      const scope = isRecord(scopeSpan.scope)
+        ? scopeSpan.scope
+        : isRecord(scopeSpan.instrumentationLibrary)
+          ? scopeSpan.instrumentationLibrary
+          : {};
+      const scopeAttributes = attributesRecord(scope.attributes);
+      for (const span of arrayRecords(scopeSpan.spans)) {
+        const attributes = attributesRecord(span.attributes);
+        const traceId = stringParam(span.traceId) ?? stringParam(span.traceID) ?? fallbackTraceId;
+        const spanId = stringParam(span.spanId) ?? stringParam(span.spanID);
+        const parentSpanId = stringParam(span.parentSpanId) ?? stringParam(span.parentSpanID);
+        const startedAt = timestampFromSpan(span.startTimeUnixNano ?? span.startTimeUnixMillis ?? span.startTime);
+        const endedAt = timestampFromSpan(span.endTimeUnixNano ?? span.endTimeUnixMillis ?? span.endTime);
+        const durationMs = durationMsFromSpan(span.startTimeUnixNano ?? span.startTimeUnixMillis ?? span.startTime, span.endTimeUnixNano ?? span.endTimeUnixMillis ?? span.endTime);
+        spans.push({
+          ...span,
+          traceId,
+          ...(spanId ? { spanId } : {}),
+          ...(parentSpanId ? { parentSpanId } : {}),
+          name: stringParam(span.name) ?? spanId ?? traceId,
+          attributes,
+          resourceAttributes,
+          scopeAttributes,
+          ...(stringParam(resourceAttributes["service.name"]) ? { serviceName: resourceAttributes["service.name"] } : {}),
+          ...(startedAt ? { startedAt } : {}),
+          ...(endedAt ? { endedAt } : {}),
+          ...(durationMs !== null ? { durationMs } : {}),
+          events: arrayRecords(span.events).map((event) => ({
+            ...event,
+            attributes: attributesRecord(event.attributes),
+          })),
+          links: arrayRecords(span.links).map((link) => ({
+            ...link,
+            attributes: attributesRecord(link.attributes),
+          })),
+          raw: span,
+        });
+      }
+    }
+  }
+  return spans;
+}
+
+function resourceSpansFromPayload(payload: unknown): Array<Record<string, unknown>> {
+  if (!isRecord(payload)) return [];
+  return [
+    ...arrayRecords(payload.resourceSpans),
+    ...arrayRecords(payload.batches),
+    ...arrayRecords(isRecord(payload.data) ? payload.data.resourceSpans : undefined),
+    ...arrayRecords(isRecord(payload.data) ? payload.data.batches : undefined),
+  ];
+}
+
+function attributesRecord(value: unknown) {
+  const attributes: Record<string, unknown> = {};
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      if (!isRecord(entry)) continue;
+      const key = stringParam(entry.key);
+      if (!key) continue;
+      attributes[key] = otelAttributeValue(entry.value);
+    }
+    return attributes;
+  }
+  return isRecord(value) ? { ...value } : attributes;
+}
+
+function otelAttributeValue(value: unknown): unknown {
+  if (!isRecord(value)) return value;
+  for (const key of ["stringValue", "intValue", "doubleValue", "boolValue", "bytesValue"]) {
+    if (value[key] !== undefined) return value[key];
+  }
+  if (isRecord(value.arrayValue) && Array.isArray(value.arrayValue.values)) {
+    return value.arrayValue.values.map(otelAttributeValue);
+  }
+  if (isRecord(value.kvlistValue) && Array.isArray(value.kvlistValue.values)) {
+    return attributesRecord(value.kvlistValue.values);
+  }
+  return value;
+}
+
+function extractTraceIds(value: unknown): string[] {
+  const traceIds: string[] = [];
+  const visit = (candidate: unknown) => {
+    if (Array.isArray(candidate)) {
+      for (const item of candidate) visit(item);
+      return;
+    }
+    if (!isRecord(candidate)) return;
+    const traceId = stringParam(candidate.traceId) ?? stringParam(candidate.traceID);
+    if (traceId) traceIds.push(traceId);
+    for (const key of ["traces", "result", "results", "data"]) {
+      if (candidate[key] !== undefined) visit(candidate[key]);
+    }
+  };
+  visit(value);
+  return [...new Set(traceIds)];
+}
+
+function traceIdsParam(value: unknown) {
+  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+  if (typeof value === "string") return value.split(",").map((item) => item.trim()).filter(Boolean);
+  return [];
+}
+
+function booleanParam(value: unknown) {
+  return value === true || value === "true" || value === "1" || value === 1;
+}
+
+function timestampFromSpan(value: unknown) {
+  const number = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
+  if (!Number.isFinite(number)) return undefined;
+  const millis = number > 1_000_000_000_000_000 ? Math.floor(number / 1_000_000) : number;
+  return new Date(millis).toISOString();
+}
+
+function durationMsFromSpan(start: unknown, end: unknown) {
+  const startNumber = typeof start === "number" ? start : typeof start === "string" ? Number(start) : NaN;
+  const endNumber = typeof end === "number" ? end : typeof end === "string" ? Number(end) : NaN;
+  if (!Number.isFinite(startNumber) || !Number.isFinite(endNumber)) return null;
+  const divisor = Math.max(startNumber, endNumber) > 1_000_000_000_000_000 ? 1_000_000 : 1;
+  return (endNumber - startNumber) / divisor;
+}
+
+function arrayRecords(value: unknown): Array<Record<string, unknown>> {
+  return Array.isArray(value) ? value.filter(isRecord) : [];
 }
 
 async function adapterFetch(manifest: StudioTargetManifest, path: string, init: RequestInit = {}) {
@@ -316,22 +532,30 @@ function numberParam(value: unknown) {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function studioConversationRowFromSummary(summary: StudioConversationSummary): StudioConversationRow {
+export function studioConversationRowFromSummary(summary: StudioConversationSummary): StudioConversationRow {
+  const extensionFields = summary as Record<string, unknown>;
+  const targetCustomerLabel = stringParam(extensionFields.customerLabel);
+  const targetSummary = stringParam(extensionFields.summary);
   return {
+    ...summary,
     id: summary.id,
     agentId: summary.agentId,
     lifecycle: summary.lifecycle,
     ...(summary.customerRelation ? { customerRelation: summary.customerRelation } : {}),
-    customerLabel: summary.customerRelation?.label ?? (summary.customerRelation?.id ? `Customer ${summary.customerRelation.id}` : `Conversation ${summary.id.slice(0, 8)}`),
-    summary: summarizeTargetConversation(summary),
+    customerLabel: targetCustomerLabel ?? summary.customerRelation?.label ?? (summary.customerRelation?.id ? `Customer ${summary.customerRelation.id}` : `Conversation ${summary.id.slice(0, 8)}`),
+    summary: targetSummary ?? summarizeTargetConversation(summary),
     createdAt: summary.createdAt,
     updatedAt: summary.updatedAt,
     ...(summary.activeJourneyId ? { activeJourneyId: summary.activeJourneyId } : {}),
     activeStateIds: summary.activeStateIds,
     traceIds: summary.traceIds,
     ...(summary.eventCount !== undefined ? { eventCount: summary.eventCount } : {}),
-    satisfaction: "neutral",
+    satisfaction: satisfactionValue(extensionFields.satisfaction),
   };
+}
+
+function satisfactionValue(value: unknown): StudioConversationRow["satisfaction"] {
+  return value === "positive" || value === "neutral" || value === "negative" ? value : "neutral";
 }
 
 function lifecycleParam(value: unknown): StudioConversationRow["lifecycle"] | undefined {

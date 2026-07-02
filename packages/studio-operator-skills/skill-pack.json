@@ -11,7 +11,7 @@
     {
       "id": "telemetry",
       "title": "Query Cognidesk telemetry",
-      "description": "Use configured trace and metric sources for runtime investigation and dashboard datasets.",
+      "description": "Use configured trace and metric sources for runtime investigation, reporting, and dashboard datasets.",
       "path": "skills/telemetry.md"
     },
     {
@@ -23,7 +23,7 @@
     {
       "id": "dashboard-authoring",
       "title": "Author interactive Studio dashboards",
-      "description": "Create browser-sandboxed React dashboard artifacts backed by Studio Dashboard Data Layer capabilities.",
+      "description": "Create browser-sandboxed React dashboard artifacts backed by Studio data layer capabilities.",
       "path": "skills/dashboard-authoring.md"
     }
   ]

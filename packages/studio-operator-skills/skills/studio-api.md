@@ -19,6 +19,13 @@ runtime instructions. Useful v1 endpoints:
 - `GET /api/studio/configuration` returns read-only metadata derived from the
   compiled SDK target, such as channel policy details exposed by the Agent
   definition. It is not a separate Studio-owned target config.
+- `POST /api/studio/data` returns generic Studio datasets for reporting,
+  textual analysis, and dashboards. Query with
+  `{ capability, targetId, params }`. For `telemetry.traces`, pass
+  `params.traceId` or `params.traceIds` for complete trace payloads, or
+  `params.includeTraceData: true` with a search query to hydrate matching
+  traces. The result preserves `rawTraces` and exposes flat `spans` with
+  `attributes`, `resourceAttributes`, `scopeAttributes`, `events`, and `links`.
 - `GET /api/studio/dashboards` lists saved dashboard artifacts.
 - `GET /api/studio/conversations` lists recent Studio conversation summaries.
 - `POST /api/studio/dashboards` saves a dashboard draft with `title`, `slug`,
@@ -29,6 +36,7 @@ runtime instructions. Useful v1 endpoints:
   `"static"` for fixed captured inputs. `source.capability` must be one of
   `telemetry.traces`, `telemetry.metrics`, `cognidesk.agent`,
   `cognidesk.conversations`, `cognidesk.events`, or `cognidesk.snapshots`.
+- `POST /api/studio/dashboard-data` is a legacy alias for `/api/studio/data`.
 - `POST /api/studio/dashboards/:id/publish` publishes a saved draft only after
   the user has explicitly asked for publication.
 - `DELETE /api/studio/dashboards/:id` deletes a saved dashboard draft or

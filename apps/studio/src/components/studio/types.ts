@@ -1,5 +1,6 @@
 import type {
   StudioDashboardArtifact,
+  StudioConversationSummary,
   StudioCustomerRelation,
 } from "@cognidesk/studio-contracts";
 
@@ -98,7 +99,7 @@ export type OperatorEvent =
   | { type: "turn.completed"; sessionId: string }
   | { type: "error"; sessionId?: string; message: string };
 
-export type StudioConversationRow = {
+export type StudioConversationRow = StudioConversationSummary & {
   id: string;
   agentId: string;
   lifecycle: "active" | "handoff" | "closed";

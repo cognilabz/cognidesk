@@ -46,12 +46,15 @@ export function DashboardWidget(props: {
 }) {
   const dataset = props.datasets.find((item) => item.id === props.widget.datasetId) ?? props.datasets[0];
   if (props.widget.kind === "metric") {
+    const value = metricValue(props.widget, dataset);
+    const missing = value === undefined || value === null;
     return (
-      <article className={cn("rounded-lg border bg-white p-4", toneClasses(props.widget.tone))}>
+      <article className={cn("rounded-lg border bg-white p-4", missing ? "border-amber-200 bg-amber-50" : toneClasses(props.widget.tone))}>
         <p className="text-sm text-slate-500">{props.widget.title}</p>
-        <strong className="mt-2 block text-3xl font-semibold text-slate-950">
-          {formatMetricValue(metricValue(props.widget, dataset), props.widget.unit)}
+        <strong className={cn("mt-2 block font-semibold", missing ? "text-base text-amber-800" : "text-3xl text-slate-950")}>
+          {formatMetricValue(value, props.widget.unit)}
         </strong>
+        {missing && props.widget.valuePath ? <p className="mt-2 text-xs text-amber-800">No value found for {props.widget.valuePath}.</p> : null}
         {props.widget.description ? <p className="mt-2 text-xs text-slate-500">{props.widget.description}</p> : null}
       </article>
     );
